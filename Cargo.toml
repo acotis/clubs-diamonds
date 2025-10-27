@@ -8,8 +8,13 @@ repository = "https://github.com/acotis/clubs-diamonds"
 readme = "README.md"
 keywords = ["code-golf", "brute-forcer"]
 
+[[bin]]
+name = "demo"
+path = "src/demo.rs"
+
 [dependencies]
 chrono = "0.4.42"
 crossterm = "0.29.0"
+embed-doc-image = "0.1.4"
 lazy_static = "1.5.0"
 ratatui = "0.29.0"
