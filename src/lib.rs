@@ -46,9 +46,9 @@
 //!
 //! ![A screenshot of the text-based interface of the Clubs expression searcher. On the right, several information boxes tell us what expressions are currently being searched by each of four threads, how long the search has been running for, how many expressions are being searched per second, and other stats. On the left, six found solutions are listed.][demo]
 //!
-#![doc = embed_doc_image::embed_image!("demo", "assets/demo.png")]
+#![doc = embed_doc_image::embed_image!("demo", "assets/demo_medium.png")]
 //!
-//! The interface is controlled by the keyboard. The controls are:
+//! The controls are:
 //!
 //! - `D`: show/hide description box
 //! - `T`: show/hide thread list
@@ -56,10 +56,15 @@
 //! - `I`: show/hide solution inspector
 //! - `N`: show/hide news feed
 //! - `+` / `-`: increase/decrease target thread count*
+//!   - Decreases in thread count may take a while to take effect because the thread count cannot decrease until one of the currently-running threads finishes its task, and the tasks can be minutes or hours long.
 //! - `J` / `K`: naviate downward/upward in the list of solutions
 //! - `Q`: quit
 //! 
-//! \* Decreases in thread count may take a while to take effect because the thread count cannot decrease until one of the currently-running threads finishes its task, and the tasks can be minutes or hours long depending on how far the search has progressed.
+//! When you quit the UI, control flow returns to the main function, and the `println!` statements display the information returned by the `.search_with_ui()` method. The returned information is:
+//!
+//! - `count`: a u128 representing the total number of expressions which were considered during the search (including those which were rejected because they didn't meet the specified criterion)
+//! - `solutions`: a Vec containing the expressions that did meet the criterion
+//! 
 
 pub mod search;
 pub mod utils;
