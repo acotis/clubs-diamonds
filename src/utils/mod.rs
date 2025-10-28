@@ -1,4 +1,15 @@
 
+//!
+//! Some value-formatting utility functions used internally by the Clubs UI that are exposed for users who want to format values the same way.
+//!
+//! Clubs uses chrono for its timestamp needs, so the argument types here are argument types from the chrono crate.
+//!
+
+// TODO: It's wrong for a crate to export functions whose signatures contain types from another crate, because then the end user must have the exact same version of the dependency crate installed or else the types will not match up.
+//
+// One solution is to re-export the types under your own crate. Another is to
+// just make the module not public, and I think that's what I prefer.
+
 use chrono::{DateTime, Local, TimeDelta};
 
 // Format a timestamp like this: "Sat, 2025 May 10 11:40"
