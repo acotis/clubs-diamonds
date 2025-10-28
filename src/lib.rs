@@ -1,5 +1,7 @@
 
 // TODO: Be consistent in how you monospace type names.
+// TODO: Move the search stuff out of the "flat" module.
+// TODO: Move the search stuff out of the "search" module too?
 
 //! A brute-forcer for finding short mathematical expressions in Rust, for code golf.
 //!
@@ -75,9 +77,9 @@
 //! - `count`: a u128 representing the total number of expressions which were considered during the search (including those which were rejected because they didn't meet the specified criterion)
 //! - `solutions`: a Vec containing the expressions that did meet the criterion
 //! 
-//! **Limitation note:** Clubs does not currently consider expressions containing the unary `-` operator (arithmetic negation). For unsigned types, this doens't matter because the operator is inapplicable anyway. For signed types, this means Clubs will sometimes miss valid expressions that could have been solutions. Instead, it will find longer versions of these expressions that contain terms like `0-a` in place of `-a`. This is planned to be fixed.
+//! **Limitation note:** Clubs does not currently consider expressions containing the unary `-` operator (arithmetic negation). For unsigned types, this doens't matter because the operator is inapplicable anyway. For signed types, this means Clubs will sometimes miss valid expressions that could have been solutions. Instead, it will find longer versions of these expressions that contain terms like `0-a` in place of `-a`. This is planned to be fixed in a later version of the crate.
 //!
-// TODO: Fix this bullshit. It's easy: `-a` is equal to `0 - a`.
+// TODO: Fix this bullshit.
 //! 
 //! # Step-by-step explanation
 //!
