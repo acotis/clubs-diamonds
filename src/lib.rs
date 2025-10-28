@@ -113,19 +113,19 @@
 //!
 //! ## Step 1b: Type of variables
 //!
-//! In Rust, every variable has an unchanging type, and Rust is generally a hard-ass about enforcing that types match. If `x` is a u32 and `y` is an i32, then `x*y` is a syntactically invalid expression and will fail to compile with a type error.
+//! In Rust, every variable has an unchanging type, and Rust is generally a hard-ass about enforcing that types match. If `x` is a u32 and `y` is an i128, then `x*y` is a syntactically invalid expression and will fail to compile with a type error.
 //!
 //! In Clubs, the Searcher requires that every variable in an expression has the same type, and this type must be specified as a type parameter of the Searcher itself. If you set it to `u8`, it will find expressions whose inputs (and output) are `u8`s. If you set it to `isize`, it will find expressions whose inputs (and output) are `isize`s.
 //!
 //! #### Extra details for type nerds
 //!
-//! For the most part, this requirement of Clubs is simply a requirement of Rust, as described above. If `x` is a u32 and `x*y` is a valid expression, then `y` must be a u32 as well, and `x*y` will be one too. This type-matching rule is true of the operators `*`, `/`, `%`, `+`, `-`, `&`, `^`, and `|`, and the of unary operators `!` and `-`.
+//! For the most part, this requirement of Clubs is simply a requirement of Rust, as described above. If `x` is a u32 and `x*y` is a valid expression, then `y` must be a u32 as well, and `x*y` will be one too. This type-matching rule is true of the binary operators `*`, `/`, `%`, `+`, `-`, `&`, `^`, and `|`, and the of unary operators `!` and `-`.
 //!
-//! However, it is not true of the shift operators, `<<` and `>>`. These operators are special in that the left and right operands are NOT required to have the same type. `x>>y` is valid Rust code even if `x` is a u32 and `y` is an isize (and it works for every other pair of types too). The only constraint in these cases is that the output type must be equal to the type of the left operand.
+//! However, it is not true of the bitshift operators, `<<` and `>>`. These operators are special in that the left and right operands are NOT required to have the same type. `x>>y` is valid Rust code even if `x` is a u32 and `y` is an isize (and it works for every other pair of types too). The only constraint enforced for these operators is that the output type must be equal to the type of the left operand.
 //!
-//! Since this is the case, it is possible to imagine a two-variable expression whose input variables have distinct types, and it is possible to imagine a search for two-variable expressions whose input variables have distinct types — for example, a search for expressions whose input variables are of type `i64` and `u16`. Such a search would consider expressions like `a>>b`, `(b+3^9)<<33*a`, and `b>>(a<<b)`, but not `a+b+21` or even `a|b`.
+//! Since this is the case, it is possible in principle to imagine a two-variable expression whose input variables have distinct types, and it is possible in principle to imagine a search for two-variable expressions whose input variables have distinct types — for example, a search for expressions whose input variables are of type `i64` and `u16`. Such a search would consider expressions like `a>>b`, `(b+3^9)<<33*a`, and `b>>(a<<b)`, but not `a+b*21` or even `a|b`, and it would provide an interface by which you could apply each candidate expression to pairs of input values of types `i64` and `u16`.
 //!
-//! **Clubs is not capable of performing this search.** It is a limitation of the current architecture. In Clubs, you may only perform searches for expressions whose input variables all have the same type and whose output type is the same one as that.
+//! **Clubs is not capable of performing this search.** It is a limitation of the current architecture. In Clubs, you may only perform searches for expressions whose input variables all have the same type and whose output type is the same one as that. The type you choose is a type parameter of the `Searcher` struct and a type parameter of the `Expression` and `ExpressionCore` structs it yields.
 //!
 //! ## Step 2: Constructing a Searcher
 //!
