@@ -6,8 +6,11 @@
 //! This crate provides the following types:
 //!
 //! - [`Expression`][crate::Expression]: A struct representing a mathematical expression that syntactically parses as Rust code, such as `3*(a+5)` or `b>>a|89%c`.
-//! - [`ExpressionCore`][crate::ExpressionCore]: A more lightweight version of the same thing, which borrows its data. (If you don't know what that means, don't worry too much about it.) This distinction is going away in a future version of the crate.
 //! - [`Searcher`][crate::Searcher]: A configurable search type which can be used to systematically search all syntactically valid expressions in order of length, and yield only those which meet a customizeable, user-specified criterion.
+//!
+//! And the following helper trait:
+//!
+// - [`Number`][crate::Number]: A trait 
 //!
 //! # Basic example
 //!
@@ -21,18 +24,16 @@
 //!
 //! You can ask Clubs to find you such an expression using the following complete program:
 //!
-
-// TODO: The example program should use i32's, not usize's!
-// Don't update it until you're sure you've found every problem and are ready
-// to re-take the screenshot.
-
+//
+// TODO: once this is finalized, re-take the screenshot (the type has changed since the last screenshot)
+//
 //!
 //! ```
-//! use clubs_diamonds::search::flat::{Searcher, ExpressionCore};
+//! use clubs_diamonds::{Searcher, Expression};
 //! 
 //! fn main() {
 //!     let (count, solutions) =
-//!         Searcher::<usize, 1>::new(|expr: ExpressionCore::<usize, 1>| {
+//!         Searcher::<i32, 1>::new(|expr: &Expression::<i32, 1>| {
 //!             expr.apply(&[1]) == Some(2) &&
 //!             expr.apply(&[2]) == Some(3) &&
 //!             expr.apply(&[3]) == Some(5) &&
@@ -86,7 +87,7 @@
 //! 1. **Decide the type and number** of variables which will appear in the expression.
 //!     - Specify these choices as type parameters of the Searcher.
 //! 2. **Construct** the searcher using the method `Searcher::new()`.
-//!     - When you call this method, you supply a closure that accepts an ExpressionCore and returns a bool. This is the "judge" that is used to determine which expressions are displayed in the Solutions column in the UI (and eventually returned in the solutions Vec).
+//!     - When you call this method, you supply a closure that accepts an Expression and returns a bool. This is the "judge" that is used to determine which expressions are displayed in the Solutions column in the UI (and eventually returned in the solutions Vec).
 //! 3. Optionally, **specify additional parameters** for the search by using some of Searcher's Builder-Lite methods.
 //! 4. **Execute** the search using either the `.run_with_ui()` method or the `.run_silently()` method.
 //!     - The former displays the above UI and the latter displays nothing.
@@ -125,21 +126,21 @@
 //!
 //! Since this is the case, it is possible in principle to imagine a two-variable expression whose input variables have distinct types, and it is possible in principle to imagine a search for two-variable expressions whose input variables have distinct types — for example, a search for expressions whose input variables are of type `i64` and `u16`. Such a search would consider expressions like `a>>b`, `(b+3^9)<<33*a`, and `b>>(a<<b)`, but not `a+b*21` or even `a|b`, and it would provide an interface by which you could apply each candidate expression to pairs of input values of types `i64` and `u16`.
 //!
-//! **Clubs is not capable of performing this search.** It is a limitation of the current architecture. In Clubs, you may only perform searches for expressions whose input variables all have the same type and whose output type is the same one as that. The type you choose is a type parameter of the `Searcher` struct and a type parameter of the `Expression` and `ExpressionCore` structs it yields.
+//! **Clubs is not capable of performing this search.** It is a limitation of the current architecture. In Clubs, you may only perform searches for expressions whose input variables all have the same type and whose output type is the same one as that. The type you choose is a type parameter of the `Searcher` struct and a type parameter of the `Expression` structs it yields.
 //!
 //! ## Step 2: Constructing a Searcher
 //!
-//! A Searcher is constructed using the method `Searcher::new()`, which accepts a closure as its only argument. The closure must accept an `ExpressionCore` and return a `bool`. This is where you specify your customizeable criterion that expressions are tested against.
+//! A Searcher is constructed using the method `Searcher::new()`, which accepts a closure as its only argument. The closure must accept an `&Expression` and return a `bool`. This is where you specify your customizeable criterion that expressions are tested against.
 //!
-//! Generally speaking, you will judge an expression by calling the `.apply()` method provided by the `ExpressionCore` type and checking things about its return values. This method accepts an array of input variable values and returns the output value the expression evaluates to for those inputs. The return value is wrapped in an `Option`, and the value `None` is returned when the given inputs would cause the expression to crash with a runtime error (for example, if it ends up dividing by zero).
+//! Generally speaking, you will judge an expression by calling the `.apply()` method provided by the `Expression` type and checking things about its return values. This method accepts an array of input variable values and returns the output value the expression evaluates to for those inputs. The return value is wrapped in an `Option`, and the value `None` is returned when the given inputs would cause the expression to crash with a runtime error (for example, if it ends up dividing by zero).
 //!
 //! Here is an example of a Searcher being constructed for a two-variable search using `i16` variables:
 //!
 //! ```
-//! use clubs_diamonds::search::flat::{Searcher, ExpressionCore};
+//! use clubs_diamonds::search::flat::{Searcher, Expression};
 //! 
 //! fn main() {
-//!     Searcher::<i16, 2>::new(|expr: ExpressionCore::<i16, 2>| {
+//!     Searcher::<i16, 2>::new(|expr: &Expression::<i16, 2>| {
 //!         expr.apply(&[1, 3]) == Some(5) &&
 //!         expr.apply(&[5, -2]) == Some(-6) &&
 //!         expr.apply(&[-8, 7]) == None
@@ -151,9 +152,9 @@
 //  TODO: make a demo file for this one too.
 //!
 //! This Searcher will consider all expressions containing two `i16` variables. For example:
-//! - The Searcher will consider the expression `a+b`. To evaluate this expression, it will pass an ExpressionCore representing it to the provided closure. The closure will call `expr.apply(&[1, 3])` and get `Some(4)` as the answer. Since that doesn't match the expected value, the closure will return `false` and the Searcher will reject the expression.
-//! - The Searcher will consider the expression `a^b+1`. To evaluate this expression, it will pass an ExpressionCore representing it to the provided closure. The provided closure will call `expr.apply(&[1, 3])` and get `Some(5)` as the output (note that due to the operator precedence of `+` and `^`, the expression groups as `a^(b+1)`). Since this matches, the closure will continue to the next condition, calling `expr.apply(&[5, -2])`, and getting `Some(-6)` as the answer. Since this matches too, the closure will continue to the last condition, calling `expr.apply(&[-8, 7])` and getting `Some(-16)` as the answer. Since this doesn't match, the closure will return `false` and the Searcher will reject this expression as well.
-//! - Eventually, the Searcher will consider the expression `4^a/(4/b)`. To evaluate this expression, it will pass an ExpressionCore representing it to the provided closure. The provided closure will evaluate each input in turn, finding that each expected output is a match and eventually calling `expr.apply(&[-8, 7])` and getting `None` as the answer because evaluating the expression at the those inputs would cause Rust to divide by zero and crash. Since this is the expected output as well, the closure will return `true` and the Searcher will accept this expression, displaying it in the Solutions column of the UI and returning it in the final `results` Vec.
+//! - The Searcher will consider the expression `a+b`. To evaluate this expression, it will pass an Expression representing it to the provided closure. The closure will call `expr.apply(&[1, 3])` and get `Some(4)` as the answer. Since that doesn't match the expected value, the closure will return `false` and the Searcher will reject the expression.
+//! - The Searcher will consider the expression `a^b+1`. To evaluate this expression, it will pass an Expression representing it to the provided closure. The provided closure will call `expr.apply(&[1, 3])` and get `Some(5)` as the output (note that due to the operator precedence of `+` and `^`, the expression groups as `a^(b+1)`). Since this matches, the closure will continue to the next condition, calling `expr.apply(&[5, -2])`, and getting `Some(-6)` as the answer. Since this matches too, the closure will continue to the last condition, calling `expr.apply(&[-8, 7])` and getting `Some(-16)` as the answer. Since this doesn't match, the closure will return `false` and the Searcher will reject this expression as well.
+//! - Eventually, the Searcher will consider the expression `4^a/(4/b)`. To evaluate this expression, it will pass an Expression representing it to the provided closure. The provided closure will evaluate each input in turn, finding that each expected output is a match and eventually calling `expr.apply(&[-8, 7])` and getting `None` as the answer because evaluating the expression at the those inputs would cause Rust to divide by zero and crash. Since this is the expected output as well, the closure will return `true` and the Searcher will accept this expression, displaying it in the Solutions column of the UI and returning it in the final `results` Vec.
 //!
 //! **Golfing tip:** There is room for considerable ingenuity and creativity in specifying the criterion that a Searcher will apply. It can be any predicate. Using your imagination will take you further than only copying the format of the documented examples.
 //!
