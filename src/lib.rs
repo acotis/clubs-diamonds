@@ -1,8 +1,5 @@
 
-// TODO: Hide the utils module
 // TODO: Be consistent in how you monospace type names.
-// TODO: Move the search stuff out of the "flat" module.
-// TODO: Move the search stuff out of the "search" module too?
 
 //! A brute-forcer for finding short mathematical expressions in Rust, for code golf.
 //!
