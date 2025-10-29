@@ -282,7 +282,7 @@ impl Widget for &SearchUIFace {
 }
 
 impl SearchUIFace {
-    fn format_solution(solution: &str, score: usize, selected: bool) -> ListItem {
+    fn format_solution(solution: &str, score: usize, selected: bool) -> ListItem<'_> {
         if selected {
             ListItem::new(Line::from(vec![
                 Span::raw(format!("{}", format!("[{score}]"))).style(*STYLE_SOLUTION_HIGHLIGHT_META),
@@ -298,7 +298,7 @@ impl SearchUIFace {
         }
     }
 
-    fn solution_list_ui(&self) -> Vec<ListItem> {
+    fn solution_list_ui(&self) -> Vec<ListItem<'_>> {
         let mut ret = vec![];
 
         // Title.
@@ -344,7 +344,7 @@ impl SearchUIFace {
         ret
     }
 
-    fn stats_ui(&self) -> Vec<ListItem> {
+    fn stats_ui(&self) -> Vec<ListItem<'_>> {
 
         // Title.
 
@@ -419,7 +419,7 @@ impl SearchUIFace {
         ]
     }
 
-    fn solution_inspector_ui(&self) -> Vec<ListItem> {
+    fn solution_inspector_ui(&self) -> Vec<ListItem<'_>> {
         let mut ret = vec![];
 
         // Title.
@@ -458,7 +458,7 @@ impl SearchUIFace {
         ret
     }
 
-    fn thread_viewer_ui(&self) -> Vec<ListItem> {
+    fn thread_viewer_ui(&self) -> Vec<ListItem<'_>> {
         let mut ret = vec![];
 
         // Title.
@@ -509,7 +509,7 @@ impl SearchUIFace {
         ret
     }
 
-    fn news_feed_ui(&self) -> Vec<ListItem> {
+    fn news_feed_ui(&self) -> Vec<ListItem<'_>> {
         let mut ret = vec![];
 
         // Title.
@@ -562,7 +562,7 @@ impl SearchUIFace {
         ret
     }
 
-    fn description_ui(&self) -> Vec<ListItem> {
+    fn description_ui(&self) -> Vec<ListItem<'_>> {
         let mut ret = vec![];
 
         // Title.
