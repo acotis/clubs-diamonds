@@ -1,5 +1,12 @@
 
 // TODO: Be consistent in how you monospace type names.
+// TODO: Once the demo is finalized, re-take the screenshot (the type has changed since the last screenshot).
+// TODO: Finalize the second demo and make a demo bin for it.
+// TODO: Make sure Expression's fields and nitty-gritty construction methods are not public.
+// TODO: Write Expression::from_str() (or whatever).
+
+// For the next version:
+//     TODO: Make unary arithmetic negation optionally included.
 
 //! A brute-forcer for finding short mathematical expressions in Rust, for code golf.
 //!
@@ -24,9 +31,6 @@
 //!
 //! You can ask Clubs to find you such an expression using the following complete program:
 //!
-//
-// TODO: once this is finalized, re-take the screenshot (the type has changed since the last screenshot)
-//
 //!
 //! ```
 //! use clubs_diamonds::{Searcher, Expression};
@@ -53,7 +57,7 @@
 //! }
 //! ```
 //!
-//! Executing the above code yields a text-based UI that looks like this:
+//! Executing the above code brings up a text-based UI that looks like this:
 //!
 //! ![A screenshot of the text-based interface of the Clubs expression searcher. On the right, several information boxes tell us what expressions are currently being searched by each of four threads, how long the search has been running for, how many expressions are being searched per second, and other stats. On the left, six found solutions are listed.][demo]
 //!
@@ -73,13 +77,11 @@
 //! 
 //! When you quit the UI, control flow returns to the main function, and the `println!` statements display the information returned by the `.search_with_ui()` method. The returned information is:
 //!
-//! - `count`: a u128 representing the total number of expressions which were considered during the search (including those which were rejected because they didn't meet the specified criterion)
-//! - `solutions`: a Vec containing the expressions that did meet the criterion
+//! - `count`: a u128 representing the total number of expressions which were considered during the search (including those which were rejected because they didn't meet the specified criterion).
+//! - `solutions`: a Vec containing the expressions that did meet the criterion.
 //! 
-//! **Limitation note:** Clubs does not currently consider expressions containing the unary `-` operator (arithmetic negation). For unsigned types, this doens't matter because the operator is inapplicable anyway. For signed types, this means Clubs will sometimes miss valid expressions that could have been solutions. Instead, it will find longer versions of these expressions that contain terms like `0-a` in place of `-a`. This is planned to be fixed in a later version of the crate.
+//! **Limitation note:** Clubs does not currently consider expressions containing the unary `-` operator (arithmetic negation). For unsigned types, this doesn't matter because the operator is inapplicable anyway. For signed types, this means Clubs will sometimes miss valid expressions that could have been solutions. Instead, it will find longer versions of these expressions that contain terms like `0-a` in place of `-a`. This is planned to be fixed in a later version of the crate.
 //!
-// TODO: Fix this bullshit.
-//! 
 //! # Step-by-step explanation
 //!
 //! There is a four-step workflow for using the `Searcher` type:
@@ -87,7 +89,7 @@
 //! 1. **Decide the type and number** of variables which will appear in the expression.
 //!     - Specify these choices as type parameters of the Searcher.
 //! 2. **Construct** the searcher using the method `Searcher::new()`.
-//!     - When you call this method, you supply a closure that accepts an Expression and returns a bool. This is the "judge" that is used to determine which expressions are displayed in the Solutions column in the UI (and eventually returned in the solutions Vec).
+//!     - When you call this method, you supply a closure that accepts an `&Expression` and returns a `bool`. This is the "judge" that is used to determine which expressions are displayed in the Solutions column in the UI (and eventually returned in the solutions Vec).
 //! 3. Optionally, **specify additional parameters** for the search by using some of Searcher's Builder-Lite methods.
 //! 4. **Execute** the search using either the `.run_with_ui()` method or the `.run_silently()` method.
 //!     - The former displays the above UI and the latter displays nothing.
@@ -149,8 +151,6 @@
 //! }
 //! ```
 //!
-//  TODO: make a demo file for this one too.
-//!
 //! This Searcher will consider all expressions containing two `i16` variables. For example:
 //! - The Searcher will consider the expression `a+b`. To evaluate this expression, it will pass an Expression representing it to the provided closure. The closure will call `expr.apply(&[1, 3])` and get `Some(4)` as the answer. Since that doesn't match the expected value, the closure will return `false` and the Searcher will reject the expression.
 //! - The Searcher will consider the expression `a^b+1`. To evaluate this expression, it will pass an Expression representing it to the provided closure. The provided closure will call `expr.apply(&[1, 3])` and get `Some(5)` as the output (note that due to the operator precedence of `+` and `^`, the expression groups as `a^(b+1)`). Since this matches, the closure will continue to the next condition, calling `expr.apply(&[5, -2])`, and getting `Some(-6)` as the answer. Since this matches too, the closure will continue to the last condition, calling `expr.apply(&[-8, 7])` and getting `Some(-16)` as the answer. Since this doesn't match, the closure will return `false` and the Searcher will reject this expression as well.
@@ -160,7 +160,7 @@
 //!
 //! ## Steps 3 and 4: Additional search parameters and execution
 //!
-//! For a list of `Searcher`'s methods, including the ones for specifying additional search parameters and executing the search, see its documentation page. [TODO: make this a link]
+//! For a list of `Searcher`'s methods, including the ones for specifying additional search parameters and executing the search, see [its documentation page][crate::Searcher].
 //!
 //! **Note:** If you opt to use the `.run_silently()` method, then there will be no way to quit the search until Clubs decides it's done. So, if you plan to use that method, you probably want to specify a combination of search parameters that make the search task finite.
 //!
