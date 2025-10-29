@@ -178,4 +178,5 @@ mod searcher;
 pub use expression::ExpressionCore;
 pub use expression::Expression;
 pub use searcher::Searcher;
+pub use number::Number;
 
