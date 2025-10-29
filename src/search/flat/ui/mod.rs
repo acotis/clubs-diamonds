@@ -1,4 +1,6 @@
 
+pub mod utils;
+
 use std::time::Duration;
 use chrono::{DateTime, Local};
 use ratatui::Terminal;
@@ -14,7 +16,7 @@ use DashboardBlock::*;
 use SearchUISignal::*;
 
 use lazy_static::lazy_static;
-use crate::utils as format_helpers;
+use utils as format_helpers;
 
 lazy_static! {
     static ref STYLE_BLANK:                   Style = Style::default();

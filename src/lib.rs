@@ -1,4 +1,5 @@
 
+// TODO: Hide the utils module
 // TODO: Be consistent in how you monospace type names.
 // TODO: Move the search stuff out of the "flat" module.
 // TODO: Move the search stuff out of the "search" module too?
@@ -165,5 +166,4 @@
 //!
 
 pub mod search;
-pub mod utils;
 

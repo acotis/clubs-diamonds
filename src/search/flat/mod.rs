@@ -17,7 +17,7 @@ use ui::SearchUI;
 use ui::SearchUISignal::*;
 use self::SearchNews::*;
 use ThreadStatus::*;
-use crate::utils as format_helpers;
+use ui::utils as format_helpers;
 
 // Helper types.
 
