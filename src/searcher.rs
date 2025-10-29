@@ -1,9 +1,9 @@
 
 use std::thread;
 use std::sync::mpsc;
+use std::marker::PhantomData;
 
 use crate::expression::Expression;
-use crate::expression::ExpressionCore;
 use crate::number::Number;
 use crate::pivot::Op::{self, *};
 use crate::expression_writer::ExpressionWriter;
@@ -16,7 +16,7 @@ use ThreadStatus::*;
 
 // Helper types.
 
-type Judge    <N, const C: usize> = fn(ExpressionCore<N, C>) -> bool;
+type Judge    <N, const C: usize> = fn(&Expression<N, C>) -> bool;
 type Inspector<N, const C: usize> = fn(&Expression<N, C>) -> String;
 type Penalizer<N, const C: usize> = fn(&Expression<N, C>) -> usize;
 
@@ -314,22 +314,24 @@ fn find_with_length_and_op<N: Number, const C: usize>(
     //println!("New thread! — length = {length}, op_requirement = {op_requirement:?}");
 
     let mut count = 0u128;
-    let mut field: [u8; 16] = [255; 16];
+    let mut expr = Expression {
+        field: vec![255; 16],
+        nothing: PhantomData::default(),
+    };
     let mut writer = ExpressionWriter::new(C, length, op_requirement);
 
-    while writer.write(&mut field) {
+    while writer.write(&mut expr.field) {
         count += 1;
-        let expression_core = ExpressionCore::new(&field);
 
-        if judge(expression_core) {
+        if judge(&expr) {
             mpsc.send(ExpressionWorks {
                 thread_id,
-                expr: Expression::from_core(expression_core),
+                expr: expr.clone(),
             }).unwrap();
         } else if count == notification_spacing {
             mpsc.send(ExpressionDoesntWork {
                 thread_id,
-                expr: Expression::from_core(expression_core),
+                expr: expr.clone(),
                 length,
                 count,
             }).unwrap();

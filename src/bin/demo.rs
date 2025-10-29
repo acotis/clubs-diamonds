@@ -1,9 +1,9 @@
 
-use clubs_diamonds::{Searcher, ExpressionCore};
+use clubs_diamonds::{Searcher, Expression};
 
 fn main() {
     let (count, solutions) =
-        Searcher::<usize, 1>::new(|expr: ExpressionCore::<usize, 1>| {
+        Searcher::<usize, 1>::new(|expr: &Expression::<usize, 1>| {
             expr.apply(&[1]) == Some(2) &&
             expr.apply(&[2]) == Some(3) &&
             expr.apply(&[3]) == Some(5) &&

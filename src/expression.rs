@@ -5,16 +5,16 @@ use crate::number::Number;
 use crate::pivot::Pivot::*;
 use crate::pivot::Op::{self, *};
 
-#[derive(Copy, Clone)]
-pub struct ExpressionCore<'a, N: Number, const C: usize> {
-    field: &'a [u8],
-    nothing: std::marker::PhantomData<N>,
+#[derive(Clone)]
+pub struct Expression<N: Number, const C: usize> {
+    pub field: Vec<u8>,
+    pub nothing: std::marker::PhantomData<N>,
 }
 
-impl<'a, N: Number, const C: usize> ExpressionCore<'a, N, C> {
-    pub fn new (field: &'a [u8]) -> Self {
+impl<N: Number, const C: usize> Expression<N, C> {
+    pub fn new (field: &[u8]) -> Self {
         Self {
-            field,
+            field: field.to_vec(),
             nothing: PhantomData::default(),
         }
     }
@@ -54,41 +54,16 @@ impl<'a, N: Number, const C: usize> ExpressionCore<'a, N, C> {
 
         Some(stack[0])
     }
-}
-
-pub struct Expression<N: Number, const C: usize> {
-    field_for_core: Vec<u8>,
-    nothing: std::marker::PhantomData<N>,
-}
-
-impl<N: Number, const C: usize> Expression<N, C> {
-    pub fn from_core(core: ExpressionCore<'_, N, C>) -> Self {
-        Self {
-            field_for_core: core.field.to_vec(),
-            nothing: PhantomData::default(),
-        }
-    }
-
-    pub fn apply(&self, inputs: &[N; C]) -> Option<N> {
-        self.core().apply(inputs)
-    }
-
-    pub fn core(&self) -> ExpressionCore<N, C> {
-        ExpressionCore {
-            field: &self.field_for_core,
-            nothing: PhantomData::default(),
-        }
-    }
 
     fn stringify(&self, start: usize) -> (String, usize, usize) {
-        if start >= self.field_for_core.len() {
-            for i in 0..self.field_for_core.len() {
-                print!("{:?} ", crate::pivot::Op::interpret_code(self.field_for_core[i]));
+        if start >= self.field.len() {
+            for i in 0..self.field.len() {
+                print!("{:?} ", crate::pivot::Op::interpret_code(self.field[i]));
             }
             println!();
         }
 
-        match Op::interpret_code(self.field_for_core[start]) {
+        match Op::interpret_code(self.field[start]) {
             Nop           => {let (a, b, c) = self.stringify(start+1); (a, b, c+1)},
             ConstPivot(p) => (format!("{p}"),                  !0, 1),
             VarPivot(v)   => (format!("{}", (v + 97) as char), !0, 1),
@@ -112,7 +87,7 @@ impl<N: Number, const C: usize> Expression<N, C> {
     }
 
     pub fn count_variable_appearances(&self, variable_id: u8) -> usize {
-        self.field_for_core.iter().map(|&i| if Op::interpret_code(i) == VarPivot(variable_id) {1} else {0}).sum()
+        self.field.iter().map(|&i| if Op::interpret_code(i) == VarPivot(variable_id) {1} else {0}).sum()
     }
 }
 
