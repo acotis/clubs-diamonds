@@ -1,19 +1,22 @@
 
+// TODO: Document Expression and Searcher.
+// TODO: Make sure Expression's fields and nitty-gritty construction methods are not public.
+
 // TODO: Be consistent in how you monospace type names.
 // TODO: Once the demo is finalized, re-take the screenshot (the type has changed since the last screenshot).
 // TODO: Finalize the second demo and make a demo bin for it.
-// TODO: Make sure Expression's fields and nitty-gritty construction methods are not public.
 // TODO: Write Expression::from_str() (or whatever).
 
 // For the next version:
 //     TODO: Make unary arithmetic negation optionally included.
+//     TODO: Fix the problem where quitting the UI can cause threads to panic.
 
 //! A brute-forcer for finding short mathematical expressions in Rust, for code golf.
 //!
 //! This crate provides the following types:
 //!
 //! - [`Expression`]: A struct representing a mathematical expression that syntactically parses as Rust code, such as `3*(a+5)` or `b>>a|89%c`.
-//! - [`Searcher`]: A configurable search type which can be used to systematically search all syntactically valid expressions in order of length, and yield only those which meet a customizeable, user-specified criterion.
+//! - [`Searcher`]: A configurable search type which can be used to systematically search all syntactically valid expressions in increasing order of length, and yield only those which meet a customizeable, user-specified criterion.
 //!
 //! And the following trait:
 //!
@@ -30,7 +33,6 @@
 //! - f(5) = 11
 //!
 //! You can ask Clubs to find you such an expression using the following complete program:
-//!
 //!
 //! ```
 //! use clubs_diamonds::{Searcher, Expression};
@@ -82,23 +84,20 @@
 //! 
 //! **Limitation note:** Clubs does not currently consider expressions containing the unary `-` operator (arithmetic negation). For unsigned types, this doesn't matter because the operator is inapplicable anyway. For signed types, this means Clubs will sometimes miss valid expressions that could have been solutions. Instead, it will find longer versions of these expressions that contain terms like `0-a` in place of `-a`. This is planned to be fixed in a later version of the crate.
 //!
-//! # Step-by-step explanation
+//! # Workflow for performing a search
 //!
-//! There is a four-step workflow for using the `Searcher` type:
+//! There is a four-step workflow for performing a search using the `Searcher` type. The steps are described in more detail in sections below. Here is the workflow:
 //!
-//! 1. **Decide the type and number** of variables which will appear in the expression.
+//! 1. **Decide the number and type of variables** which will appear in the expression.
 //!     - Specify these choices as type parameters of the Searcher.
 //! 2. **Construct** the searcher using the method `Searcher::new()`.
 //!     - When you call this method, you supply a closure that accepts an `&Expression` and returns a `bool`. This is the "judge" that is used to determine which expressions are displayed in the Solutions column in the UI (and eventually returned in the solutions Vec).
 //! 3. Optionally, **specify additional parameters** for the search by using some of Searcher's Builder-Lite methods.
 //! 4. **Execute** the search using either the `.run_with_ui()` method or the `.run_silently()` method.
-//!     - The former displays the above UI and the latter displays nothing.
-//!
-//! Each of these steps is described in more detail below.
 //!
 //! ## Step 1a: Number of variables
 //!
-//! Clubs is capable of finding both single-variable and multi-variable expressions. The number of variables is one of the parameters of the Searcher struct. If you set it to 1, it will find single-variable expressions. If you set it to 2, it will find two-variable expressions, etc. Variables are always named with single-letter names, starting with "a" for the first variable, "b" for the second, and so on.
+//! Clubs is capable of finding both single-variable and multi-variable expressions. The number of variables is a type parameter of the `Searcher` struct. If you set it to 1, it will find single-variable expressions. If you set it to 2, it will find two-variable expressions, etc. Variables are always named with single-letter names, starting with "a" for the first variable, "b" for the second, and so on.
 //!
 //! For example, a single-variable search will consider expressions like:
 //! - `3+a`
@@ -122,24 +121,24 @@
 //!
 //! #### Extra details for type nerds
 //!
-//! For the most part, this requirement of Clubs is simply a requirement of Rust, as described above. If `x` is a u32 and `x*y` is a valid expression, then `y` must be a u32 as well, and `x*y` will be one too. This type-matching rule is true of the binary operators `*`, `/`, `%`, `+`, `-`, `&`, `^`, and `|`, and the of unary operators `!` and `-`.
+//! For the most part, this requirement of Clubs is simply a requirement of Rust, as described above. If `x` is a u32 and `x*y` is a valid expression, then `y` must be a u32 as well, and `x*y` will evaluate to one too. This type-matching rule is true of the binary operators `*`, `/`, `%`, `+`, `-`, `&`, `^`, and `|`, and the of unary operators `!` and `-`.
 //!
-//! However, it is not true of the bitshift operators, `<<` and `>>`. These operators are special in that the left and right operands are NOT required to have the same type. `x>>y` is valid Rust code even if `x` is a u32 and `y` is an isize (and it works for every other pair of types too). The only constraint enforced for these operators is that the output type must be equal to the type of the left operand.
+//! However, it is not true of the bitshift operators, `<<` and `>>`. These operators are special in that the left and right operands are NOT required to have the same type. `x>>y` is valid Rust code even if `x` and `y` are different types (any pair of integer numeric types works). The only constraint enforced for these operators is that the output type must be equal to the type of the left operand.
 //!
-//! Since this is the case, it is possible in principle to imagine a two-variable expression whose input variables have distinct types, and it is possible in principle to imagine a search for two-variable expressions whose input variables have distinct types — for example, a search for expressions whose input variables are of type `i64` and `u16`. Such a search would consider expressions like `a>>b`, `(b+3^9)<<33*a`, and `b>>(a<<b)`, but not `a+b*21` or even `a|b`, and it would provide an interface by which you could apply each candidate expression to pairs of input values of types `i64` and `u16`.
+//! Since this is the case, it is possible in principle to imagine a two-variable expression whose input variables have distinct types, and it is possible in principle to imagine a search for two-variable expressions whose input variables have distinct types — for example, a search for expressions whose input variables are of type `i64` and `u16`. Such a search would consider expressions like `a>>b`, `(b+3^9)<<33*a`, and `b>>(a<<b)`, but not `a+b*21` or even `a|b`. And, it would provide an interface by which you could apply each candidate expression to pairs of input values of types `i64` and `u16`.
 //!
-//! **Clubs is not capable of performing this search.** It is a limitation of the current architecture. In Clubs, you may only perform searches for expressions whose input variables all have the same type and whose output type is the same one as that. The type you choose is a type parameter of the `Searcher` struct and a type parameter of the `Expression` structs it yields.
+//! **Clubs is not capable of performing this search.** It is a limitation of the current architecture. In Clubs, you may only perform searches for expressions whose input variables all have the same type and whose output type is the same one as that. The type you choose is a type parameter of the `Searcher` struct and of the `Expression` structs it yields.
 //!
 //! ## Step 2: Constructing a Searcher
 //!
-//! A Searcher is constructed using the method `Searcher::new()`, which accepts a closure as its only argument. The closure must accept an `&Expression` and return a `bool`. This is where you specify your customizeable criterion that expressions are tested against.
+//! A Searcher is constructed using the method `Searcher::new()`, which accepts a closure as its only argument. The closure must accept an `&Expression` and return a `bool`. This is where you specify your customizeable criterion for expressions to be tested against.
 //!
 //! Generally speaking, you will judge an expression by calling the `.apply()` method provided by the `Expression` type and checking things about its return values. This method accepts an array of input variable values and returns the output value the expression evaluates to for those inputs. The return value is wrapped in an `Option`, and the value `None` is returned when the given inputs would cause the expression to crash with a runtime error (for example, if it ends up dividing by zero).
 //!
 //! Here is an example of a Searcher being constructed for a two-variable search using `i16` variables:
 //!
 //! ```
-//! use clubs_diamonds::search::flat::{Searcher, Expression};
+//! use clubs_diamonds::{Searcher, Expression};
 //! 
 //! fn main() {
 //!     Searcher::<i16, 2>::new(|expr: &Expression::<i16, 2>| {
@@ -152,9 +151,22 @@
 //! ```
 //!
 //! This Searcher will consider all expressions containing two `i16` variables. For example:
-//! - The Searcher will consider the expression `a+b`. To evaluate this expression, it will pass an Expression representing it to the provided closure. The closure will call `expr.apply(&[1, 3])` and get `Some(4)` as the answer. Since that doesn't match the expected value, the closure will return `false` and the Searcher will reject the expression.
-//! - The Searcher will consider the expression `a^b+1`. To evaluate this expression, it will pass an Expression representing it to the provided closure. The provided closure will call `expr.apply(&[1, 3])` and get `Some(5)` as the output (note that due to the operator precedence of `+` and `^`, the expression groups as `a^(b+1)`). Since this matches, the closure will continue to the next condition, calling `expr.apply(&[5, -2])`, and getting `Some(-6)` as the answer. Since this matches too, the closure will continue to the last condition, calling `expr.apply(&[-8, 7])` and getting `Some(-16)` as the answer. Since this doesn't match, the closure will return `false` and the Searcher will reject this expression as well.
-//! - Eventually, the Searcher will consider the expression `4^a/(4/b)`. To evaluate this expression, it will pass an Expression representing it to the provided closure. The provided closure will evaluate each input in turn, finding that each expected output is a match and eventually calling `expr.apply(&[-8, 7])` and getting `None` as the answer because evaluating the expression at the those inputs would cause Rust to divide by zero and crash. Since this is the expected output as well, the closure will return `true` and the Searcher will accept this expression, displaying it in the Solutions column of the UI and returning it in the final `results` Vec.
+//! - At some point, the Searcher will consider the expression `a+b`:
+//!     1. To evaluate this expression, it will pass an `&Expression` representing it to the provided closure.
+//!     2. The closure will call `expr.apply(&[1, 3])` and get `Some(4)` as the answer.
+//!     3. Since that doesn't match the expected value, the boolean logic will short-circuit, the closure will return `false`, and the Searcher will reject the expression.
+//! - At some point, the Searcher will consider the expression `a^b+1`.
+//!     1. To evaluate this expression, it will pass an `&Expression` representing it to the provided closure.
+//!     2. The provided closure will call `expr.apply(&[1, 3])` and get `Some(5)` as the output (note that due to the operator precedence of `+` and `^`, the expression is equivalent to `a^(b+1)`).
+//!     3. Since this matches, the closure will continue to the next condition, calling `expr.apply(&[5, -2])`, and getting `Some(-6)` as the answer.
+//!     4. Since this matches too, the closure will continue to the last condition, calling `expr.apply(&[-8, 7])` and getting `Some(-16)` as the answer.
+//!     5. Since this doesn't match, the closure will return `false` and the Searcher will reject this expression as well.
+//! - At some point, the Searcher will consider the expression `4^a/(4/b)`.
+//!     1. To evaluate this expression, it will pass an `&Expression` representing it to the provided closure.
+//!     2. The provided closure will call `expr.apply(&[1, 3])` and get `Some(5)` as the output.
+//!     3. Since this matches, the closure will continue to the next condition, calling `expr.apply(&[5, -2])`, and getting `Some(-6)` as the answer.
+//!     4. Since this matches too, the closure will continue to the last condition, calling `expr.apply(&[-8, 7])` and getting `None` as the answer because evaluating the expression at the those inputs would cause Rust to divide by zero and crash.
+//!     5. Since this is the expected output as well, the closure will return `true` and the Searcher will accept this expression, displaying it in the Solutions column of the UI (if the search included a UI) and returning it in the final `results` Vec.
 //!
 //! **Golfing tip:** There is room for considerable ingenuity and creativity in specifying the criterion that a Searcher will apply. It can be any predicate. Using your imagination will take you further than only copying the format of the documented examples.
 //!
