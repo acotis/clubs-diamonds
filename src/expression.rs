@@ -10,17 +10,10 @@ use crate::pivot::Op::{self, *};
 #[derive(Clone)]
 pub struct Expression<N: Number, const C: usize> {
     pub field: Vec<u8>,
-    pub nothing: std::marker::PhantomData<N>,
+    pub nothing: PhantomData<N>,
 }
 
 impl<N: Number, const C: usize> Expression<N, C> {
-    pub fn new (field: &[u8]) -> Self {
-        Self {
-            field: field.to_vec(),
-            nothing: PhantomData::default(),
-        }
-    }
-
     /// Apply this expression to an array of input values for its variables. Returns a result wrapped in an `Option`. The value `None` is returned if applying the expression to the given values would result in a runtime exception (for example, if it would end up dividing by zero).
     ///
     /// The length and entry type of the array must match the type parameters of the Expression. If the expression came from a `Searcher::<u32, 3>`, then it is an `Expression<u32, 3>` and you must supply an array of three `u32` values to this method.
@@ -94,10 +87,6 @@ impl<N: Number, const C: usize> Expression<N, C> {
                 }
             }
         }
-    }
-
-    pub fn count_variable_appearances(&self, variable_id: u8) -> usize {
-        self.field.iter().map(|&i| if Op::interpret_code(i) == VarPivot(variable_id) {1} else {0}).sum()
     }
 }
 
