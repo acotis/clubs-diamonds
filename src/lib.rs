@@ -5,12 +5,12 @@
 //!
 //! This crate provides the following types:
 //!
-//! - [`Expression`][crate::Expression]: A struct representing a mathematical expression that syntactically parses as Rust code, such as `3*(a+5)` or `b>>a|89%c`.
-//! - [`Searcher`][crate::Searcher]: A configurable search type which can be used to systematically search all syntactically valid expressions in order of length, and yield only those which meet a customizeable, user-specified criterion.
+//! - [`Expression`]: A struct representing a mathematical expression that syntactically parses as Rust code, such as `3*(a+5)` or `b>>a|89%c`.
+//! - [`Searcher`]: A configurable search type which can be used to systematically search all syntactically valid expressions in order of length, and yield only those which meet a customizeable, user-specified criterion.
 //!
-//! And the following helper trait:
+//! And the following trait:
 //!
-// - [`Number`][crate::Number]: A trait 
+//! - [`Number`]: A helper trait used by Expression and Searcher. Implemented for all of Rust's built-in integer data types (`u8`, `u16`, `u32`, `u64`, `u128`, `usize`, `i8`, `i16`, `i32`, `i64`, `i128`, `isize`). 
 //!
 //! # Basic example
 //!
