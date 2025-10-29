@@ -1,23 +1,18 @@
 
-mod expression;
-mod expression_writer;
-mod pivot;
-mod ui;
-
-pub use expression::ExpressionCore;
-pub use expression::Expression;
-
 use std::thread;
 use std::sync::mpsc;
 
-use crate::search::number::Number;
-use pivot::Op::{self, *};
-use expression_writer::ExpressionWriter;
-use ui::SearchUI;
-use ui::SearchUISignal::*;
+use crate::expression::Expression;
+use crate::expression::ExpressionCore;
+use crate::number::Number;
+use crate::pivot::Op::{self, *};
+use crate::expression_writer::ExpressionWriter;
+use crate::ui::SearchUI;
+use crate::ui::SearchUISignal::*;
+use crate::utils;
+
 use self::SearchNews::*;
 use ThreadStatus::*;
-use ui::utils as format_helpers;
 
 // Helper types.
 
@@ -121,9 +116,11 @@ enum SearchNews<N: Number, const C: usize> {
     Done                 {thread_id: usize,                         length: usize, count: u128},
 }
 
+// Note: Thread and ThreadStatus are only public so the UI module can use them too. This is silly. If anything, they should be *in* the UI module.
+
 pub struct Thread {
-    id: usize,
-    status: ThreadStatus,
+    pub id: usize,
+    pub status: ThreadStatus,
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -213,7 +210,7 @@ impl<N: Number, const C: usize> Searcher<N, C> {
                                 ui.push_news_item(
                                     format!(
                                         "Tried {} expr{} of length {}.",
-                                        format_helpers::with_commas(counts[length].0),
+                                        utils::with_commas(counts[length].0),
                                         if counts[length].0 == 1 {""} else {"s"},
                                         length,
                                     )

@@ -8,9 +8,9 @@
 //!
 //! This crate provides the following types:
 //!
-//! - [`Expression`][crate::search::flat::Expression]: A struct representing a mathematical expression that syntactically parses as Rust code, such as `3*(a+5)` or `b>>a|89%c`.
-//! - [`ExpressionCore`][crate::search::flat::ExpressionCore]: A more lightweight version of the same thing, which borrows its data. (If you don't know what that means, don't worry too much about it.) This distinction is going away in a future version of the crate.
-//! - [`Searcher`][crate::search::flat::Searcher]: A configurable search type which can be used to systematically search all syntactically valid expressions in order of length, and yield only those which meet a customizeable, user-specified criterion.
+//! - [`Expression`][crate::Expression]: A struct representing a mathematical expression that syntactically parses as Rust code, such as `3*(a+5)` or `b>>a|89%c`.
+//! - [`ExpressionCore`][crate::ExpressionCore]: A more lightweight version of the same thing, which borrows its data. (If you don't know what that means, don't worry too much about it.) This distinction is going away in a future version of the crate.
+//! - [`Searcher`][crate::Searcher]: A configurable search type which can be used to systematically search all syntactically valid expressions in order of length, and yield only those which meet a customizeable, user-specified criterion.
 //!
 //! # Basic example
 //!
@@ -160,10 +160,22 @@
 //!
 //! **Golfing tip:** There is room for considerable ingenuity and creativity in specifying the criterion that a Searcher will apply. It can be any predicate. Using your imagination will take you further than only copying the format of the documented examples.
 //!
-//! ## Step 3: Additional search parameters
+//! ## Steps 3 and 4: Additional search parameters and execution
 //!
-//! The `Searcher` type provides the following 
+//! For a list of `Searcher`'s methods, including the ones for specifying additional search parameters and executing the search, see its documentation page. [TODO: make this a link]
+//!
+//! **Note:** If you opt to use the `.run_silently()` method, then there will be no way to quit the search until Clubs decides it's done. So, if you plan to use that method, you probably want to specify a combination of search parameters that make the search task finite.
 //!
 
-pub mod search;
+mod expression;
+mod expression_writer;
+mod pivot;
+mod ui;
+mod utils;
+mod number;
+mod searcher;
+
+pub use expression::ExpressionCore;
+pub use expression::Expression;
+pub use searcher::Searcher;
 

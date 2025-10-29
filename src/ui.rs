@@ -1,6 +1,4 @@
 
-pub mod utils;
-
 use std::time::Duration;
 use chrono::{DateTime, Local};
 use ratatui::Terminal;
@@ -10,13 +8,16 @@ use ratatui::style::{Style, Modifier};
 use ratatui::widgets::{Widget, List, ListItem};
 use ratatui::prelude::{Buffer, Layout, Direction, Rect, Constraint, Line, Span, Color, Stylize};
 use crossterm::event::{self, Event::Key, KeyCode::Char, KeyCode::Esc, KeyEvent, KeyEventKind};
-use super::Thread;
-use super::ThreadStatus::*;
+
+use crate::searcher::Thread;
+use crate::searcher::ThreadStatus::*;
+
 use DashboardBlock::*;
 use SearchUISignal::*;
 
+use crate::utils;
+
 use lazy_static::lazy_static;
-use utils as format_helpers;
 
 lazy_static! {
     static ref STYLE_BLANK:                   Style = Style::default();
@@ -362,8 +363,8 @@ impl SearchUIFace {
         // Uptime.
 
         let label = "Uptime";
-        let ts_string = format_helpers::format_timestamp(&self.start_time);
-        let du_string = format_helpers::format_duration(&(Local::now() - self.start_time), false);
+        let ts_string = utils::format_timestamp(&self.start_time);
+        let du_string = utils::format_duration(&(Local::now() - self.start_time), false);
         let value_len = ts_string.len() + du_string.len() + 3;
         let padding = 50 - label.len() - value_len;
 
@@ -378,8 +379,8 @@ impl SearchUIFace {
         // Count.
 
         let label = "Count";
-        let comma_version = format_helpers::with_commas(self.total_count);
-        let power_version = format_helpers::as_power_of_two(self.total_count);
+        let comma_version = utils::with_commas(self.total_count);
+        let power_version = utils::as_power_of_two(self.total_count);
         let value_len = comma_version.len() + power_version.len() + 3;
         let padding = 50 - label.len() - value_len;
 
@@ -395,8 +396,8 @@ impl SearchUIFace {
         let label = "Expr/s (life avg)";
         let deciseconds_up = 1.max((Local::now() - self.start_time).num_milliseconds() / 100);
         let per_second = self.total_count * 10 / deciseconds_up as u128;
-        let comma_version = format_helpers::with_commas(per_second);
-        let power_version = format_helpers::as_power_of_two(per_second);
+        let comma_version = utils::with_commas(per_second);
+        let power_version = utils::as_power_of_two(per_second);
         let value_len = comma_version.len() + power_version.len() + 3;
         let padding = 50 - label.len() - value_len;
 
@@ -536,12 +537,12 @@ impl SearchUIFace {
             let time_ago = Local::now() - news_item.0;
 
             ret.push(ListItem::from(Line::from(vec![
-                Span::raw(format_helpers::format_timestamp(&news_item.0)).style(*STYLE_NEWS_HEADER),
+                Span::raw(utils::format_timestamp(&news_item.0)).style(*STYLE_NEWS_HEADER),
                 Span::raw(" ").style(*STYLE_BLANK),
                 Span::raw(format!(
                     "({} in | {} ago)",
-                    format_helpers::format_duration(&time_in, false),
-                    format_helpers::format_duration(&time_ago, true),
+                    utils::format_duration(&time_in, false),
+                    utils::format_duration(&time_ago, true),
                 )).style(*STYLE_CONTROLS),
             ])));
 

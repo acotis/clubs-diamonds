@@ -1,5 +1,5 @@
 
-use clubs_diamonds::search::flat::{Searcher, ExpressionCore};
+use clubs_diamonds::{Searcher, ExpressionCore};
 
 fn main() {
     let (count, solutions) =

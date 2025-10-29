@@ -1,9 +1,9 @@
 
 use std::marker::PhantomData;
 
-use crate::search::number::Number;
-use crate::search::flat::pivot::Pivot::*;
-use crate::search::flat::pivot::Op::{self, *};
+use crate::number::Number;
+use crate::pivot::Pivot::*;
+use crate::pivot::Op::{self, *};
 
 #[derive(Copy, Clone)]
 pub struct ExpressionCore<'a, N: Number, const C: usize> {
@@ -83,7 +83,7 @@ impl<N: Number, const C: usize> Expression<N, C> {
     fn stringify(&self, start: usize) -> (String, usize, usize) {
         if start >= self.field_for_core.len() {
             for i in 0..self.field_for_core.len() {
-                print!("{:?} ", crate::search::flat::pivot::Op::interpret_code(self.field_for_core[i]));
+                print!("{:?} ", crate::pivot::Op::interpret_code(self.field_for_core[i]));
             }
             println!();
         }
