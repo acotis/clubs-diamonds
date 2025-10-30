@@ -107,8 +107,8 @@ fn all_result_list_tests() {
 
     println!("u64 acceptall [4-6]");
 
-    let (count, mut results) =
-        Searcher::<u64, 1>::new(|core| true)
+    let (count, results) =
+        Searcher::<u64, 1>::new(|_expr| true)
             .min_length(4)
             .max_length(6)
             .threads(16)
@@ -122,7 +122,7 @@ fn all_result_list_tests() {
     println!("u64 acceptall [8]");
 
     let (count, results) =
-        Searcher::<u64, 1>::new(|core| true)
+        Searcher::<u64, 1>::new(|_expr| true)
             .max_length(8)
             .threads(16)
             .run_silently();
@@ -135,7 +135,7 @@ fn all_result_list_tests() {
     println!("u64 acceptall<2> [8]");
 
     let (count, results) =
-        Searcher::<u64, 2>::new(|core| true)
+        Searcher::<u64, 2>::new(|_expr| true)
             .max_length(8)
             .threads(16)
             .run_silently();
@@ -148,7 +148,7 @@ fn all_result_list_tests() {
     println!("u64 acceptall<3> [9]");
 
     let (count, results) =
-        Searcher::<u64, 3>::new(|core| true)
+        Searcher::<u64, 3>::new(|_expr| true)
             .max_length(9)
             .threads(16)
             .run_silently();
@@ -162,7 +162,7 @@ fn all_result_list_tests() {
     println!("rejectall [9]");
 
     let (count, results) =
-        Searcher::<i64, 1>::new(|core| false)
+        Searcher::<i64, 1>::new(|_expr| false)
             .max_length(9)
             .threads(16)
             .run_silently();
@@ -175,10 +175,10 @@ fn all_result_list_tests() {
     println!("arbitrary restriction [10]");
 
     let (count, results) =
-        Searcher::<u64, 1>::new(|core| {
-            core.apply(&[3]) == Some(7) &&
-            core.apply(&[7]) == Some(15) &&
-            core.apply(&[11]) == Some(22)
+        Searcher::<u64, 1>::new(|expr| {
+            expr.apply(&[3]) == Some(7) &&
+            expr.apply(&[7]) == Some(15) &&
+            expr.apply(&[11]) == Some(22)
         })
         .max_length(10)
         .threads(16)
@@ -222,25 +222,6 @@ fn check_result_set_from_file<N: Number, const C: usize>(
             .lines()
             .collect::<Vec<_>>()
     );
-}
-
-// Check that certain solutions are present among the output (but not
-// that no other solutions were found).
-
-fn spot_check_result_set<N: Number, const C: usize>(
-    results: &[Expression<N, C>],
-    expected: &[&str]
-) {
-
-    for e in expected {
-        print!("  result spot-check [{e}]..");
-
-        if !results.iter().any(|expr| format!("{expr}") == *e) {
-            println!(" {BOLD}{RED}ERROR: did not find this expression in the results{RESET}");
-        } else {
-            println!(" {GREEN}ok{RESET}");
-        }
-    }
 }
 
 // Check that a reported search count matches the expected search count.
