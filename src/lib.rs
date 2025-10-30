@@ -17,7 +17,7 @@
 //!
 //! And the following trait:
 //!
-//! - [`Number`]: A helper trait used by `Expression` and `Searcher`. Implemented for all of Rust's built-in integer data types (`u8`, `u16`, `u32`, `u64`, `u128`, `usize`, `i8`, `i16`, `i32`, `i64`, `i128`, `isize`). 
+//! - [`Number`]: A helper trait used by `Expression` and `Searcher`. Implemented for all of Rust's built-in integer data types (`u8`, `u16`, `u32`, `u64`, `u128`, `usize`, `i8`, `i16`, `i32`, `i64`, `i128`, and `isize`). 
 //!
 //! # Basic example
 //!
