@@ -19,6 +19,5 @@ fn main() {
     println!("    — {}", solutions[1]);
     println!("    — {}", solutions[2]);
 
-    // solutions is a Vec<Expression::<usize, 1>>
+    // solutions is a Vec<Expression::<i32, 1>>
 }
-

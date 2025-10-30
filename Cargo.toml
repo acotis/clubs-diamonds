@@ -13,6 +13,10 @@ name = "demo"
 path = "src/bin/demo.rs"
 
 [[bin]]
+name = "demo-2"
+path = "src/bin/demo_2.rs"
+
+[[bin]]
 name = "correctness_tests"
 path = "src/bin/correctness_tests.rs"
 
