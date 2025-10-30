@@ -9,8 +9,8 @@ use crate::search::pivot::Op::{self, *};
 
 #[derive(Clone)]
 pub struct Expression<N: Number, const C: usize> {
-    pub field: Vec<u8>,
-    pub nothing: PhantomData<N>,
+    pub(super) field: Vec<u8>,
+    pub(super) nothing: PhantomData<N>,
 }
 
 impl<N: Number, const C: usize> Expression<N, C> {

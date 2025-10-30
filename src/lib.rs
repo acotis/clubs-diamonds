@@ -1,6 +1,5 @@
 
 // TODO: Document Expression and Searcher.
-// TODO: Make sure Expression's fields and nitty-gritty construction methods are not public.
 
 // TODO: Be consistent in how you monospace type names.
 // TODO: Once the demo is finalized, re-take the screenshot (the type has changed since the last screenshot).
