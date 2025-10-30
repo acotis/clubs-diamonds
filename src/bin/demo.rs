@@ -21,3 +21,4 @@ fn main() {
 
     // solutions is a Vec<Expression::<i32, 1>>
 }
+
