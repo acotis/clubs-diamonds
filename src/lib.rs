@@ -1,5 +1,4 @@
 
-// TODO: Document the Number trait.
 // TODO: Once the demo is finalized, re-take the screenshot (the type has changed since the last screenshot).
 // TODO: Finalize the second demo and make a demo bin for it.
 // TODO: Publish the new version.

@@ -2,6 +2,8 @@
 use std::ops::*;
 use std::fmt::Display;
 
+// The `Number` trait. Used in trait bounds by Expression and Searcher. If you implement this trait for your own type, you can use that type with these structs.
+
 pub trait Number: 
     Copy + PartialEq + Eq 
     + PartialOrd + Ord + Send + 'static
