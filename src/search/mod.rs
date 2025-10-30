@@ -65,7 +65,7 @@ impl<N: Number, const C: usize> Searcher <N, C> {
         }
     }
 
-    /// Provide a "penalizer" used to score solutions and order them in the UI. By default, the score of a solution is its length in bytes (solutions are displayed in ascending order of score). A penalizer is a closure that accepts an `&Expression` and returns a `usize`. If provided, this closure is called on each solution the `Searcher` finds, and the returned `usize` is **added to** the length of the solution to calculate the score. (If you don't want this behavior, simply subtract the length of the solution from the value you return. You can obtain the length of the solution by `format!()`ing it.) The closure is called only once per solution, when the solution is first discovered. 
+    /// Provide a "penalizer" used to score solutions and order them in the UI. By default, the score of a solution is its length in bytes (solutions are sorted with lower scores towards the top). A penalizer is a closure that accepts an `&Expression` and returns a `usize`. If provided, this closure is called on each solution the `Searcher` finds, and the returned `usize` is **added to** the length of the solution to calculate the score. (If you don't want this behavior, simply subtract the length of the solution from the value you return. You can obtain the length of the solution by `format!()`ing it.) The closure is called only once per solution, when the solution is first discovered. 
 
     pub fn penalizer(self, penalizer: Penalizer<N, C>) -> Self {
         Self {
@@ -92,7 +92,7 @@ impl<N: Number, const C: usize> Searcher <N, C> {
         }
     }
 
-    /// Control the frequency with which worker threads report back to the UI thread. Solutions are always reported immediately when they are found; worker threads also notify the UI thread of their status once for every "N" candidates they reject. This method is used to configure "N". The main user-facing consequence of this parameter is the speed that threads in the Threads panel zoom at.
+    /// Control the frequency with which worker threads report back to the UI thread. Solutions are always reported immediately when they are found; worker threads also notify the UI thread of their status once for every N candidates they reject. This method is used to configure N. The main user-facing consequence of this parameter is how frequently the threads in the Threads panel get updated visually.
 
     pub fn report_every(self, report_every: u128) -> Self {
         Self {
