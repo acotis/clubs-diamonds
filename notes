@@ -1,0 +1,63 @@
+
+——————————
+Todo
+——————————
+
+3. Add constant-limiting to the public API.
+    — Benchmark the changes.
+    — Add correctness tests and benchmark tests for this.
+4. Add variable-requirement toggling to the public API.
+    — Fix the bug where zero-variable expressions don't work.
+    — Benchmark the changes.
+    — Add correctness tests and benchmark tests for this.
+
+— Try the u128 implementation.
+
+— Implement pausing via the UI.
+    — Make it so that decreasing the thread count pauses extra threads!
+
+— Clean up the threads when you return (just join on them I guess).
+— Implement max_to_find().
+— Implement max_to_search().
+
+— Fix the issue where you can't capture variables in closures you pass to 
+  Searcher (maybe the type it takes should be "closure" (if that's possible) 
+  instead of "fn"?).
+— Implement Expression::parse(String).
+    — Then, implement trial expressions where you can "seed" a search with
+      some expressions to try first and treat as solutions, as a way of
+      testing your inspector.
+
+— Stats:
+    — Add expr/sec (per-thread avg).
+    — Add expr/sec (current).
+    — Add expr/sec (current per-thread).
+    — Add expr/sec (max)?
+    — Add expr/sec (max per-thread)?
+— Little improvments:
+    — Benchmark variations to the max stack size of Expression::apply().
+    — Benchmark variations to the field size of find_with_length_and_op().
+      On 2025 Jun 04, lowering it from 99 to 20 genuinely seems to matter.
+    — Add the option back of using a "scorer" (but still usize) instead of a penalizer.
+    — Factor out a SearchUI::toggle_block().
+    — Benchmark a 100us control cycle delay over 1ms; switch if faster.
+    — In UI, make it only render the first 1000 solutions for speed.
+    — Make the solution inspector always visible again.
+        — Add a timestamp to each solution that is displayed in the inspector.
+
+— In UI, make the solutions list scrollable.
+— Make the "report every N expressions" thing automatically scale to a duration?
+    — This would be good for cleaning up threads; if the worker thread only checks for
+      signals from the manager thread every N expressions, and N is configured to be
+      too high, then it could take a while before the thread sees that it's supposed
+      to terminate. If it auto-scales, this mostly can't be an issue (actually it still
+      could be, if some expressions take wildly longer to evaluate than others or some
+      weird thing like that — maybe it should autoscale by default but there should
+      still be a "report every N expressions" setting for if the user knows this will
+      be an issue). Either way, there could maybe be a "report every N milliseconds"
+      setting. Also, mind you that the worker threads do NOT need to coordinate with or
+      wait for the manager thread to autoscale their report timings! They only time
+      anyone waits for the manager thread is when a worker thread finishes its task.
+— In UI, get rid of "initializing" state. It's misleading.
+— Implement some kind of redundant-constant-blocking mechanism.
+— Try using u128's in place of [u8]'s.
