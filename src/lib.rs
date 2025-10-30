@@ -177,15 +177,11 @@
 //! **Note:** If you opt to use the `.run_silently()` method, then there will be no way to quit the search until Clubs decides it's done. So, if you plan to use that method, you probably want to specify a combination of search parameters that make the search task finite.
 //!
 
-mod expression;
-mod expression_writer;
-mod pivot;
 mod ui;
 mod utils;
-mod number;
-mod searcher;
+mod search;
 
-pub use expression::Expression;
-pub use searcher::Searcher;
-pub use number::Number;
+pub use search::Expression;
+pub use search::Searcher;
+pub use search::Number;
 

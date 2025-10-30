@@ -1,9 +1,9 @@
 
 use std::marker::PhantomData;
 
-use crate::number::Number;
-use crate::pivot::Pivot::*;
-use crate::pivot::Op::{self, *};
+use crate::search::number::Number;
+use crate::search::pivot::Pivot::*;
+use crate::search::pivot::Op::{self, *};
 
 /// The `Expression` type. Represents a syntactically-valid mathematical Rust expression. Can be applied to a set of input variable values to yield a result value. Can also be rendered as text using the `format!` macro or `.to_string()` method.
 
@@ -61,7 +61,7 @@ impl<N: Number, const C: usize> Expression<N, C> {
     fn stringify(&self, start: usize) -> (String, usize, usize) {
         if start >= self.field.len() {
             for i in 0..self.field.len() {
-                print!("{:?} ", crate::pivot::Op::interpret_code(self.field[i]));
+                print!("{:?} ", Op::interpret_code(self.field[i]));
             }
             println!();
         }

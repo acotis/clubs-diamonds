@@ -1,12 +1,18 @@
 
+mod expression;
+mod expression_writer;
+mod pivot;
+mod number;
+
+pub use expression::Expression;
+pub use number::Number;
+
 use std::thread;
 use std::sync::mpsc;
 use std::marker::PhantomData;
 
-use crate::expression::Expression;
-use crate::number::Number;
-use crate::pivot::Op::{self, *};
-use crate::expression_writer::ExpressionWriter;
+use pivot::Op::{self, *};
+use expression_writer::ExpressionWriter;
 use crate::ui::SearchUI;
 use crate::ui::SearchUISignal::*;
 use crate::utils;

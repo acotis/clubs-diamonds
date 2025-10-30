@@ -9,8 +9,8 @@ use ratatui::widgets::{Widget, List, ListItem};
 use ratatui::prelude::{Buffer, Layout, Direction, Rect, Constraint, Line, Span, Color, Stylize};
 use crossterm::event::{self, Event::Key, KeyCode::Char, KeyCode::Esc, KeyEvent, KeyEventKind};
 
-use crate::searcher::Thread;
-use crate::searcher::ThreadStatus::*;
+use crate::search::Thread;
+use crate::search::ThreadStatus::*;
 
 use DashboardBlock::*;
 use SearchUISignal::*;

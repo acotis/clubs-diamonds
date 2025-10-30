@@ -1,5 +1,5 @@
 
-use crate::pivot::Op;
+use crate::search::pivot::Op;
 use self::EWState::*;
 
 enum EWState {
