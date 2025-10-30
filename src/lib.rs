@@ -1,6 +1,4 @@
 
-// TODO: Document Expression and Searcher.
-
 // TODO: Be consistent in how you monospace type names.
 // TODO: Once the demo is finalized, re-take the screenshot (the type has changed since the last screenshot).
 // TODO: Finalize the second demo and make a demo bin for it.
@@ -14,7 +12,7 @@
 //!
 //! This crate provides the following types:
 //!
-//! - [`Expression`]: A struct representing a mathematical expression that syntactically parses as Rust code, such as `3*(a+5)` or `b>>a|89%c`.
+//! - [`Expression`]: A struct representing a mathematical expression, such as `3*(a+5)` or `b>>a|89%c`. Uses an optimized representation internally, but implements Rust operators, Rust precedence levels, and Rust semantics.
 //! - [`Searcher`]: A configurable search type which can be used to systematically search all syntactically valid expressions in increasing order of length, and yield only those which meet a customizeable, user-specified criterion.
 //!
 //! And the following trait:
