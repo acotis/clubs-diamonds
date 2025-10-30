@@ -5,7 +5,9 @@ use crate::search::number::Number;
 use crate::search::pivot::Pivot::*;
 use crate::search::pivot::Op::{self, *};
 
-/// The `Expression` type. Represents a syntactically-valid mathematical Rust expression. Can be applied to a set of input variable values to yield a result value. Can also be rendered as text using the `format!` macro or `.to_string()` method.
+/// Represents a syntactically-valid mathematical Rust expression. Can be applied to a set of input values to yield a result value. Can also be rendered as text using the `format!` macro or `.to_string()` method.
+///
+/// Currently, the only way to get your hands on an `Expression` is to be given it by a `Searcher`.
 
 #[derive(Clone)]
 pub struct Expression<N: Number, const C: usize> {
@@ -18,9 +20,11 @@ impl<N: Number, const C: usize> Expression<N, C> {
     ///
     /// The length and entry type of the array must match the type parameters of the Expression. If the expression came from a `Searcher::<u32, 3>`, then it is an `Expression<u32, 3>` and you must supply an array of three `u32` values to this method.
     ///
-    /// When applying the expression first entry in the array is assigned to the variable `a`, the second to `b`, the third to `c`, and so on.
+    /// When applying the expression, the first entry in the array is assigned to the variable `a`, the second to `b`, the third to `c`, and so on.
     ///
-    /// For example, when the expression `a*c+53%b` is applied to the array `[2, 4, 10]`, will yield `Some(11)`.
+    /// Example: when the expression `a*c+53%b` is applied to the array `[2, 10, 4]`, it will yield `Some(11)`.
+    ///
+    /// Example #2: when the expression `44/a` is applied to the array `[0]`, it will yield `None`.
 
     pub fn apply(&self, inputs: &[N; C]) -> Option<N> {
         let zero = N::from_u8(0);

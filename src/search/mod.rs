@@ -26,7 +26,7 @@ type Judge    <N, const C: usize> = fn(&Expression<N, C>) -> bool;
 type Inspector<N, const C: usize> = fn(&Expression<N, C>) -> String;
 type Penalizer<N, const C: usize> = fn(&Expression<N, C>) -> usize;
 
-/// The `Searcher` type. Used to configure and execute searches for short mathematical expressions.
+/// Used to configure and execute searches for short mathematical expressions.
 
 pub struct Searcher<N: Number, const C: usize> {
     judge: Judge<N, C>,
