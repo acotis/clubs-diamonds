@@ -1,4 +1,6 @@
 
+// TODO: Read, and try to comply with, Rust library guidelines.
+
 // For the next version:
 //     TODO: Make unary arithmetic negation optionally included.
 //     TODO: Fix the problem where quitting the UI can cause threads to panic.
