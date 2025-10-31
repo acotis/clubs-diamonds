@@ -15,6 +15,19 @@
 //!
 //! - [`Number`]: A helper trait used by `Expression` and `Searcher`. Implemented for all of Rust's built-in integer data types (`u8`, `u16`, `u32`, `u64`, `u128`, `usize`, `i8`, `i16`, `i32`, `i64`, `i128`, and `isize`). 
 //!
+//! **Vital usage note:** Clubs must be compiled in release mode in order to function! When you run a program that depends on clubs, use this command:
+//!
+//! ```txt
+//! cargo run --release
+//! ```
+//!
+//! Additionally, I recommend enabling link-time optimizations by putting the following snippet in your Cargo.toml. This speeds clubs up by around 40%:
+//!
+//! ```toml
+//! [profile.release]
+//! lto = "fat"
+//! ```
+//!
 //! # Basic example
 //!
 //! Suppose you want to find an expression `f` in a single variable `a` such that, when you plug in the values 1 through 5 for the variable, the expression yields the first five prime numbers. In other words, you want:

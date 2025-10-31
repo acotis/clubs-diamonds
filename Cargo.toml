@@ -32,3 +32,6 @@ lazy_static = "1.5.0"
 meansd = "2.1.0"
 ratatui = "0.29.0"
 single-statistics = "0.5.0"
+
+[profile.release]
+lto = "fat"

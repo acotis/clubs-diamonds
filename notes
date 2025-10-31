@@ -3,6 +3,9 @@
 Todo
 ——————————
 
+— Update timestamp format.
+— Check who needs to use the lto optimization (me or the user) for it to take effect.
+
 3. Add constant-limiting to the public API.
     — Benchmark the changes.
     — Add correctness tests and benchmark tests for this.
