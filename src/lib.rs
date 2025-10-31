@@ -1,5 +1,6 @@
 
 // TODO: Read, and try to comply with, Rust library guidelines.
+// TODO: Fix the problem where the UI takes over your terminal.
 
 // For the next version:
 //     TODO: Make unary arithmetic negation optionally included.
