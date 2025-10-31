@@ -3,7 +3,6 @@
 Todo
 ——————————
 
-— Update timestamp format.
 — Make it work even in debug mode?
 
 3. Add constant-limiting to the public API.
