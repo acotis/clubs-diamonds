@@ -61,5 +61,5 @@ Todo
       wait for the manager thread to autoscale their report timings! They only time
       anyone waits for the manager thread is when a worker thread finishes its task.
 — In UI, get rid of "initializing" state. It's misleading.
-— Implement some kind of redundant-constant-blocking mechanism.
-— Try using u128's in place of [u8]'s.
+— Implement some kind of mechanism for blocking sub-expressions that are purely constants?
+    — But mind you that some of these are good, like 1<<20.
