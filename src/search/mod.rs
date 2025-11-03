@@ -15,6 +15,7 @@ use pivot::Op::{self, *};
 use expression_writer::ExpressionWriter;
 use crate::ui::UI;
 use crate::ui::DefaultUI;
+use crate::ui::NullUI;
 use crate::ui::UISignal::*;
 use crate::utils;
 
@@ -127,7 +128,7 @@ impl<N: Number, const C: usize> Searcher <N, C> {
     /// Execute the configured search process in a text-based UI.
 
     pub fn run_with_ui(&self) -> (u128, Vec<Expression<N, C>>) {
-        self.run(true)
+        self.run::<DefaultUI>()
     }
 
     /// Execute the configured search process silently.
@@ -135,7 +136,7 @@ impl<N: Number, const C: usize> Searcher <N, C> {
     /// **Note:** When you use this method, there is no way to quit the search process before Clubs decides it's done. So, if you plan to use it, you probably want to specify a combination of search parameters that make the search task finite.
 
     pub fn run_silently(&self) -> (u128, Vec<Expression<N, C>>) {
-        self.run(false)
+        self.run::<NullUI>()
     }
 }
 
@@ -166,7 +167,7 @@ pub enum ThreadStatus {
 }
 
 impl<N: Number, const C: usize> Searcher<N, C> {
-    fn run(&self, display_ui: bool) -> (u128, Vec<Expression<N, C>>) {
+    fn run<U: UI>(&self) -> (u128, Vec<Expression<N, C>>) {
 
         // Set up the TUI.
 
@@ -174,12 +175,10 @@ impl<N: Number, const C: usize> Searcher<N, C> {
         let frame_clock_max = 16; // Only draw a UI frame every N cycles of the control loop.
         let mut frame_clock = 0;
 
-        let mut ui = if display_ui {Some(DefaultUI::new())} else {None};
+        let mut ui = U::new();
 
-        if let Some(ref mut ui) = ui {
-            if let Some(ref description) = self.description {
-                ui.set_description(description.clone());
-            }
+        if let Some(ref description) = self.description {
+            ui.set_description(description.clone());
         }
 
         // Set up the work.
@@ -218,7 +217,7 @@ impl<N: Number, const C: usize> Searcher<N, C> {
 
                         let score = string.len() + self.penalizer.as_ref().map(|scorer| scorer(&expr)).unwrap_or(0);
 
-                        if let Some(ref mut ui) = ui {ui.push_solution(string, score, inspection);}
+                        ui.push_solution(string, score, inspection);
                         solutions.push(expr);
                     },
 
@@ -238,16 +237,14 @@ impl<N: Number, const C: usize> Searcher<N, C> {
                         total_count += count;
 
                         if counts[length].1 == op_requirements.len() {
-                            if let Some(ref mut ui) = ui {
-                                ui.push_news_item(
-                                    format!(
-                                        "Tried {} expr{} of length {}.",
-                                        utils::with_commas(counts[length].0),
-                                        if counts[length].0 == 1 {""} else {"s"},
-                                        length,
-                                    )
-                                );
-                            }
+                            ui.push_news_item(
+                                format!(
+                                    "Tried {} expr{} of length {}.",
+                                    utils::with_commas(counts[length].0),
+                                    if counts[length].0 == 1 {""} else {"s"},
+                                    length,
+                                )
+                            );
                         }
                     }
                 }
@@ -296,33 +293,31 @@ impl<N: Number, const C: usize> Searcher<N, C> {
             }
 
             // If this is a UI cycle, handle inputs and draw a frame of the UI.
-            
-            if let Some(ref mut ui) = ui {
-                if frame_clock == 0 {
-                    for action in ui.handle_inputs() {
-                        match action {
-                            Quit => break 'search,
-                            IncreaseThreadCount => target_thread_count += 1,
-                            DecreaseThreadCount => if target_thread_count > 0 {target_thread_count -= 1},
-                        }
+
+            if frame_clock == 0 {
+                for action in ui.handle_inputs() {
+                    match action {
+                        Quit => break 'search,
+                        IncreaseThreadCount => target_thread_count += 1,
+                        DecreaseThreadCount => if target_thread_count > 0 {target_thread_count -= 1},
                     }
-
-                    ui.set_total_count(total_count);
-                    ui.set_target_thread_count(target_thread_count);
-                    ui.set_thread_statuses(threads.iter().map(|thread| Thread {
-                        id: thread.id,
-                        status: thread.status.clone(),
-                    }).collect());
-
-                    ui.draw();
-
-                    // Reset the clock.
-
-                    frame_clock = frame_clock_max;
                 }
 
-                frame_clock -= 1;
+                ui.set_total_count(total_count);
+                ui.set_target_thread_count(target_thread_count);
+                ui.set_thread_statuses(threads.iter().map(|thread| Thread {
+                    id: thread.id,
+                    status: thread.status.clone(),
+                }).collect());
+
+                ui.draw();
+
+                // Reset the clock.
+
+                frame_clock = frame_clock_max;
             }
+
+            frame_clock -= 1;
 
             // Sleep for a bit to stop the control thread from hotlooping.
 
