@@ -1,7 +1,9 @@
 
 mod default_ui;
+mod null_ui;
 
 pub use default_ui::DefaultUI;
+pub use null_ui::NullUI;
 
 use crate::search::Thread;
 

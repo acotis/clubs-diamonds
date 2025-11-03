@@ -3,7 +3,6 @@
 UI revolution todo list
 ——————————
 
-— Create a trivial (null) implementor of the trait.
 — Parameterize the .run() method over the UI trait and remove the bool argument.
 — Move Thread and ThreadStatus to the UI interface file.
 — Add methods to the interface such that the UI can receive updates when a thread
@@ -23,6 +22,8 @@ Todo
     — Add expr/sec (current per-thread).
     — Add expr/sec (max)?
     — Add expr/sec (max per-thread)?
+
+— Add a .timeout() configurable parameter for Searcher.
 
 — Generalize benchmarking infrastructure to accept arbitrary tasks.
 — Write benchmarks that specifically target expression application.
