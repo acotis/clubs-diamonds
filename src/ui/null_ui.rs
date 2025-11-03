@@ -1,5 +1,5 @@
 
-use crate::search::Thread;
+use super::Thread;
 use super::UI;
 use super::UISignal;
 

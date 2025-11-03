@@ -5,7 +5,23 @@ mod null_ui;
 pub use default_ui::DefaultUI;
 pub use null_ui::NullUI;
 
-use crate::search::Thread;
+// Data sent from the manager thread to the UI.
+
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct Thread {
+    pub id: usize,
+    pub status: ThreadStatus,
+}
+
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub enum ThreadStatus {
+    Empty,
+    Initializing,
+    Searching(String),
+    Found(String),
+}
+
+// Data sent from the UI to the manager thread.
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum UISignal {
@@ -13,6 +29,8 @@ pub enum UISignal {
     IncreaseThreadCount,
     DecreaseThreadCount,
 }
+
+// The trait itself.
 
 pub trait UI {
     fn new() -> Self;

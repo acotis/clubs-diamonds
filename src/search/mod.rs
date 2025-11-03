@@ -20,7 +20,8 @@ use crate::ui::UISignal::*;
 use crate::utils;
 
 use self::SearchNews::*;
-use ThreadStatus::*;
+use crate::ui::ThreadStatus::*;
+use crate::ui::Thread;
 
 // Helper types.
 
@@ -149,21 +150,6 @@ enum SearchNews<N: Number, const C: usize> {
     ExpressionWorks      {thread_id: usize, expr: Expression<N, C>},
     ExpressionDoesntWork {thread_id: usize, expr: Expression<N, C>, length: usize, count: u128},
     Done                 {thread_id: usize,                         length: usize, count: u128},
-}
-
-// Note: Thread and ThreadStatus are only public so the UI module can use them too. This is silly. If anything, they should be *in* the UI module.
-
-pub struct Thread {
-    pub id: usize,
-    pub status: ThreadStatus,
-}
-
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub enum ThreadStatus {
-    Empty,              // Waiting for a new task.
-    Initializing,       // Was just given a new task and hasn't sent an update yet.
-    Searching(String),  // Searching an expression.
-    Found(String),      // Found an expression that works.
 }
 
 impl<N: Number, const C: usize> Searcher<N, C> {
