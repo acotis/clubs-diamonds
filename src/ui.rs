@@ -19,7 +19,7 @@ use crate::utils;
 
 use lazy_static::lazy_static;
 
-trait UI {
+pub trait UI {
     fn new() -> Self;
 
     fn set_description(&mut self, description: String);
@@ -94,8 +94,8 @@ struct DefaultUIFace {
     description: Option<String>
 }
 
-impl DefaultUI {
-    pub fn new() -> Self {
+impl UI for DefaultUI {
+    fn new() -> Self {
         Self {
             terminal: ratatui::init(),
             face: DefaultUIFace {
@@ -114,37 +114,37 @@ impl DefaultUI {
         }
     }
 
-    pub fn push_news_item(&mut self, news_item: String) {
+    fn push_news_item(&mut self, news_item: String) {
         self.face.news_feed.push((Local::now(), news_item));
     }
 
-    pub fn push_solution(&mut self, face: String, score: usize, inspection: Option<String>) {
+    fn push_solution(&mut self, face: String, score: usize, inspection: Option<String>) {
         let position = self.face.solutions_found.partition_point(|(_expr, its_score, _inspection)| *its_score <= score);
         self.face.solution_selected = self.face.solution_selected.map(|selected| if position <= selected {selected + 1} else {selected});
         self.face.solutions_found.insert(position, (face, score, inspection))
     }
 
-    pub fn set_target_thread_count(&mut self, target_thread_count: usize) {
+    fn set_target_thread_count(&mut self, target_thread_count: usize) {
         self.face.target_thread_count = target_thread_count;
     }
 
-    pub fn set_total_count(&mut self, total_count: u128) {
+    fn set_total_count(&mut self, total_count: u128) {
         self.face.total_count = total_count
     }
 
-    pub fn set_thread_statuses(&mut self, thread_statuses: Vec<Thread>) {
+    fn set_thread_statuses(&mut self, thread_statuses: Vec<Thread>) {
         self.face.thread_statuses = thread_statuses
     }
 
-    pub fn set_description(&mut self, description: String) {
+    fn set_description(&mut self, description: String) {
         self.face.description = Some(description)
     }
 
-    pub fn draw(&mut self) {
+    fn draw(&mut self) {
         self.terminal.draw(|frame| frame.render_widget(&self.face, frame.area())).unwrap();
     }
 
-    pub fn handle_inputs(&mut self) -> Vec<UISignal> {
+    fn handle_inputs(&mut self) -> Vec<UISignal> {
         let mut ret = vec![];
 
         while event::poll(Duration::from_millis(0)).unwrap() {

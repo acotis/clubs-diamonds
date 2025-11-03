@@ -13,6 +13,7 @@ use std::marker::PhantomData;
 
 use pivot::Op::{self, *};
 use expression_writer::ExpressionWriter;
+use crate::ui::UI;
 use crate::ui::DefaultUI;
 use crate::ui::UISignal::*;
 use crate::utils;

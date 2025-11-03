@@ -3,7 +3,7 @@
 UI revolution todo list
 ——————————
 
-— Factor out a trait called UI.
+— Factor out DefaultUI into its own file.
 — Create a trivial (null) implementor of the trait.
 — Parameterize the .run() method over the UI trait and remove the bool argument.
 — Add methods to the interface such that the UI can receive updates when a thread
