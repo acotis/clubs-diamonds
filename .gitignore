@@ -1,3 +1,5 @@
 /target
 /assets/expression_sets
 /assets/benchmarks
+.*.swp
+.*.swo

@@ -19,6 +19,20 @@ use crate::utils;
 
 use lazy_static::lazy_static;
 
+trait UI {
+    fn new() -> Self;
+
+    fn set_description(&mut self, description: String);
+    fn push_solution(&mut self, face: String, score: usize, inspection: Option<String>);
+    fn set_total_count(&mut self, total_count: u128);
+    fn set_target_thread_count(&mut self, target_thread_count: usize);
+    fn set_thread_statuses(&mut self, thread_statuses: Vec<Thread>);
+    fn push_news_item(&mut self, news_item: String);
+
+    fn draw(&mut self);
+    fn handle_inputs(&mut self) -> Vec<UISignal>;
+}
+
 lazy_static! {
     static ref STYLE_BLANK:                   Style = Style::default();
     static ref STYLE_TITLE:                   Style = Style::default().fg(Color::White);

@@ -3,7 +3,8 @@
 UI revolution todo list
 ——————————
 
-— Rename SearchUI to DefaultUI.
+— Refactor .set_description() to take a String, not a &str.
+— Refactor .push_solution() to take three arguments, not one tuple.
 — Factor out a trait called UI.
 — Create a trivial (null) implementor of the trait.
 — Parameterize the .run() method over the UI trait and remove the bool argument.
