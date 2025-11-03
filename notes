@@ -3,11 +3,12 @@
 UI revolution todo list
 ——————————
 
-— Move Thread and ThreadStatus to the UI interface file.
+— Extend the DefaultUI struct to compute and display the desired stats, under the
+  hypothetical premise that it already has access to the necessary data (so that
+  I will learn exactly what data it needs, and in what format).
 — Add methods to the interface such that the UI can receive updates when a thread
   reports that it has rejected a batch of N candidates.
 — Update the .run() method to invoke these methods.
-— Extend the DefaultUI struct to compute and display the desired stats.
 — Make the order of blocks be fixed as Description, Inspector, Stats, Threads,
   News.
 

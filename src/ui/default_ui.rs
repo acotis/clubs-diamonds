@@ -331,6 +331,86 @@ impl DefaultUIFace {
         ret
     }
 
+    fn description_ui(&self) -> Vec<ListItem<'_>> {
+        let mut ret = vec![];
+
+        // Title.
+
+        ret.push(ListItem::new(Line::from(vec![
+            Span::raw("Description").style(*STYLE_TITLE),
+            Span::raw(" ").style(*STYLE_BLANK),
+            Span::raw("(D: hide)").style(*STYLE_CONTROLS),
+        ])));
+        
+        ret.push(ListItem::new(Span::raw("—".repeat(50)).style(*STYLE_TITLE)));
+
+        // Description text.
+
+        if let Some(ref description) = self.description {
+
+            for line in description.lines() {
+                let mut display_line = String::new();
+
+                for word in line.split(" ") {
+                    if display_line != "" && display_line.len() + 1 + word.len() > 50 {
+                        ret.push(ListItem::from(Span::raw(format!("{display_line}")).style(*STYLE_DESCRIPTION)));
+                        display_line = String::new();
+                    }
+
+                    if display_line != "" {display_line += " "}
+                    display_line += word;
+                }
+
+                ret.push(ListItem::from(Span::raw(format!("{display_line}")).style(*STYLE_DESCRIPTION)));
+            }
+        } else {
+            ret.push(ListItem::new(Line::from("<no description provided>").style(*STYLE_ALT_VALUE)));
+        }
+
+        // Return.
+
+        ret
+    }
+
+    fn solution_inspector_ui(&self) -> Vec<ListItem<'_>> {
+        let mut ret = vec![];
+
+        // Title.
+
+        ret.push(ListItem::new(Line::from(vec![
+            Span::raw("Solution inspector").style(*STYLE_TITLE),
+            Span::raw(" ").style(*STYLE_BLANK),
+            Span::raw("(J/K: navigate, I: hide)").style(*STYLE_CONTROLS),
+        ])));
+        
+        ret.push(ListItem::new(Span::raw("—".repeat(50)).style(*STYLE_TITLE)));
+
+        // Inspection text.
+
+        if self.solutions_found.len() > 0 {
+            if let Some(idx) = self.solution_selected {
+                // Copy of expression (todo: find better UI to guarantee that all solutions are visible).
+                ret.push(Self::format_solution(&self.solutions_found[idx].0, self.solutions_found[idx].1, false));
+
+                if let Some(ref inspection) = self.solutions_found[idx].2 {
+                    for line in inspection.lines() {
+                        ret.push(ListItem::from(Span::raw(format!("{line:50}")).style(*STYLE_INSPECTION)));
+                    }
+                } else {
+                    ret.push(ListItem::new(Line::from("<no inspection provided>").style(*STYLE_ALT_VALUE)));
+                }
+            } else {
+                ret.push(ListItem::new(Line::from("<no solution selected>").style(*STYLE_ALT_VALUE)));
+            }
+        } else {
+            ret.push(ListItem::new(Line::from("<no solutions found yet>").style(*STYLE_ALT_VALUE)));
+        }
+
+        // Return.
+
+        ret
+    }
+
     fn stats_ui(&self) -> Vec<ListItem<'_>> {
 
         // Title.
@@ -404,45 +484,6 @@ impl DefaultUIFace {
             ListItem::from(count_line),
             ListItem::from(speed_life_avg_line),
         ]
-    }
-
-    fn solution_inspector_ui(&self) -> Vec<ListItem<'_>> {
-        let mut ret = vec![];
-
-        // Title.
-
-        ret.push(ListItem::new(Line::from(vec![
-            Span::raw("Solution inspector").style(*STYLE_TITLE),
-            Span::raw(" ").style(*STYLE_BLANK),
-            Span::raw("(J/K: navigate, I: hide)").style(*STYLE_CONTROLS),
-        ])));
-        
-        ret.push(ListItem::new(Span::raw("—".repeat(50)).style(*STYLE_TITLE)));
-
-        // Inspection text.
-
-        if self.solutions_found.len() > 0 {
-            if let Some(idx) = self.solution_selected {
-                // Copy of expression (todo: find better UI to guarantee that all solutions are visible).
-                ret.push(Self::format_solution(&self.solutions_found[idx].0, self.solutions_found[idx].1, false));
-
-                if let Some(ref inspection) = self.solutions_found[idx].2 {
-                    for line in inspection.lines() {
-                        ret.push(ListItem::from(Span::raw(format!("{line:50}")).style(*STYLE_INSPECTION)));
-                    }
-                } else {
-                    ret.push(ListItem::new(Line::from("<no inspection provided>").style(*STYLE_ALT_VALUE)));
-                }
-            } else {
-                ret.push(ListItem::new(Line::from("<no solution selected>").style(*STYLE_ALT_VALUE)));
-            }
-        } else {
-            ret.push(ListItem::new(Line::from("<no solutions found yet>").style(*STYLE_ALT_VALUE)));
-        }
-
-        // Return.
-
-        ret
     }
 
     fn thread_viewer_ui(&self) -> Vec<ListItem<'_>> {
@@ -548,47 +589,5 @@ impl DefaultUIFace {
 
         ret
     }
-
-    fn description_ui(&self) -> Vec<ListItem<'_>> {
-        let mut ret = vec![];
-
-        // Title.
-
-        ret.push(ListItem::new(Line::from(vec![
-            Span::raw("Description").style(*STYLE_TITLE),
-            Span::raw(" ").style(*STYLE_BLANK),
-            Span::raw("(D: hide)").style(*STYLE_CONTROLS),
-        ])));
-        
-        ret.push(ListItem::new(Span::raw("—".repeat(50)).style(*STYLE_TITLE)));
-
-        // Description text.
-
-        if let Some(ref description) = self.description {
-
-            for line in description.lines() {
-                let mut display_line = String::new();
-
-                for word in line.split(" ") {
-                    if display_line != "" && display_line.len() + 1 + word.len() > 50 {
-                        ret.push(ListItem::from(Span::raw(format!("{display_line}")).style(*STYLE_DESCRIPTION)));
-                        display_line = String::new();
-                    }
-
-                    if display_line != "" {display_line += " "}
-                    display_line += word;
-                }
-
-                ret.push(ListItem::from(Span::raw(format!("{display_line}")).style(*STYLE_DESCRIPTION)));
-            }
-        } else {
-            ret.push(ListItem::new(Line::from("<no description provided>").style(*STYLE_ALT_VALUE)));
-        }
-
-        // Return.
-
-        ret
-    }
-
 }
 
