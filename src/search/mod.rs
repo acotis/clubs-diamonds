@@ -13,8 +13,8 @@ use std::marker::PhantomData;
 
 use pivot::Op::{self, *};
 use expression_writer::ExpressionWriter;
-use crate::ui::SearchUI;
-use crate::ui::SearchUISignal::*;
+use crate::ui::DefaultUI;
+use crate::ui::UISignal::*;
 use crate::utils;
 
 use self::SearchNews::*;
@@ -173,11 +173,9 @@ impl<N: Number, const C: usize> Searcher<N, C> {
         let frame_clock_max = 16; // Only draw a UI frame every N cycles of the control loop.
         let mut frame_clock = 0;
 
-        let mut ui = if display_ui {Some(SearchUI::new())} else {None};
+        let mut ui = if display_ui {Some(DefaultUI::new())} else {None};
 
         if let Some(ref mut ui) = ui {
-            ui.enable_solution_inspector();
-
             if let Some(ref description) = self.description {
                 ui.set_description(&*description);
             }

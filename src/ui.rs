@@ -13,7 +13,7 @@ use crate::search::Thread;
 use crate::search::ThreadStatus::*;
 
 use DashboardBlock::*;
-use SearchUISignal::*;
+use UISignal::*;
 
 use crate::utils;
 
@@ -49,24 +49,24 @@ pub enum DashboardBlock {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
-pub enum SearchUISignal {
+pub enum UISignal {
     Quit,
     IncreaseThreadCount,
     DecreaseThreadCount,
 }
 
-pub struct SearchUI {
+pub struct DefaultUI {
     terminal: Terminal<CrosstermBackend<std::io::Stdout>>,
-    face: SearchUIFace,
+    face: DefaultUIFace,
 }
 
-impl Drop for SearchUI {
+impl Drop for DefaultUI {
     fn drop(&mut self) {
         ratatui::restore()
     }
 }
 
-struct SearchUIFace {
+struct DefaultUIFace {
     target_thread_count: usize,
     thread_statuses: Vec<Thread>,
     solutions_found: Vec<(String, usize, Option<String>)>,
@@ -80,11 +80,11 @@ struct SearchUIFace {
     description: Option<String>
 }
 
-impl SearchUI {
+impl DefaultUI {
     pub fn new() -> Self {
         Self {
             terminal: ratatui::init(),
-            face: SearchUIFace {
+            face: DefaultUIFace {
                 target_thread_count: 0,
                 thread_statuses: vec![],
                 solutions_found: vec![],
@@ -92,18 +92,11 @@ impl SearchUI {
                 total_count: 0,
                 solution_selected: None,
                 hidden_blocks: vec![],
-                shown_blocks: vec![Description, ThreadViewer, Stats, NewsFeed],
+                shown_blocks: vec![Description, SolutionInspector, Stats, ThreadViewer, NewsFeed],
                 in_quit_dialog: false,
                 news_feed: vec![],
                 description: None,
             }
-        }
-    }
-
-    pub fn enable_solution_inspector(&mut self) {
-        if !self.face.shown_blocks .contains(&SolutionInspector)
-        && !self.face.hidden_blocks.contains(&SolutionInspector) {
-            self.face.shown_blocks.insert(3, SolutionInspector);
         }
     }
 
@@ -137,7 +130,7 @@ impl SearchUI {
         self.terminal.draw(|frame| frame.render_widget(&self.face, frame.area())).unwrap();
     }
 
-    pub fn handle_inputs(&mut self) -> Vec<SearchUISignal> {
+    pub fn handle_inputs(&mut self) -> Vec<UISignal> {
         let mut ret = vec![];
 
         while event::poll(Duration::from_millis(0)).unwrap() {
@@ -234,7 +227,7 @@ impl SearchUI {
     }
 }
 
-impl Widget for &SearchUIFace {
+impl Widget for &DefaultUIFace {
     fn render(self, area: Rect, buf: &mut Buffer) {
 
         // Split the main area into a solutions list and a dashboard.
@@ -281,7 +274,7 @@ impl Widget for &SearchUIFace {
     }
 }
 
-impl SearchUIFace {
+impl DefaultUIFace {
     fn format_solution(solution: &str, score: usize, selected: bool) -> ListItem<'_> {
         if selected {
             ListItem::new(Line::from(vec![

@@ -3,8 +3,8 @@
 UI revolution todo list
 ——————————
 
-— Remove .enable_solution_inspector() (it should always be "enabled").
-— Factor out a trait.
+— Rename SearchUI to DefaultUI.
+— Factor out a trait called UI.
 — Create a trivial (null) implementor of the trait.
 — Parameterize the .run() method over the UI trait and remove the bool argument.
 — Add methods to the interface such that the UI can receive updates when a thread
