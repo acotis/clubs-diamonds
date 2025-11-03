@@ -177,7 +177,7 @@ impl<N: Number, const C: usize> Searcher<N, C> {
 
         if let Some(ref mut ui) = ui {
             if let Some(ref description) = self.description {
-                ui.set_description(&*description);
+                ui.set_description(description.clone());
             }
         }
 
@@ -217,7 +217,7 @@ impl<N: Number, const C: usize> Searcher<N, C> {
 
                         let score = string.len() + self.penalizer.as_ref().map(|scorer| scorer(&expr)).unwrap_or(0);
 
-                        if let Some(ref mut ui) = ui {ui.push_solution((string, score, inspection));}
+                        if let Some(ref mut ui) = ui {ui.push_solution(string, score, inspection);}
                         solutions.push(expr);
                     },
 

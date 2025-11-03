@@ -118,7 +118,7 @@ impl DefaultUI {
         self.face.news_feed.push((Local::now(), news_item));
     }
 
-    pub fn push_solution(&mut self, (face, score, inspection): (String, usize, Option<String>)) {
+    pub fn push_solution(&mut self, face: String, score: usize, inspection: Option<String>) {
         let position = self.face.solutions_found.partition_point(|(_expr, its_score, _inspection)| *its_score <= score);
         self.face.solution_selected = self.face.solution_selected.map(|selected| if position <= selected {selected + 1} else {selected});
         self.face.solutions_found.insert(position, (face, score, inspection))
@@ -136,8 +136,8 @@ impl DefaultUI {
         self.face.thread_statuses = thread_statuses
     }
 
-    pub fn set_description(&mut self, description: &str) {
-        self.face.description = Some(String::from(description))
+    pub fn set_description(&mut self, description: String) {
+        self.face.description = Some(description)
     }
 
     pub fn draw(&mut self) {
