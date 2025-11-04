@@ -482,7 +482,7 @@ impl DefaultUIFace {
         ])
     }
 
-    fn numeric_stat_line(label: &str, value: u128) -> Line {
+    fn numeric_stat_line(label: &str, value: u128) -> Line<'static> {
         Self::stat_line(
             label,
             &format!("{} = ", utils::with_commas(value)),
@@ -529,7 +529,6 @@ impl DefaultUIFace {
         // Return.
 
         vec![
-            ListItem::from(format!("[{}]", self.stat_moments.len())),
             ListItem::from(stats_title),
             ListItem::from(Span::raw("—".repeat(50)).style(*STYLE_TITLE)),
 
@@ -543,8 +542,6 @@ impl DefaultUIFace {
             ListItem::from(Self::numeric_stat_line("Expr/s/thread", count_recent * 10 / deci_thread_seconds_recent)),
             ListItem::from(Self::numeric_stat_line("Life avg. expr/s", count * 10 / deci_seconds)),
             ListItem::from(Self::numeric_stat_line("Life avg. expr/s/thread", count * 10 / deci_thread_seconds)),
-
-            //ListItem::from(speed_thread_avg_line),
         ]
     }
 
