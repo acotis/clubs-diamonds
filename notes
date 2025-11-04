@@ -3,7 +3,6 @@
 UI revolution todo list
 ——————————
 
-— Make the missing_value style darker.
 — Make the "add an inspector" dialog the highest-priority exception case.
     — Need the UI to know ahead of time whether there will be inspections or not.
 — Make the order of blocks be fixed as Description, Inspector, Stats, Threads,
