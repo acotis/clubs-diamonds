@@ -158,6 +158,17 @@ impl UI for DefaultUI {
     }
 
     fn draw(&mut self) {
+
+        // Clean up data points from before five seconds ago (but keep the very
+        // first data point).
+
+        let five_second_mark = self.face.five_second_mark();
+        if five_second_mark > 1000 {
+            self.face.stat_moments.drain(1..five_second_mark);
+        }
+
+        // Draw self.
+
         self.terminal.draw(|frame| frame.render_widget(&self.face, frame.area())).unwrap();
     }
 
@@ -460,6 +471,33 @@ impl DefaultUIFace {
         ret
     }
 
+    fn stat_line(label: &str, alt_value: &str, main_value: &str) -> Line<'static> {
+        let padding = 50 - label.chars().count() - alt_value.chars().count() - main_value.chars().count();
+
+        Line::from(vec![
+            Span::raw(format!("{label}")).style(*STYLE_LABEL),
+            Span::raw(" ".repeat(padding)).style(*STYLE_BLANK),
+            Span::raw(format!("{alt_value}")).style(*STYLE_ALT_VALUE),
+            Span::raw(format!("{main_value}")).style(*STYLE_VALUE),
+        ])
+    }
+
+    fn numeric_stat_line(label: &str, value: u128) -> Line {
+        Self::stat_line(
+            label,
+            &format!("{} = ", utils::with_commas(value)),
+            &format!("{}", utils::as_power_of_two(value))
+        )
+    }
+
+    fn five_second_mark(&self) -> usize {
+        let last_timestamp = self.last_stat_moment().timestamp;
+
+        self.stat_moments.partition_point(|moment| {
+            (last_timestamp - moment.timestamp).as_seconds_f64() > 5.0
+        }).min(self.stat_moments.len() - 1)
+    }
+
     fn stats_ui(&self) -> Vec<ListItem<'_>> {
 
         // Title.
@@ -475,98 +513,18 @@ impl DefaultUIFace {
             },
             Span::raw(", S: hide)").style(*STYLE_CONTROLS)
         ]);
-
-        // Uptime.
-
-        let label = "Uptime";
-        let ts_string = utils::format_timestamp(&self.start_time());
-        let du_string = utils::format_duration(&(Local::now() - self.start_time()), false);
-        let value_len = ts_string.len() + du_string.len() + 3;
-        let padding = 50 - label.len() - value_len;
-
-        let uptime_line = Line::from(vec![
-            Span::raw(label).style(*STYLE_LABEL),
-            Span::raw(" ".repeat(padding)).style(*STYLE_BLANK),
-            Span::raw(format!("({ts_string})")).style(*STYLE_ALT_VALUE),
-            Span::raw(" ").style(*STYLE_BLANK),
-            Span::raw(du_string).style(*STYLE_VALUE),
-        ]);
-
-        // Count.
-
-        let label = "Count";
-        let comma_version = utils::with_commas(self.total_count());
-        let power_version = utils::as_power_of_two(self.total_count());
-        let value_len = comma_version.len() + power_version.len() + 3;
-        let padding = 50 - label.len() - value_len;
-
-        let count_line = Line::from(vec![
-            Span::raw(label).style(*STYLE_LABEL),
-            Span::raw(" ".repeat(padding)).style(*STYLE_BLANK),
-            Span::raw(format!("{comma_version} = ")).style(*STYLE_ALT_VALUE),
-            Span::raw(format!("{power_version}")).style(*STYLE_VALUE),
-        ]);
-
-        // Speed.
-        //
-        // The speed of the search is defined as the number of expressions
-        // searched in the last 5 seconds, divided by 5 seconds. If the search
-        // has not yet been running for 5 seconds, then it is defined as the
-        // number of expressions searched so far divided by the amount of time
-        // the search has been running.
-
-        // Speed (life avg).
-        //
-        // The life-average speed of the search is defined as the number of
-        // expressions searched in all time, divided by the amount of time
-        // the search has been running.
-
-        let label = "Expr/s (life avg)";
-        let deciseconds_up = 1.max((Local::now() - self.start_time()).num_milliseconds() / 100);
-        let per_second = self.total_count() * 10 / deciseconds_up as u128;
-        let comma_version = utils::with_commas(per_second);
-        let power_version = utils::as_power_of_two(per_second);
-        let value_len = comma_version.len() + power_version.len() + 3;
-        let padding = 50 - label.len() - value_len;
-
-        let speed_life_avg_line = Line::from(vec![
-            Span::raw(label).style(*STYLE_LABEL),
-            Span::raw(" ".repeat(padding)).style(*STYLE_BLANK),
-            Span::raw(format!("{comma_version} = ")).style(*STYLE_ALT_VALUE),
-            Span::raw(format!("{power_version}")).style(*STYLE_VALUE),
-        ]);
-
-        // Speed (per-thread).
-        //
-        // The per-thread speed of the search is defined as the number of
-        // expresssions searched in the last 5 seconds, divided by 5 seconds,
-        // divided then by the average number of threads which were active at
-        // any given moment during the last 5 seconds. If the search has not yet
-        // been running for 5 seconds, then it is defined as the result of this
-        // algorithm being applied to the whole time the search has been running.
         
-        // Speed (per-thread life average).
-        //
-        // The life-average per-thread speed of the search is defined as the
-        // result when the algorithm above is applied to the whole time the
-        // search has been running.
+        // Intermediate calculations.
 
-        /*
-        let label = "Expr/s (per-thread life avg)";
-        let deci_thread_seconds_up = 1.max((self.last_stat_moment().thread_seconds * 10.0) as u128);
-        let per_second = self.total_count() * 10 / deci_thread_seconds_up as u128;
-        let comma_version = utils::with_commas(per_second);
-        let power_version = utils::as_power_of_two(per_second);
-        let value_len = comma_version.len() + power_version.len() + 3;
-        let padding = 50 - label.len() - value_len;
+        let last_timestamp = self.last_stat_moment().timestamp;
+        let five_second_mark = self.five_second_mark();
+        let count = self.total_count();
+        let deci_seconds = 1.max((last_timestamp - self.start_time()).num_milliseconds() / 100) as u128;
+        let deci_thread_seconds = 1.max((self.last_stat_moment().thread_seconds * 10.0) as u128);
 
-        let speed_thread_avg_line = Line::from(vec![
-            Span::raw(label).style(*STYLE_LABEL),
-            Span::raw(" ".repeat(padding)).style(*STYLE_BLANK),
-            Span::raw(format!("{comma_version} = ")).style(*STYLE_ALT_VALUE),
-            Span::raw(format!("{power_version}")).style(*STYLE_VALUE),
-        ]);
-        */
+        let count_recent = self.total_count() - self.stat_moments[five_second_mark].expr_count;
+        let deci_seconds_recent = 1.max((last_timestamp - self.stat_moments[five_second_mark].timestamp).num_milliseconds() / 100) as u128;
+        let deci_thread_seconds_recent = 1.max(((self.last_stat_moment().thread_seconds - self.stat_moments[five_second_mark].thread_seconds) * 10.0) as u128);
 
         // Return.
 
@@ -574,9 +532,18 @@ impl DefaultUIFace {
             ListItem::from(format!("[{}]", self.stat_moments.len())),
             ListItem::from(stats_title),
             ListItem::from(Span::raw("—".repeat(50)).style(*STYLE_TITLE)),
-            ListItem::from(uptime_line),
-            ListItem::from(count_line),
-            ListItem::from(speed_life_avg_line),
+
+            ListItem::from(Self::stat_line(
+                "Uptime",
+                &format!("{} — ", utils::format_timestamp(&self.start_time())),
+                &format!("{}", utils::format_duration(&(Local::now() - self.start_time()), false)),
+            )),
+            ListItem::from(Self::numeric_stat_line("Count", count)),
+            ListItem::from(Self::numeric_stat_line("Expr/s", count_recent * 10 / deci_seconds_recent)),
+            ListItem::from(Self::numeric_stat_line("Expr/s/thread", count_recent * 10 / deci_thread_seconds_recent)),
+            ListItem::from(Self::numeric_stat_line("Life avg. expr/s", count * 10 / deci_seconds)),
+            ListItem::from(Self::numeric_stat_line("Life avg. expr/s/thread", count * 10 / deci_thread_seconds)),
+
             //ListItem::from(speed_thread_avg_line),
         ]
     }

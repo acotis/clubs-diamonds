@@ -3,3 +3,5 @@
 /assets/benchmarks
 .*.swp
 .*.swo
+.swp
+.swo
