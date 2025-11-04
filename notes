@@ -12,10 +12,7 @@ UI revolution todo list
 Todo
 ——————————
 
-— Stats:
-    — Add expr/sec (per-thread avg).
-    — Add expr/sec (current).
-    — Add expr/sec (current per-thread).
+— Do a benchmark against babc4b2, or like 23ed04c or even 9cd7bb8 to see if it's normal that I'm getting +10% times on all my benchmarks.
 
 — Add a .timeout() configurable parameter for Searcher.
 
