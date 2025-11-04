@@ -249,6 +249,6 @@ fn bench<N: Number, const C: usize>(
 // Format a timestamp like this: "Sat, 2025 May 10 11:40"
 
 pub fn format_timestamp(ts: &DateTime<Local>) -> String {
-    ts.format("%Y-%m-%e_%H-%M").to_string()
+    ts.format("%Y-%m-%d_%H-%M").to_string()
 }
 
