@@ -11,6 +11,8 @@ UI revolution todo list
 — Update the .run() method to invoke these methods.
 — Make the order of blocks be fixed as Description, Inspector, Stats, Threads,
   News.
+— Try putting the inspected solution in the header of the Solution Inspector.
+— Rename .set_total_count() to .update_total_count()? 
 
 ——————————
 Todo
@@ -20,8 +22,6 @@ Todo
     — Add expr/sec (per-thread avg).
     — Add expr/sec (current).
     — Add expr/sec (current per-thread).
-    — Add expr/sec (max)?
-    — Add expr/sec (max per-thread)?
 
 — Add a .timeout() configurable parameter for Searcher.
 

@@ -8,17 +8,15 @@ use ratatui::style::{Style, Modifier};
 use ratatui::widgets::{Widget, List, ListItem};
 use ratatui::prelude::{Buffer, Layout, Direction, Rect, Constraint, Line, Span, Color, Stylize};
 use crossterm::event::{self, Event::Key, KeyCode::Char, KeyCode::Esc, KeyEvent, KeyEventKind};
+use lazy_static::lazy_static;
 
 use super::Thread;
 use super::ThreadStatus::*;
 use super::UISignal::{self, *};
 use super::UI;
-
-use DashboardBlock::*;
-
 use crate::utils;
 
-use lazy_static::lazy_static;
+use DashboardBlock::*;
 
 lazy_static! {
     static ref STYLE_BLANK:                   Style = Style::default();
@@ -49,29 +47,57 @@ pub enum DashboardBlock {
     Description,
 }
 
+struct StatMoment {
+    timestamp: DateTime<Local>,
+    expr_count: u128,
+    thread_seconds: f64,
+}
+
+impl StatMoment {
+    fn zero() -> Self {
+        Self {
+            timestamp: Local::now(),
+            expr_count: 0,
+            thread_seconds: 0.0,
+        }
+    }
+
+    fn step_to_now(&self, expr_count: u128, thread_count: usize) -> Self {
+        let timestamp = Local::now();
+
+        Self {
+            expr_count,
+            thread_seconds:
+                self.thread_seconds + 
+                    thread_count as f64 *
+                    (timestamp - self.timestamp).as_seconds_f64(),
+            timestamp
+        }
+    }
+}
+
 pub struct DefaultUI {
     terminal: Terminal<CrosstermBackend<std::io::Stdout>>,
     face: DefaultUIFace,
-}
-
-impl Drop for DefaultUI {
-    fn drop(&mut self) {
-        ratatui::restore()
-    }
 }
 
 struct DefaultUIFace {
     target_thread_count: usize,
     thread_statuses: Vec<Thread>,
     solutions_found: Vec<(String, usize, Option<String>)>,
-    start_time: DateTime<Local>,
-    total_count: u128,
+    stat_moments: Vec<StatMoment>,
     solution_selected: Option<usize>,
     hidden_blocks: Vec<DashboardBlock>,
     shown_blocks: Vec<DashboardBlock>,
     in_quit_dialog: bool,
     news_feed: Vec<(DateTime<Local>, String)>,
     description: Option<String>
+}
+
+impl Drop for DefaultUI {
+    fn drop(&mut self) {
+        ratatui::restore()
+    }
 }
 
 impl UI for DefaultUI {
@@ -82,8 +108,7 @@ impl UI for DefaultUI {
                 target_thread_count: 0,
                 thread_statuses: vec![],
                 solutions_found: vec![],
-                start_time: Local::now(),
-                total_count: 0,
+                stat_moments: vec![StatMoment::zero()],
                 solution_selected: None,
                 hidden_blocks: vec![],
                 shown_blocks: vec![Description, SolutionInspector, Stats, ThreadViewer, NewsFeed],
@@ -109,11 +134,23 @@ impl UI for DefaultUI {
     }
 
     fn set_total_count(&mut self, total_count: u128) {
-        self.face.total_count = total_count
+        self.face.stat_moments.push(
+            self.face.last_stat_moment().step_to_now(
+                total_count,
+                self.face.thread_statuses.len()
+            )
+        );
     }
 
     fn set_thread_statuses(&mut self, thread_statuses: Vec<Thread>) {
-        self.face.thread_statuses = thread_statuses
+        self.face.stat_moments.push(
+            self.face.last_stat_moment().step_to_now(
+                self.face.total_count(),
+                self.face.thread_statuses.len()
+            )
+        );
+
+        self.face.thread_statuses = thread_statuses;
     }
 
     fn set_description(&mut self, description: String) {
@@ -285,6 +322,18 @@ impl DefaultUIFace {
         }
     }
 
+    fn last_stat_moment(&self) -> &StatMoment {
+        self.stat_moments.last().unwrap()
+    }
+
+    fn total_count(&self) -> u128 {
+        self.last_stat_moment().expr_count
+    }
+
+    fn start_time(&self) -> DateTime<Local> {
+        self.stat_moments[0].timestamp
+    }
+
     fn solution_list_ui(&self) -> Vec<ListItem<'_>> {
         let mut ret = vec![];
 
@@ -430,8 +479,8 @@ impl DefaultUIFace {
         // Uptime.
 
         let label = "Uptime";
-        let ts_string = utils::format_timestamp(&self.start_time);
-        let du_string = utils::format_duration(&(Local::now() - self.start_time), false);
+        let ts_string = utils::format_timestamp(&self.start_time());
+        let du_string = utils::format_duration(&(Local::now() - self.start_time()), false);
         let value_len = ts_string.len() + du_string.len() + 3;
         let padding = 50 - label.len() - value_len;
 
@@ -446,8 +495,8 @@ impl DefaultUIFace {
         // Count.
 
         let label = "Count";
-        let comma_version = utils::with_commas(self.total_count);
-        let power_version = utils::as_power_of_two(self.total_count);
+        let comma_version = utils::with_commas(self.total_count());
+        let power_version = utils::as_power_of_two(self.total_count());
         let value_len = comma_version.len() + power_version.len() + 3;
         let padding = 50 - label.len() - value_len;
 
@@ -458,11 +507,23 @@ impl DefaultUIFace {
             Span::raw(format!("{power_version}")).style(*STYLE_VALUE),
         ]);
 
+        // Speed.
+        //
+        // The speed of the search is defined as the number of expressions
+        // searched in the last 5 seconds, divided by 5 seconds. If the search
+        // has not yet been running for 5 seconds, then it is defined as the
+        // number of expressions searched so far divided by the amount of time
+        // the search has been running.
+
         // Speed (life avg).
+        //
+        // The life-average speed of the search is defined as the number of
+        // expressions searched in all time, divided by the amount of time
+        // the search has been running.
 
         let label = "Expr/s (life avg)";
-        let deciseconds_up = 1.max((Local::now() - self.start_time).num_milliseconds() / 100);
-        let per_second = self.total_count * 10 / deciseconds_up as u128;
+        let deciseconds_up = 1.max((Local::now() - self.start_time()).num_milliseconds() / 100);
+        let per_second = self.total_count() * 10 / deciseconds_up as u128;
         let comma_version = utils::with_commas(per_second);
         let power_version = utils::as_power_of_two(per_second);
         let value_len = comma_version.len() + power_version.len() + 3;
@@ -475,14 +536,48 @@ impl DefaultUIFace {
             Span::raw(format!("{power_version}")).style(*STYLE_VALUE),
         ]);
 
+        // Speed (per-thread).
+        //
+        // The per-thread speed of the search is defined as the number of
+        // expresssions searched in the last 5 seconds, divided by 5 seconds,
+        // divided then by the average number of threads which were active at
+        // any given moment during the last 5 seconds. If the search has not yet
+        // been running for 5 seconds, then it is defined as the result of this
+        // algorithm being applied to the whole time the search has been running.
+        
+        // Speed (per-thread life average).
+        //
+        // The life-average per-thread speed of the search is defined as the
+        // result when the algorithm above is applied to the whole time the
+        // search has been running.
+
+        /*
+        let label = "Expr/s (per-thread life avg)";
+        let deci_thread_seconds_up = 1.max((self.last_stat_moment().thread_seconds * 10.0) as u128);
+        let per_second = self.total_count() * 10 / deci_thread_seconds_up as u128;
+        let comma_version = utils::with_commas(per_second);
+        let power_version = utils::as_power_of_two(per_second);
+        let value_len = comma_version.len() + power_version.len() + 3;
+        let padding = 50 - label.len() - value_len;
+
+        let speed_thread_avg_line = Line::from(vec![
+            Span::raw(label).style(*STYLE_LABEL),
+            Span::raw(" ".repeat(padding)).style(*STYLE_BLANK),
+            Span::raw(format!("{comma_version} = ")).style(*STYLE_ALT_VALUE),
+            Span::raw(format!("{power_version}")).style(*STYLE_VALUE),
+        ]);
+        */
+
         // Return.
 
         vec![
+            ListItem::from(format!("[{}]", self.stat_moments.len())),
             ListItem::from(stats_title),
             ListItem::from(Span::raw("—".repeat(50)).style(*STYLE_TITLE)),
             ListItem::from(uptime_line),
             ListItem::from(count_line),
             ListItem::from(speed_life_avg_line),
+            //ListItem::from(speed_thread_avg_line),
         ]
     }
 
@@ -561,7 +656,7 @@ impl DefaultUIFace {
                 //ret.push(ListItem::from(Line::from("")));
             }
 
-            let time_in = news_item.0 - self.start_time;
+            let time_in = news_item.0 - self.start_time();
             let time_ago = Local::now() - news_item.0;
 
             ret.push(ListItem::from(Line::from(vec![
