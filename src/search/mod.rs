@@ -163,6 +163,8 @@ impl<N: Number, const C: usize> Searcher<N, C> {
 
         let mut ui = U::new();
 
+        ui.set_inspector_enabled(self.inspector.is_some());
+
         if let Some(ref description) = self.description {
             ui.set_description(description.clone());
         }

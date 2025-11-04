@@ -87,6 +87,7 @@ struct DefaultUIFace {
     thread_statuses: Vec<Thread>,
     solutions_found: Vec<(String, usize, Option<String>)>,
     stat_moments: Vec<StatMoment>,
+    inspector_enabled: bool,
     solution_selected: Option<usize>,
     hidden_blocks: Vec<DashboardBlock>,
     shown_blocks: Vec<DashboardBlock>,
@@ -110,6 +111,7 @@ impl UI for DefaultUI {
                 thread_statuses: vec![],
                 solutions_found: vec![],
                 stat_moments: vec![StatMoment::zero()],
+                inspector_enabled: false,
                 solution_selected: None,
                 hidden_blocks: vec![],
                 shown_blocks: vec![Description, SolutionInspector, Stats, ThreadViewer, NewsFeed],
@@ -118,6 +120,10 @@ impl UI for DefaultUI {
                 description: None,
             }
         }
+    }
+
+    fn set_inspector_enabled(&mut self, enabled: bool) {
+        self.face.inspector_enabled = enabled;
     }
 
     fn push_news_item(&mut self, news_item: String) {
@@ -448,23 +454,29 @@ impl DefaultUIFace {
 
         // Inspection text.
 
-        if self.solutions_found.len() > 0 {
-            if let Some(idx) = self.solution_selected {
-                // Copy of expression (todo: find better UI to guarantee that all solutions are visible).
-                ret.push(Self::format_solution(&self.solutions_found[idx].0, self.solutions_found[idx].1, false));
+        if let Some(idx) = self.solution_selected {
+            // Copy of expression (todo: find better UI to guarantee that all solutions are visible).
+            ret.push(Self::format_solution(&self.solutions_found[idx].0, self.solutions_found[idx].1, false));
+        }
 
-                if let Some(ref inspection) = self.solutions_found[idx].2 {
-                    for line in inspection.lines() {
-                        ret.push(ListItem::from(Span::raw(format!("{line:50}")).style(*STYLE_INSPECTION)));
+        if self.inspector_enabled {
+            if self.solutions_found.len() > 0 {
+                if let Some(idx) = self.solution_selected {
+                    if let Some(ref inspection) = self.solutions_found[idx].2 {
+                        for line in inspection.lines() {
+                            ret.push(ListItem::from(Span::raw(format!("{line:50}")).style(*STYLE_INSPECTION)));
+                        }
+                    } else {
+                        ret.push(ListItem::new(Line::from("error: missing inspection (???)").style(*STYLE_MISSING_VALUE)));
                     }
                 } else {
-                    ret.push(ListItem::new(Line::from("add an inspector with Searcher::inspector()").style(*STYLE_MISSING_VALUE)));
+                    ret.push(ListItem::new(Line::from("no solution selected").style(*STYLE_MISSING_VALUE)));
                 }
             } else {
-                ret.push(ListItem::new(Line::from("no solution selected").style(*STYLE_MISSING_VALUE)));
+                ret.push(ListItem::new(Line::from("no solutions found yet").style(*STYLE_MISSING_VALUE)));
             }
         } else {
-            ret.push(ListItem::new(Line::from("no solutions found yet").style(*STYLE_MISSING_VALUE)));
+            ret.push(ListItem::new(Line::from("add an inspector with Searcher::inspector()").style(*STYLE_MISSING_VALUE)));
         }
 
         // Return.

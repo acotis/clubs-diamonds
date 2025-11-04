@@ -36,6 +36,7 @@ pub trait UI {
     fn new() -> Self;
 
     fn set_description(&mut self, description: String);
+    fn set_inspector_enabled(&mut self, enabled: bool);
     fn push_solution(&mut self, face: String, score: usize, inspection: Option<String>);
     fn set_total_count(&mut self, total_count: u128);
     fn set_target_thread_count(&mut self, target_thread_count: usize);
