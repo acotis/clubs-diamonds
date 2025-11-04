@@ -83,17 +83,21 @@ pub struct DefaultUI {
 }
 
 struct DefaultUIFace {
+    solutions_found: Vec<(String, usize, Option<String>)>,
+    solution_selected: Option<usize>,
+    description: Option<String>,
+    inspector_enabled: bool,
+    stat_moments: Vec<StatMoment>,
+    in_quit_dialog: bool,
     target_thread_count: usize,
     thread_statuses: Vec<Thread>,
-    solutions_found: Vec<(String, usize, Option<String>)>,
-    stat_moments: Vec<StatMoment>,
-    inspector_enabled: bool,
-    solution_selected: Option<usize>,
-    hidden_blocks: Vec<DashboardBlock>,
-    shown_blocks: Vec<DashboardBlock>,
-    in_quit_dialog: bool,
     news_feed: Vec<(DateTime<Local>, String)>,
-    description: Option<String>
+
+    description_shown: bool,
+    inspector_shown: bool,
+    stats_shown: bool,
+    threads_shown: bool,
+    news_feed_shown: bool,
 }
 
 impl Drop for DefaultUI {
@@ -107,17 +111,21 @@ impl UI for DefaultUI {
         Self {
             terminal: ratatui::init(),
             face: DefaultUIFace {
+                solutions_found: vec![],
+                solution_selected: None,
+                description: None,
+                inspector_enabled: false,
+                stat_moments: vec![StatMoment::zero()],
+                in_quit_dialog: false,
                 target_thread_count: 0,
                 thread_statuses: vec![],
-                solutions_found: vec![],
-                stat_moments: vec![StatMoment::zero()],
-                inspector_enabled: false,
-                solution_selected: None,
-                hidden_blocks: vec![],
-                shown_blocks: vec![Description, SolutionInspector, Stats, ThreadViewer, NewsFeed],
-                in_quit_dialog: false,
                 news_feed: vec![],
-                description: None,
+
+                description_shown: true,
+                inspector_shown: true,
+                stats_shown: true,
+                threads_shown: true,
+                news_feed_shown: true,
             }
         }
     }
@@ -217,50 +225,20 @@ impl UI for DefaultUI {
                         Char('-') => {
                             ret.push(DecreaseThreadCount);
                         }
-                        Char('s') => {
-                            if self.face.shown_blocks.contains(&Stats) {
-                                self.face.shown_blocks.retain(|x| *x != Stats);
-                                self.face.hidden_blocks.push(Stats);
-                            } else {
-                                self.face.hidden_blocks.retain(|x| *x != Stats);
-                                self.face.shown_blocks.push(Stats);
-                            }
+                        Char('d') => {
+                            self.face.description_shown = !self.face.description_shown;
                         }
                         Char('i') => {
-                            if self.face.shown_blocks.contains(&SolutionInspector) {
-                                self.face.shown_blocks.retain(|x| *x != SolutionInspector);
-                                self.face.hidden_blocks.push(SolutionInspector);
-                            } else {
-                                self.face.hidden_blocks.retain(|x| *x != SolutionInspector);
-                                self.face.shown_blocks.push(SolutionInspector);
-                            }
+                            self.face.inspector_shown = !self.face.inspector_shown;
+                        }
+                        Char('s') => {
+                            self.face.stats_shown = !self.face.stats_shown;
                         }
                         Char('t') => {
-                            if self.face.shown_blocks.contains(&ThreadViewer) {
-                                self.face.shown_blocks.retain(|x| *x != ThreadViewer);
-                                self.face.hidden_blocks.push(ThreadViewer);
-                            }  else {
-                                self.face.hidden_blocks.retain(|x| *x != ThreadViewer);
-                                self.face.shown_blocks.push(ThreadViewer);
-                            }
+                            self.face.threads_shown = !self.face.threads_shown;
                         }
                         Char('n') => {
-                            if self.face.shown_blocks.contains(&NewsFeed) {
-                                self.face.shown_blocks.retain(|x| *x != NewsFeed);
-                                self.face.hidden_blocks.push(NewsFeed);
-                            }  else {
-                                self.face.hidden_blocks.retain(|x| *x != NewsFeed);
-                                self.face.shown_blocks.push(NewsFeed);
-                            }
-                        }
-                        Char('d') => {
-                            if self.face.shown_blocks.contains(&Description) {
-                                self.face.shown_blocks.retain(|x| *x != Description);
-                                self.face.hidden_blocks.push(Description);
-                            }  else {
-                                self.face.hidden_blocks.retain(|x| *x != Description);
-                                self.face.shown_blocks.push(Description);
-                            }
+                            self.face.news_feed_shown = !self.face.news_feed_shown;
                         }
                         Esc => {
                             self.face.solution_selected = None;
@@ -300,21 +278,25 @@ impl Widget for &DefaultUIFace {
 
         // Create the dashboard.
 
-        let mut db = vec![]; // Items for the dashboard (it's all implemented as a single list).
+        let mut db_items = vec![]; // Items for the dashboard (it's all implemented as a single list).
         let mut first = true;
 
-        for item in &self.shown_blocks {
-            if !first {db.push(ListItem::from(Span::raw("").style(*STYLE_BLANK)));}
-            first = false;
+        if self.description_shown {db_items.push(self.description_ui());}
+        if self.inspector_shown   {db_items.push(self.solution_inspector_ui());}
+        if self.stats_shown       {db_items.push(self.stats_ui());}
+        if self.threads_shown     {db_items.push(self.thread_viewer_ui());}
+        if self.news_feed_shown   {db_items.push(self.news_feed_ui());}
 
-            match item {
-                Stats             => {db.append(&mut self.stats_ui());}
-                SolutionInspector => {db.append(&mut self.solution_inspector_ui());}
-                ThreadViewer      => {db.append(&mut self.thread_viewer_ui());}
-                NewsFeed          => {db.append(&mut self.news_feed_ui());}
-                Description       => {db.append(&mut self.description_ui());}
-            }
+        // Intersperse blank lines between the panels.
+
+        let mut i = 1;
+
+        while i < db_items.len() {
+            db_items.insert(i, vec![ListItem::from(Span::raw("").style(*STYLE_BLANK))]);
+            i += 2;
         }
+
+        let db = db_items.concat();
 
         // Render the components.
 
@@ -362,24 +344,18 @@ impl DefaultUIFace {
 
         // Dock.
 
-        if self.in_quit_dialog && self.hidden_blocks.contains(&Stats) {
+        if self.in_quit_dialog && !self.stats_shown {
             solution_title.push(Span::raw(" ").style(*STYLE_BLANK));
             solution_title.push(Span::raw("quit? [y/N]").style(*STYLE_CONFIRM));
         } else {
             solution_title.push(Span::raw(format!("({})", self.solutions_found.len())).style(*STYLE_TITLE));
             solution_title.push(Span::raw(" ").style(*STYLE_BLANK));
 
-            for block in &self.hidden_blocks {
-                solution_title.push(
-                    match block {
-                        Stats             => Span::raw("S").style(*STYLE_DOCKER_ITEM),
-                        SolutionInspector => Span::raw("I").style(*STYLE_DOCKER_ITEM),
-                        ThreadViewer      => Span::raw("T").style(*STYLE_DOCKER_ITEM),
-                        NewsFeed          => Span::raw("N").style(*STYLE_DOCKER_ITEM),
-                        Description       => Span::raw("D").style(*STYLE_DOCKER_ITEM),
-                    }
-                );
-            }
+            if !self.description_shown {solution_title.push(Span::raw("D").style(*STYLE_DOCKER_ITEM))}
+            if !self.inspector_shown   {solution_title.push(Span::raw("I").style(*STYLE_DOCKER_ITEM))}
+            if !self.stats_shown       {solution_title.push(Span::raw("S").style(*STYLE_DOCKER_ITEM))}
+            if !self.threads_shown     {solution_title.push(Span::raw("T").style(*STYLE_DOCKER_ITEM))}
+            if !self.news_feed_shown   {solution_title.push(Span::raw("N").style(*STYLE_DOCKER_ITEM))}
         }
 
         // Push the title and create the title underline bar.

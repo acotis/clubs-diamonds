@@ -3,8 +3,6 @@
 UI revolution todo list
 ——————————
 
-— Make the order of blocks be fixed as Description, Inspector, Stats, Threads,
-  News.
 — Try putting the inspected solution in the header of the Solution Inspector.
 — Rename .set_total_count() to .update_total_count()? 
 
