@@ -306,19 +306,19 @@ impl Widget for &DefaultUIFace {
 }
 
 impl DefaultUIFace {
-    fn format_solution(solution: &str, score: usize, selected: bool) -> ListItem<'_> {
+    fn format_solution(solution: &str, score: usize, selected: bool) -> Vec<Span> {
         if selected {
-            ListItem::new(Line::from(vec![
+            vec![
                 Span::raw(format!("{}", format!("[{score}]"))).style(*STYLE_SOLUTION_HIGHLIGHT_META),
                 Span::raw(format!(" ")).style(*STYLE_SOLUTION_HIGHLIGHT_META),
                 Span::raw(format!("{}", solution)).style(*STYLE_SOLUTION_HIGHLIGHT),
-            ]))
+            ]
         } else {
-            ListItem::new(Line::from(vec![
+            vec![
                 Span::raw(format!("{}", format!("[{score}]"))).style(*STYLE_SOLUTION_META),
                 Span::raw(format!(" ")).style(*STYLE_SOLUTION_META),
                 Span::raw(format!("{}", solution)).style(*STYLE_SOLUTION),
-            ]))
+            ]
         }
     }
 
@@ -366,7 +366,7 @@ impl DefaultUIFace {
         // Solutions.
 
         for (idx, (solution, score, _insepction)) in self.solutions_found.iter().enumerate() {
-            ret.push(Self::format_solution(solution, *score, self.solution_selected == Some(idx)));
+            ret.push(ListItem::new(Line::from(Self::format_solution(solution, *score, self.solution_selected == Some(idx)))));
         }
 
         // Return.
@@ -420,20 +420,47 @@ impl DefaultUIFace {
 
         // Title.
 
-        ret.push(ListItem::new(Line::from(vec![
-            Span::raw("Solution inspector").style(*STYLE_TITLE),
-            Span::raw(" ").style(*STYLE_BLANK),
-            Span::raw("(J/K: navigate, I: hide)").style(*STYLE_CONTROLS),
-        ])));
+        let title_span = Span::raw("Solution inspector").style(*STYLE_TITLE);
+        let space_span = Span::raw(" ").style(*STYLE_BLANK);
+
+        let spotlight_spans = if let Some(idx) = self.solution_selected {
+            Self::format_solution(&self.solutions_found[idx].0, self.solutions_found[idx].1, false)
+        } else {
+            vec![]
+        };
         
+        // (Compute the total width that the controls blurb is allowed to
+        // take up.)
+        
+        let controls_width = 50 
+            - title_span.width()
+            - space_span.width()
+            - spotlight_spans.iter().map(|span| span.width()).sum::<usize>()
+            - space_span.width(); // a second time for after the controls
+
+        let mut controls_text = format!("(J/K: navigate, I: hide)");
+
+        if controls_text.len() > controls_width {
+            controls_text.truncate(controls_width - 3);
+            controls_text += "...";
+        }
+
+        if controls_text.len() < controls_width {
+            controls_text += &" ".repeat(controls_width - controls_text.len());
+        }
+
+        let controls_span = Span::raw(controls_text).style(*STYLE_CONTROLS);
+
+        // Create the title and title bar.
+
+        ret.push(ListItem::from(Line::from(vec![
+            vec![title_span, space_span.clone(), controls_span, space_span],
+            spotlight_spans
+        ].into_iter().flatten().collect::<Vec<_>>())));
+
         ret.push(ListItem::new(Span::raw("—".repeat(50)).style(*STYLE_TITLE)));
 
         // Inspection text.
-
-        if let Some(idx) = self.solution_selected {
-            // Copy of expression (todo: find better UI to guarantee that all solutions are visible).
-            ret.push(Self::format_solution(&self.solutions_found[idx].0, self.solutions_found[idx].1, false));
-        }
 
         if self.inspector_enabled {
             if self.solutions_found.len() > 0 {

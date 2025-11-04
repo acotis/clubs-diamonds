@@ -3,7 +3,6 @@
 UI revolution todo list
 ——————————
 
-— Try putting the inspected solution in the header of the Solution Inspector.
 — Rename .set_total_count() to .update_total_count()? 
 
 ——————————
