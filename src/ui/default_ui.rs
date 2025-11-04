@@ -432,11 +432,15 @@ impl DefaultUIFace {
         // (Compute the total width that the controls blurb is allowed to
         // take up.)
         
-        let controls_width = 50 
+        let mut controls_width = 50
             - title_span.width()
             - space_span.width()
             - spotlight_spans.iter().map(|span| span.width()).sum::<usize>()
             - space_span.width(); // a second time for after the controls
+
+        if controls_width < 3 || controls_width > 50 {
+            controls_width = 3;
+        }
 
         let mut controls_text = format!("(J/K: navigate, I: hide)");
 
