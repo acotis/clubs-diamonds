@@ -26,6 +26,7 @@ lazy_static! {
     static ref STYLE_LABEL:                   Style = Style::default().fg(Color::Gray);
     static ref STYLE_VALUE:                   Style = Style::default().fg(Color::Gray);
     static ref STYLE_ALT_VALUE:               Style = Style::default().add_modifier(Modifier::DIM);
+    static ref STYLE_MISSING_VALUE:           Style = Style::default().fg(Color::Gray).add_modifier(Modifier::DIM).add_modifier(Modifier::ITALIC);
     static ref STYLE_DESCRIPTION:             Style = Style::default().fg(Color::Gray);
     static ref STYLE_SOLUTION:                Style = Style::default().fg(Color::Blue);
     static ref STYLE_SOLUTION_HIGHLIGHT:      Style = Style::default().bg(Color::Blue);
@@ -424,7 +425,7 @@ impl DefaultUIFace {
                 ret.push(ListItem::from(Span::raw(format!("{display_line}")).style(*STYLE_DESCRIPTION)));
             }
         } else {
-            ret.push(ListItem::new(Line::from("<no description provided>").style(*STYLE_ALT_VALUE)));
+            ret.push(ListItem::new(Line::from("add a description with Searcher::description()").style(*STYLE_MISSING_VALUE)));
         }
 
         // Return.
@@ -457,7 +458,7 @@ impl DefaultUIFace {
                         ret.push(ListItem::from(Span::raw(format!("{line:50}")).style(*STYLE_INSPECTION)));
                     }
                 } else {
-                    ret.push(ListItem::new(Line::from("<no inspection provided>").style(*STYLE_ALT_VALUE)));
+                    ret.push(ListItem::new(Line::from("add an inspector with Searcher::inspector()").style(*STYLE_MISSING_VALUE)));
                 }
             } else {
                 ret.push(ListItem::new(Line::from("<no solution selected>").style(*STYLE_ALT_VALUE)));
