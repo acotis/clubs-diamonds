@@ -92,11 +92,11 @@
 //! - `count`: a u128 representing the total number of expressions which were considered during the search (including those which were rejected because they didn't meet the specified criterion).
 //! - `solutions`: a Vec containing the expressions that did meet the criterion.
 //! 
-//! **Limitation note:** Clubs does not currently consider expressions containing the unary `-` operator (arithmetic negation). For unsigned types, this doesn't matter because the operator is inapplicable anyway. For signed types, this means Clubs will sometimes miss valid expressions that could have been solutions. Instead, it will find longer versions of these expressions that contain terms like `0-a` in place of `-a`. This is planned to be fixed in a later version of the crate.
+//! **Limitation note:** Clubs does not currently consider expressions containing the unary `-` operator (arithmetic negation). For unsigned types, this doesn't matter because the operator is inapplicable anyway. For signed types, this means Clubs will sometimes miss valid expressions that could have been solutions. In their place, it will find longer versions of these expressions that contain terms like `0-a` instead of `-a`. This is planned to be fixed in a later version of the crate.
 //!
 //! # Workflow for performing a search
 //!
-//! There is a four-step workflow for performing a search using the `Searcher` type. The steps are described in more detail in sections below. Here is the workflow:
+//! There is a four-step workflow for performing a search using the `Searcher` type:
 //!
 //! 1. **Decide the number and type of variables** which will appear in the expression.
 //!     - Specify these choices as type parameters of the `Searcher`.
@@ -104,6 +104,24 @@
 //!     - When you call this method, you supply a closure that accepts an `&Expression` and returns a `bool`. This is the "judge" that is used to determine which expressions are displayed in the Solutions panel in the UI (and eventually returned in the solutions Vec).
 //! 3. Optionally, **specify additional parameters** for the search by using some of `Searcher`'s Builder-Lite methods.
 //! 4. **Execute** the search using either the `.run_with_ui()` method or the `.run_silently()` method.
+//!
+//! Here is how the steps are completed by the example code above:
+//!
+//! ```
+//! // step 1: type and number of variables as type parameters
+//! //        ┌──────┐                          ┌──────┐
+//! Searcher::<i32, 1>::new(|expr: &Expression::<i32, 1>| {
+//!     expr.apply(&[1]) == Some(2) && // ┐
+//!     expr.apply(&[2]) == Some(3) && // │
+//!     expr.apply(&[3]) == Some(5) && // │ step 2: customized search criterion
+//!     expr.apply(&[4]) == Some(7) && // │
+//!     expr.apply(&[5]) == Some(11)   // ┘
+//! })
+//! .threads(3)     // step 3: additional parameters
+//! .run_with_ui(); // step 4: execution of the search
+//! ```
+//!
+//! The steps are described in more detail below.
 //!
 //! ## Step 1a: Number of variables
 //!

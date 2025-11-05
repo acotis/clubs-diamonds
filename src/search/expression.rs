@@ -18,7 +18,7 @@ pub struct Expression<N: Number, const C: usize> {
 impl<N: Number, const C: usize> Expression<N, C> {
     /// Apply this expression to an array of input values for its variables. Returns a result wrapped in an `Option`. The value `None` is returned if applying the expression to the given values would result in a runtime exception (for example, if it would end up dividing by zero).
     ///
-    /// The length and entry type of the array must match the type parameters of the Expression. If the expression came from a `Searcher::<u32, 3>`, then it is an `Expression<u32, 3>` and you must supply an array of three `u32` values to this method.
+    /// The length and entry type of the array must match the type parameters of the Expression. If the expression came from a `Searcher::<u32, 3>`, then it is an `Expression::<u32, 3>` and you must supply an array of three `u32` values to this method.
     ///
     /// When applying the expression, the first entry in the array is assigned to the variable `a`, the second to `b`, the third to `c`, and so on.
     ///
