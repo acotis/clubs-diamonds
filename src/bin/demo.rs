@@ -10,7 +10,7 @@ fn main() {
             expr.apply(&[4]) == Some(7) &&
             expr.apply(&[5]) == Some(11)
         })
-        .threads(4)
+        .threads(3)
         .run_with_ui();
 
     println!("Searched {} expressions total", count);

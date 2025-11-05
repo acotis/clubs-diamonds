@@ -3,6 +3,7 @@
 UI revolution todo list
 ——————————
 
+— Fix how the colors appear in other terminals (use kitty as a reference).
 — Rename .set_total_count() to .update_total_count()? 
 
 ——————————
