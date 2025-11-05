@@ -15,9 +15,7 @@
 //! - [`Expression`]: A struct representing a mathematical expression, such as `3*(a+5)` or `b>>a|89%c`. Uses an optimized representation internally, but adheres to Rust syntax, Rust operators, Rust precedence levels, and Rust semantics.
 //! - [`Searcher`]: A configurable search type which can be used to systematically search all syntactically valid expressions in increasing order of length, and yield only those which meet a customizeable, user-specified criterion.
 //!
-//! And the following trait:
-//!
-//! - [`Number`]: A helper trait used by `Expression` and `Searcher`. Implemented for all of Rust's built-in integer data types (`u8`, `u16`, `u32`, `u64`, `u128`, `usize`, `i8`, `i16`, `i32`, `i64`, `i128`, and `isize`). 
+//! It also provides a helper trait called [`Number`], which it implements for all of Rust's built-in integer data types: `u8`, `u16`, `u32`, `u64`, `u128`, `usize`, `i8`, `i16`, `i32`, `i64`, `i128`, and `isize`.
 //!
 //! # Usage note
 //!
@@ -137,7 +135,7 @@
 //!
 //! However, it is not true of the bitshift operators, `<<` and `>>`. These operators are special in that the left and right operands are NOT required to have the same type. `x>>y` is valid Rust code even if `x` and `y` are different types (in fact, any pair of integer numeric types works). The only constraint enforced for these operators is that the output type must be equal to the type of the left operand.
 //!
-//! Since this is the case, it is possible in principle to imagine a search for two-variable expressions whose input variables have distinct types — for example, a search for expressions whose input variables are of type `i64` and `u16`. Such a search would consider expressions like `a>>b`, `(b+3^9)<<33*a`, and `b>>(a<<b)`, but not `a+b*21` or even `a|b`, and it would provide an interface by which you could apply each candidate expression to pairs of input values of types `i64` and `u16`.
+//! Since this is the case, it is possible in principle to imagine a search for two-variable expressions whose input variables have distinct types — for example, a search for expressions whose input variables are of type `i64` and `u16`. Such a search would consider expressions like `a>>b`, `(b^9)<<33*a`, and `b>>(a<<b)`, since in each of these expressions, the distinct types of the variables `a` and `b` are "protected" from each other by `>>` and `<<` operators which are just so placed as to avoid any type conflicts, but it would not consider `a|b` or `a+b*21`, or `a^b<<3`, since in all of these expressions the distinct types eventually "meet" at an operator which requires its operands' types to match and so the expressions are not valid. The search would also provide an interface by which you could apply each candidate expression to pairs of input values of types `i64` and `u16`.
 //!
 //! **Clubs is not capable of performing this search.** In Clubs, you may only perform searches for expressions whose input variables all have the same type and whose output is the same type as that. The type you choose is a type parameter of the `Searcher` struct and of the `Expression` structs it yields. The `Searcher` is not smart enough to limit itself to expressions which respect type differences between different input variables, and the `Expression` struct does not provide a method by which you can apply the expression it represents to input variables of distinct types. It is a limitation of the current architecture.
 //!
