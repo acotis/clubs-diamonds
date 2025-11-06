@@ -568,7 +568,7 @@ impl DefaultUIFace {
 
         ret.push(ListItem::new(Line::from(vec![
             Span::raw(format!(
-                "{}/{} Threads",
+                "{}/{} threads",
                 self.thread_statuses.len(),
                 self.target_thread_count,
             )).style(*STYLE_TITLE),
