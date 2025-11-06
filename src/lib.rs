@@ -206,7 +206,6 @@
 //!
 
 mod ui;
-mod utils;
 mod search;
 
 pub use search::Expression;

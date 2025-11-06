@@ -17,7 +17,6 @@ use crate::ui::UI;
 use crate::ui::DefaultUI;
 use crate::ui::NullUI;
 use crate::ui::UISignal::*;
-use crate::utils;
 
 use self::SearchNews::*;
 use crate::ui::ThreadStatus::*;

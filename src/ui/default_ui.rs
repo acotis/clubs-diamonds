@@ -14,7 +14,7 @@ use super::Thread;
 use super::ThreadStatus::*;
 use super::UISignal::{self, *};
 use super::UI;
-use crate::utils;
+use super::utils;
 
 use DashboardBlock::*;
 
