@@ -14,7 +14,7 @@ impl UI for NullUI {
     fn set_total_count(&mut self, _total_count: u128) {}
     fn set_target_thread_count(&mut self, _target_thread_count: usize) {}
     fn set_thread_statuses(&mut self, _thread_statuses: Vec<Thread>) {}
-    fn push_news_item(&mut self, _news_item: String) {}
+    fn finished_expression_length(&mut self, _length: usize, _count: u128) {}
 
     fn draw(&mut self) {}
     fn handle_inputs(&mut self) -> Vec<UISignal> {vec![]}

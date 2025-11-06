@@ -41,7 +41,7 @@ pub trait UI {
     fn set_total_count(&mut self, total_count: u128);
     fn set_target_thread_count(&mut self, target_thread_count: usize);
     fn set_thread_statuses(&mut self, thread_statuses: Vec<Thread>);
-    fn push_news_item(&mut self, news_item: String);
+    fn finished_expression_length(&mut self, length: usize, count: u128);
 
     fn draw(&mut self);
     fn handle_inputs(&mut self) -> Vec<UISignal>;

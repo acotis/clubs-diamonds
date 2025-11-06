@@ -225,14 +225,7 @@ impl<N: Number, const C: usize> Searcher<N, C> {
                         total_count += count;
 
                         if counts[length].1 == op_requirements.len() {
-                            ui.push_news_item(
-                                format!(
-                                    "Tried {} expr{} of length {}.",
-                                    utils::with_commas(counts[length].0),
-                                    if counts[length].0 == 1 {""} else {"s"},
-                                    length,
-                                )
-                            );
+                            ui.finished_expression_length(length, counts[length].0);
                         }
                     }
                 }

@@ -134,8 +134,16 @@ impl UI for DefaultUI {
         self.face.inspector_enabled = enabled;
     }
 
-    fn push_news_item(&mut self, news_item: String) {
-        self.face.news_feed.push((Local::now(), news_item));
+    fn finished_expression_length(&mut self, length: usize, count: u128) {
+        self.face.news_feed.push((
+            Local::now(),
+            format!(
+                "Tried {} expr{} of length {}.",
+                utils::with_commas(count),
+                if count == 1 {""} else {"s"},
+                length,
+            )
+        ));
     }
 
     fn push_solution(&mut self, face: String, score: usize, inspection: Option<String>) {
