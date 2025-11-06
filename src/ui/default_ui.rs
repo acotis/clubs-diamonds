@@ -16,8 +16,6 @@ use super::UISignal::{self, *};
 use super::UI;
 use super::utils;
 
-use DashboardBlock::*;
-
 lazy_static! {
     static ref STYLE_BLANK:                   Style = Style::default();
     static ref STYLE_TITLE:                   Style = Style::default().fg(Color::White);
@@ -37,15 +35,6 @@ lazy_static! {
     static ref STYLE_INSPECTION:              Style = Style::default(); //.bg(Color::Magenta);
     static ref STYLE_NEWS_HEADER:             Style = Style::default().fg(Color::Green).underlined();
     static ref STYLE_CONFIRM:                 Style = Style::default().fg(Color::Red).add_modifier(Modifier::BOLD);
-}
-
-#[derive(Copy, Clone, PartialEq, Eq)]
-pub enum DashboardBlock {
-    Stats,
-    SolutionInspector,
-    ThreadViewer,
-    NewsFeed,
-    Description,
 }
 
 struct StatMoment {
@@ -287,7 +276,6 @@ impl Widget for &DefaultUIFace {
         // Create the dashboard.
 
         let mut db_items = vec![]; // Items for the dashboard (it's all implemented as a single list).
-        let mut first = true;
 
         if self.description_shown {db_items.push(self.description_ui());}
         if self.inspector_shown   {db_items.push(self.solution_inspector_ui());}
@@ -314,7 +302,7 @@ impl Widget for &DefaultUIFace {
 }
 
 impl DefaultUIFace {
-    fn format_solution(solution: &str, score: usize, selected: bool) -> Vec<Span> {
+    fn format_solution(solution: &str, score: usize, selected: bool) -> Vec<Span<'_>> {
         if selected {
             vec![
                 Span::raw(format!("{}", format!("[{score}]"))).style(*STYLE_SOLUTION_HIGHLIGHT_META),
