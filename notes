@@ -1,15 +1,9 @@
 
 ——————————
-UI revolution todo list
-——————————
-
-— Rename .set_total_count() to .update_total_count()? 
-
-——————————
 Todo
 ——————————
 
-— Do a benchmark against babc4b2, or like 23ed04c or even 9cd7bb8 to see if it's normal that I'm getting +10% times on all my benchmarks.
+— Work on the benchmark binary search project (below).
 
 — Add a .timeout() configurable parameter for Searcher.
 
@@ -70,3 +64,98 @@ Todo
 — In UI, get rid of "initializing" state. It's misleading.
 — Implement some kind of mechanism for blocking sub-expressions that are purely constants?
     — But mind you that some of these are good, like 1<<20.
+
+——————————
+Binary search for the slowdown
+——————————
+
+22efc3f Changed capitalization in title of threads panel.
+985adef Re-chose colors such that they look good in other terminals too.
+23017b1 Fixed compiler warnings.
+0df86f5 Moved utils module back into the UI module where it belongs.
+23b6c6c Moved expression-count news-item formatting into the UI.
+8431da8 Updated notes.
+cf431c8 Moved test code out to a separate project.
+c59aa26 Improved documentation.
+93840dd Improved documentation.
+c06d8df Improved documentation.
+30acc54 Updated demo to use 3 threads because it looks better that way in a screenshot.
+73e2871 Fixed a bug where selecting a very long solution can cause the UI to crash.
+3c19a12 Moved solution spotlight into the header of the solution inspector.
+46b5a2c Made the order of blocks be fixed as description, inspector, stats, threads, news.
+75fd937 Updated notes.
+bca3297 Fixed benchmark timestamp formatting.
+cb04983 Updated notes.
+049743f Made 'add an inspector with Searcher::inspector()' the highest-priority error case of the Solution Inspector.
+4a66cfe Made the 'missing value' style darker.
+2365541 Improving 'no inspection/description provided' help texts.
+36a8968 Removed debug stuff and updated notes file.
+08565fe Got new stats working.
+29831eb Working on implementing StatMoments as a way of tracking per-thread stats.
+b51fe55 Reordered the UI-rendering methods of DefaultUIFace.
+e5ac278 Moved Thread and ThreadStatus to the UI interface file.
+b3e7851 Parameterized .run() over different UI types.
+d4a12f6 Created NullUI struct.
+e6c0d97 Moved DefaultUI's implementation to its own file.
+97b13a0 Factored out a UI trait.
+67529aa Minor signature refactors.
+4a018c9 Drafted UI trait.
+d63ca99 Made the solution inspector always 'enabled' (in the sense of being available in the UI at all) and renamed SearchUI to DefaultUI.
+babc4b2 Improved documentation.
+8f35116 Updated notes.
+ce8b49b Updated notes.
+ec32a38 Improved documentation.
+e7b78eb Updated todo.
+231726a Updated todo.
+d20e6d7 Bumped version.
+b49197c Updated notes.
+1df4fe9 Changed format of benchmark timestamps.
+c5754ae Added usage note about compiling in release mode and using LTO optimizations.
+2781048 Fixed typo.
+b91ce7a Bumped version.
+3160bb6 Added documentation for Number trait and its methods.
+2efba82 Bumped version.
+7f1e8d7 Fixed some documentation problems.
+b7c8333 Bumped version.
+856a3fb Updated todo.
+373c1ab Updated demo images.
+3ac82ae Minor changes.
+22e6cf5 Finalizing demos.
+cf1cfa2 Documented Number trait.
+6578f38 Added notes.
+8708e77 Fix compiler warnings and update variable names.
+31846ca Created test bins.
+e624841 Updated docs.
+532ccb0 Bumped version.
+a79d2a7 Updated documentation.
+289fef2 Updated documentation.
+dbd0194 Working on documentation.
+2272c7c Hid nitty-gritty details of Expression struct.
+36c2fda Added a layer of module structure back in privately, just so that I can get the visibility right on Expression's fields.
+0b28fde Removed some unused methods from Expression.
+acb66bc Added documentation to Expression.
+4713dda Documented the Searcher type.
+26cd9d6 Working on documentation.
+221d95c Fixed compiler warnings.
+11232b7 Working on documentation.
+897f685 Updating documentation.
+23ed04c Supposedly removed the concept of the ExpressionCore.
+    — 2025 Nov 6:
+        — Atrociously bad performance (+20% on some long ones).
+        — Suspicious circumstances:
+            — CPU usage was very low and bouncing around when I looked.
+            — Laptop had been on for 11 days consecutively when I ran this.
+80bbae1 Updated todo items.
+1c783be Made Number trait public (so users can write functions that use it in trait bounds, for example).
+d998f7d Moved demo.rs to a new bin/ directory.
+9cd7bb8 Removed two layers of module nesting so that the main types this library provides are now available at the crate root.
+67fb653 Made utils mod non-public.
+4f74cda Working on documentation.
+2dab11d Updated documentation.
+2b4a3c3 Working on documentation.
+0822bbe Minor updates to documentation.
+a38de5f Began work on documentation.
+9587161 Updated Cargo.toml.
+cb2725a Added metadata for publishing.
+3001ced Added base implementation of the clubs engine.
+ce22c9c Initial commit
