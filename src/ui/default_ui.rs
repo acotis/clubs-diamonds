@@ -28,12 +28,12 @@ lazy_static! {
     static ref STYLE_DESCRIPTION:             Style = Style::default().fg(Color::Gray);
     static ref STYLE_SOLUTION:                Style = Style::default().fg(Color::Blue);
     static ref STYLE_SOLUTION_HIGHLIGHT:      Style = Style::default().bg(Color::Blue);
-    static ref STYLE_SOLUTION_META:           Style = Style::default().fg(Color::LightBlue);
-    static ref STYLE_SOLUTION_HIGHLIGHT_META: Style = Style::default().bg(Color::LightBlue);
-    static ref STYLE_THREAD:                  Style = Style::default().fg(Color::Yellow);
-    static ref STYLE_THREAD_META:             Style = Style::default().fg(Color::LightYellow);
+    static ref STYLE_SOLUTION_META:           Style = Style::default().fg(Color::Indexed(245)); // gray
+    static ref STYLE_SOLUTION_HIGHLIGHT_META: Style = Style::default().bg(Color::Indexed(245)); // gray
+    static ref STYLE_THREAD:                  Style = Style::default().fg(Color::Indexed(136)); // orange
+    static ref STYLE_THREAD_META:             Style = Style::default().fg(Color::Indexed(241)); // darker gray
     static ref STYLE_INSPECTION:              Style = Style::default(); //.bg(Color::Magenta);
-    static ref STYLE_NEWS_HEADER:             Style = Style::default().fg(Color::Green).underlined();
+    static ref STYLE_NEWS_HEADER:             Style = Style::default().fg(Color::Indexed(106)).underlined(); // green
     static ref STYLE_CONFIRM:                 Style = Style::default().fg(Color::Red).add_modifier(Modifier::BOLD);
 }
 

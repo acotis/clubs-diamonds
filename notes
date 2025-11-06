@@ -3,8 +3,6 @@
 UI revolution todo list
 ——————————
 
-— Move utils.rs into ui/ (this will be possible once the above change is made).
-— Fix how the colors appear in other terminals (use kitty as a reference).
 — Rename .set_total_count() to .update_total_count()? 
 
 ——————————
