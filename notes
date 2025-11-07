@@ -3,8 +3,13 @@
 Todo
 ——————————
 
+— Benchmarking tasks:
+    — Add a way to compare two reports to each other.
+    — Clean out empty and mostly-empty benchmarks.
+    — Work on the benchmark binary search project (below).
+
 — Implement pausing via the UI.
-    — Remove the Thread struct.
+    — Move the Thread struct into the search module.
     — Update the UI interface such that the manager thread passes a
       Vec<Option<UI::ThreadStatus>>.
     — Create a struct WorkerReport with variants:
@@ -15,8 +20,6 @@ Todo
       make the enum local to that function.
 
 — Make it so that decreasing the thread count pauses extra threads!
-
-— Work on the benchmark binary search project (below).
 
 — Add a .timeout() configurable parameter for Searcher.
 
@@ -157,6 +160,8 @@ acb66bc Added documentation to Expression.
         — Suspicious circumstances:
             — CPU usage was very low and bouncing around when I looked.
             — Laptop had been on for 11 days consecutively when I ran this.
+    — 2025 Nov 7:
+        — Better. Didn't run to completion or check times carefully.
 80bbae1 Updated todo items.
 1c783be Made Number trait public (so users can write functions that use it in trait bounds, for example).
 d998f7d Moved demo.rs to a new bin/ directory.
