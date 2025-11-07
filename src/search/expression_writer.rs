@@ -2,6 +2,11 @@
 use crate::search::pivot::Op;
 use self::EWState::*;
 
+// Note to future self: because the final array representation of the expression
+// is read backwards, the "left" subexpression of a binary operator appears to
+// the right of the "left" subexpression in that array; the expression "a/2"
+// would be represented as [DIV 2 a].
+
 enum EWState {
     Dummy,
     Init,

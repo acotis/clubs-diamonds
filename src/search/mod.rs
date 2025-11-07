@@ -20,7 +20,7 @@ use crate::ui::DefaultUI;
 use crate::ui::NullUI;
 use crate::ui::UISignal::*;
 
-use self::SearchNews::*;
+use self::ThreadReport::*;
 use crate::ui::ThreadStatus::*;
 use crate::ui::Thread;
 
@@ -30,12 +30,15 @@ type Judge    <N, const C: usize> = fn(&Expression<N, C>) -> bool;
 type Inspector<N, const C: usize> = fn(&Expression<N, C>) -> String;
 type Penalizer<N, const C: usize> = fn(&Expression<N, C>) -> usize;
 
-// Note to future self: because the final array representation of the expression
-// is read backwards, the "left" subexpression of a binary operator appears to
-// the right of the "left" subexpression in that array; the expression "a/2"
-// would be represented as [DIV 2 a].
+// Commands from the manager thread to a worker thread.
 
-enum SearchNews<N: Number, const C: usize> {
+enum ThreadCommand {
+
+}
+
+// Reports from the worker thread back to the manager thread.
+
+enum ThreadReport<N: Number, const C: usize> {
     ExpressionWorks      {thread_id: usize, expr: Expression<N, C>},
     ExpressionDoesntWork {thread_id: usize, expr: Expression<N, C>, length: usize, count: u128},
     Done                 {thread_id: usize,                         length: usize, count: u128},
@@ -204,7 +207,7 @@ fn find_with_length_and_op<N: Number, const C: usize>(
     judge: Judge<N, C>,
     length: usize,
     op_requirement: Option<Option<Op>>,
-    mpsc: mpsc::Sender<SearchNews<N, C>>,
+    mpsc: mpsc::Sender<ThreadReport<N, C>>,
 ) {
     //println!("New thread! — length = {length}, op_requirement = {op_requirement:?}");
 
