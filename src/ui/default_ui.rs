@@ -586,18 +586,18 @@ impl DefaultUIFace {
             let number_span = Span::raw(format!("{:>number_width$} ", format!("{thread_id}."))).style(*STYLE_LABEL);
 
             match &thread.status {
-                Empty => {
+                None => {
                     ret.push(ListItem::from(Line::from(vec![
                         number_span,
                     ])));
                 }
-                Initializing => {
+                Some(Paused) => {
                     ret.push(ListItem::from(Line::from(vec![
                         number_span,
-                        Span::raw("Initializing...").style(*STYLE_THREAD_META),
+                        Span::raw("[Paused]").style(*STYLE_THREAD_META),
                     ])));
                 }
-                Searching(expr) | Found(expr) => {
+                Some(Searching(expr)) => {
                     ret.push(ListItem::from(Line::from(vec![
                         number_span,
                         Span::raw(format!("{}", format!("[{}] ", expr.len()))).style(*STYLE_THREAD_META),

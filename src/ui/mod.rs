@@ -11,15 +11,13 @@ pub use null_ui::NullUI;
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct Thread {
     pub id: usize,
-    pub status: ThreadStatus,
+    pub status: Option<ThreadStatus>,
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum ThreadStatus {
-    Empty,
-    Initializing,
     Searching(String),
-    Found(String),
+    Paused,
 }
 
 // Data sent from the UI to the manager thread.

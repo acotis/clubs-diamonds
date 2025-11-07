@@ -92,7 +92,6 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
                     let thread = threads.iter_mut().find(|thread| thread.id == thread_id).unwrap();
                     let string = format!("{expr}");
                     let inspection = config.inspector.as_ref().map(|insp| insp(&expr));
-                    thread.status = Found(string.clone());
 
                     let score = string.len() + config.penalizer.as_ref().map(|scorer| scorer(&expr)).unwrap_or(0);
 
@@ -103,14 +102,14 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
                 ExpressionDoesntWork {thread_id, expr, length, count} => {
                     let thread = threads.iter_mut().find(|thread| thread.id == thread_id).unwrap();
                     let string = format!("{expr}");
-                    thread.status = Searching(string);
+                    thread.status = Some(Searching(string));
                     counts[length].0 += count;
                     total_count += count;
                 }
 
                 Done {thread_id, length, count} => {
                     let thread = threads.iter_mut().find(|thread| thread.id == thread_id).unwrap();
-                    thread.status = Empty;
+                    thread.status = None;
                     counts[length].0 += count;
                     counts[length].1 += 1;
                     total_count += count;
@@ -118,14 +117,12 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
                     if counts[length].1 == op_requirements.len() {
                         ui.finished_expression_length(length, counts[length].0);
                     }
+
+                    threads.retain(|thread| thread.id != thread_id);
                 }
             }
         }
 
-        // If there are empty-handed threads, delete them.
-
-        threads.retain(|thread| thread.status != Empty);
-        
         // Spawn threads up to the thread limit (as long as there are
         // tasks to give them).
 
@@ -133,7 +130,7 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
             let Some((length, op_requirement)) = task_iterator.next() else {break};
 
             threads.push(Thread {
-                status: Empty,
+                status: None,
                 id: (0..).find(|x| threads.iter().all(|thread| thread.id != *x)).unwrap(),
             });
 
@@ -143,7 +140,7 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
             let thread_id = threads[idx].id;
             let report_every = config.report_every;
 
-            threads[idx].status = Initializing;
+            threads[idx].status = None;
 
             thread::spawn(move || {
                 find_with_length_and_op(
