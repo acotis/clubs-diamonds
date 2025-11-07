@@ -4,7 +4,6 @@ Todo
 ——————————
 
 — Implement pausing via the UI.
-    — Update UI::ThreadStatus to have only Searching and Paused.
     — Remove the Thread struct.
     — Update the UI interface such that the manager thread passes a
       Vec<Option<UI::ThreadStatus>>.
