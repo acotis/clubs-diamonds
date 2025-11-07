@@ -3,6 +3,11 @@
 Todo
 ——————————
 
+— Implement pausing via the UI.
+    — Move the Searcher struct to its own module so that the worker/manager
+      thread code can stand alone at the top level.
+    — Make it so that decreasing the thread count pauses extra threads!
+
 — Work on the benchmark binary search project (below).
 
 — Add a .timeout() configurable parameter for Searcher.
@@ -21,9 +26,6 @@ Todo
     — Add correctness tests and benchmark tests for this.
 
 — Try the u128 implementation.
-
-— Implement pausing via the UI.
-    — Make it so that decreasing the thread count pauses extra threads!
 
 — Clean up the threads when you return (just join on them I guess).
 — Implement max_to_find().
