@@ -4,9 +4,18 @@ Todo
 ——————————
 
 — Implement pausing via the UI.
-    — Move the Searcher struct to its own module so that the worker/manager
-      thread code can stand alone at the top level.
-    — Make it so that decreasing the thread count pauses extra threads!
+    — Update UI::ThreadStatus to have only Searching and Paused.
+    — Remove the Thread struct.
+    — Update the UI interface such that the manager thread passes a
+      Vec<Option<UI::ThreadStatus>>.
+    — Create a struct WorkerReport with variants:
+        — FoundSolution {thread_id, expr}
+        — TriedMultiple {thread_id, length, count}
+        — UpdateStatus {thread_id, thread_status}
+    — If there is to be any state-tracking within the worker thread function,
+      make the enum local to that function.
+
+— Make it so that decreasing the thread count pauses extra threads!
 
 — Work on the benchmark binary search project (below).
 
