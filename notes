@@ -79,6 +79,8 @@ Todo
 Binary search for the slowdown
 ——————————
 
+Hypothesis: bluetooth being connected could matter?
+
 22efc3f Changed capitalization in title of threads panel.
 985adef Re-chose colors such that they look good in other terminals too.
 23017b1 Fixed compiler warnings.
