@@ -10,8 +10,7 @@ use ratatui::prelude::{Buffer, Layout, Direction, Rect, Constraint, Line, Span, 
 use crossterm::event::{self, Event::Key, KeyCode::Char, KeyCode::Esc, KeyEvent, KeyEventKind};
 use lazy_static::lazy_static;
 
-use super::Thread;
-use super::ThreadStatus::*;
+use super::ThreadStatus::{self, *};
 use super::UISignal::{self, *};
 use super::UI;
 use super::utils;
@@ -79,7 +78,7 @@ struct DefaultUIFace {
     stat_moments: Vec<StatMoment>,
     in_quit_dialog: bool,
     target_thread_count: usize,
-    thread_statuses: Vec<Thread>,
+    thread_statuses: Vec<Option<ThreadStatus>>,
     news_feed: Vec<(DateTime<Local>, String)>,
 
     description_shown: bool,
@@ -154,7 +153,7 @@ impl UI for DefaultUI {
         );
     }
 
-    fn set_thread_statuses(&mut self, thread_statuses: Vec<Thread>) {
+    fn set_thread_statuses(&mut self, thread_statuses: Vec<Option<ThreadStatus>>) {
         self.face.stat_moments.push(
             self.face.last_stat_moment().step_to_now(
                 self.face.total_count(),
@@ -585,16 +584,17 @@ impl DefaultUIFace {
         for (thread, thread_id) in self.thread_statuses.iter().zip(1..) {
             let number_span = Span::raw(format!("{:>number_width$} ", format!("{thread_id}."))).style(*STYLE_LABEL);
 
-            match &thread.status {
+            match thread {
                 None => {
                     ret.push(ListItem::from(Line::from(vec![
                         number_span,
+                        Span::raw("<New thread...>").style(*STYLE_THREAD_META),
                     ])));
                 }
                 Some(Paused) => {
                     ret.push(ListItem::from(Line::from(vec![
                         number_span,
-                        Span::raw("[Paused]").style(*STYLE_THREAD_META),
+                        Span::raw("<Paused>").style(*STYLE_THREAD_META),
                     ])));
                 }
                 Some(Searching(expr)) => {

@@ -3,23 +3,24 @@
 Todo
 ——————————
 
+— Implement pausing via the UI.
+    — Create a struct WorkerReport with variants:
+        — FoundSolution {expr}
+        — FinishedBatch {length, count}
+        — UpdateStatus {thread_id, thread_status}
+    — If there is to be any state-tracking within the worker thread function,
+      make the enum local to that function.
+
 — Benchmarking tasks:
     — Add a way to compare two reports to each other.
     — Clean out empty and mostly-empty benchmarks.
     — Work on the benchmark binary search project (below).
 
-— Implement pausing via the UI.
-    — Move the Thread struct into the search module.
-    — Update the UI interface such that the manager thread passes a
-      Vec<Option<UI::ThreadStatus>>.
-    — Create a struct WorkerReport with variants:
-        — FoundSolution {thread_id, expr}
-        — TriedMultiple {thread_id, length, count}
-        — UpdateStatus {thread_id, thread_status}
-    — If there is to be any state-tracking within the worker thread function,
-      make the enum local to that function.
-
 — Make it so that decreasing the thread count pauses extra threads!
+
+— Try using u64's to count expressions instead of u128's, see if it's any
+  faster (it might be, since we increment one every time we try a candidate
+  expression, and u128's are not native on most machines).
 
 — Add a .timeout() configurable parameter for Searcher.
 

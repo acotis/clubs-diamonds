@@ -21,8 +21,7 @@ use crate::ui::NullUI;
 use crate::ui::UISignal::*;
 
 use self::ThreadReport::*;
-use crate::ui::ThreadStatus::*;
-use crate::ui::Thread;
+use crate::ui::ThreadStatus::{self, *};
 
 // Helper types.
 
@@ -30,18 +29,19 @@ type Judge    <N, const C: usize> = fn(&Expression<N, C>) -> bool;
 type Inspector<N, const C: usize> = fn(&Expression<N, C>) -> String;
 type Penalizer<N, const C: usize> = fn(&Expression<N, C>) -> usize;
 
-// Commands from the manager thread to a worker thread.
-
-enum ThreadCommand {
-
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct Thread {
+    pub id: usize,
+    pub status: Option<ThreadStatus>,
 }
 
 // Reports from the worker thread back to the manager thread.
 
 enum ThreadReport<N: Number, const C: usize> {
-    ExpressionWorks      {thread_id: usize, expr: Expression<N, C>},
-    ExpressionDoesntWork {thread_id: usize, expr: Expression<N, C>, length: usize, count: u128},
-    Done                 {thread_id: usize,                         length: usize, count: u128},
+    FoundSolution   {expr: Expression<N, C>},
+    FinishedBatch   {length: usize, count: u128},
+    UpdateStatus    {thread_id: usize, status: ThreadStatus},
+    Done            {thread_id: usize, length: usize},
 }
 
 fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<Expression<N, C>>) {
@@ -88,31 +88,30 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
 
         while let Ok(msg) = rx.try_recv() {
             match msg {
-                ExpressionWorks {thread_id, expr} => {
-                    let thread = threads.iter_mut().find(|thread| thread.id == thread_id).unwrap();
+                FoundSolution {expr} => {
                     let string = format!("{expr}");
                     let inspection = config.inspector.as_ref().map(|insp| insp(&expr));
-
                     let score = string.len() + config.penalizer.as_ref().map(|scorer| scorer(&expr)).unwrap_or(0);
 
-                    ui.push_solution(string, score, inspection);
                     solutions.push(expr);
+                    ui.push_solution(string, score, inspection);
                 },
 
-                ExpressionDoesntWork {thread_id, expr, length, count} => {
-                    let thread = threads.iter_mut().find(|thread| thread.id == thread_id).unwrap();
-                    let string = format!("{expr}");
-                    thread.status = Some(Searching(string));
+                FinishedBatch {length, count} => {
                     counts[length].0 += count;
                     total_count += count;
                 }
 
-                Done {thread_id, length, count} => {
+                UpdateStatus {thread_id, status} => {
                     let thread = threads.iter_mut().find(|thread| thread.id == thread_id).unwrap();
+                    thread.status = Some(status);
+                }
+
+                Done {thread_id, length} => {
+                    let thread = threads.iter_mut().find(|thread| thread.id == thread_id).unwrap();
+
                     thread.status = None;
-                    counts[length].0 += count;
                     counts[length].1 += 1;
-                    total_count += count;
 
                     if counts[length].1 == op_requirements.len() {
                         ui.finished_expression_length(length, counts[length].0);
@@ -174,10 +173,7 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
 
             ui.set_total_count(total_count);
             ui.set_target_thread_count(target_thread_count);
-            ui.set_thread_statuses(threads.iter().map(|thread| Thread {
-                id: thread.id,
-                status: thread.status.clone(),
-            }).collect());
+            ui.set_thread_statuses(threads.iter().map(|thread| thread.status.clone()).collect());
 
             ui.draw();
 
@@ -219,12 +215,11 @@ fn find_with_length_and_op<N: Number, const C: usize>(
         count += 1;
 
         if judge(&expr) {
-            mpsc.send(ExpressionWorks {
-                thread_id,
+            mpsc.send(FoundSolution {
                 expr: expr.clone(),
             }).unwrap();
         } else if count == notification_spacing {
-            mpsc.send(ExpressionDoesntWork {
+            mpsc.send(UpdateStatus {
                 thread_id,
                 expr: expr.clone(),
                 length,

@@ -9,12 +9,6 @@ pub use null_ui::NullUI;
 // Data sent from the manager thread to the UI.
 
 #[derive(Clone, PartialEq, Eq, Debug)]
-pub struct Thread {
-    pub id: usize,
-    pub status: Option<ThreadStatus>,
-}
-
-#[derive(Clone, PartialEq, Eq, Debug)]
 pub enum ThreadStatus {
     Searching(String),
     Paused,
@@ -39,7 +33,7 @@ pub trait UI {
     fn push_solution(&mut self, face: String, score: usize, inspection: Option<String>);
     fn set_total_count(&mut self, total_count: u128);
     fn set_target_thread_count(&mut self, target_thread_count: usize);
-    fn set_thread_statuses(&mut self, thread_statuses: Vec<Thread>);
+    fn set_thread_statuses(&mut self, thread_statuses: Vec<Option<ThreadStatus>>);
     fn finished_expression_length(&mut self, length: usize, count: u128);
 
     fn draw(&mut self);

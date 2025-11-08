@@ -1,5 +1,5 @@
 
-use super::Thread;
+use super::ThreadStatus;
 use super::UI;
 use super::UISignal;
 
@@ -13,7 +13,7 @@ impl UI for NullUI {
     fn push_solution(&mut self, _face: String, _score: usize, _inspection: Option<String>) {}
     fn set_total_count(&mut self, _total_count: u128) {}
     fn set_target_thread_count(&mut self, _target_thread_count: usize) {}
-    fn set_thread_statuses(&mut self, _thread_statuses: Vec<Thread>) {}
+    fn set_thread_statuses(&mut self, _thread_statuses: Vec<Option<ThreadStatus>>) {}
     fn finished_expression_length(&mut self, _length: usize, _count: u128) {}
 
     fn draw(&mut self) {}
