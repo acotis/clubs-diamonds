@@ -22,6 +22,7 @@ crossterm = "0.29.0"
 embed-doc-image = "0.1.4"
 lazy_static = "1.5.0"
 meansd = "2.1.0"
+num-traits = "0.2.19"
 ratatui = "0.29.0"
 single-statistics = "0.5.0"
 

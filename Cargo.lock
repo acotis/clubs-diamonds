@@ -115,6 +115,7 @@ dependencies = [
  "embed-doc-image",
  "lazy_static",
  "meansd",
+ "num-traits",
  "ratatui",
  "single-statistics",
 ]

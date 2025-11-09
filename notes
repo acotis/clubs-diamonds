@@ -11,9 +11,6 @@ Todo
 — Idea for testing: create a TestUI type that implements the UI trait and whose
   behavior is to randomly fiddle with the controls during the test run.
 
-— Implement pausing via the UI.
-    — Run benchmarks.
-
 — Benchmarking tasks:
     — Add a way to compare two reports to each other.
     — Clean out empty and mostly-empty benchmarks.
