@@ -2,7 +2,7 @@
 use std::ops::*;
 use std::fmt::Display;
 
-/// Used in trait bounds by `Expression` and `Searcher`. If you implement this trait for your own type, you can use that type with these structs.
+/// Used in trait bounds by `Expression` and `Searcher`. Exposed as part of the public ABI so that you can use it in trait bounds for functions that take or return `Expression`s.
 
 pub trait Number: 
     Copy + PartialEq + Eq 

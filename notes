@@ -3,6 +3,14 @@
 Todo
 ——————————
 
+— Make it work even in debug mode?
+    — Switch out the code in Expression::apply().
+    — Clean up the bounds of the Number trait.
+    — Update docs.
+
+— Idea for testing: create a TestUI type that implements the UI trait and whose
+  behavior is to randomly fiddle with the controls during the test run.
+
 — Implement pausing via the UI.
     — Run benchmarks.
 
@@ -21,8 +29,6 @@ Todo
 
 — Generalize benchmarking infrastructure to accept arbitrary tasks.
 — Write benchmarks that specifically target expression application.
-
-— Make it work even in debug mode?
 
 3. Add constant-limiting to the public API.
     — Benchmark the changes.
