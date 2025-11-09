@@ -4,9 +4,8 @@ Todo
 ——————————
 
 — Implement pausing via the UI.
-    — Give each worker thread a receiver for messages.
-    — Add a PauseUnpause variant to the UISignal enum.
-    — Make the manager thread pause/unpause worker threads as needed.
+    — Make the Paused state have an expression attached just like the Searching
+      state does.
 
 — Benchmarking tasks:
     — Add a way to compare two reports to each other.

@@ -11,7 +11,7 @@ pub use null_ui::NullUI;
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum ThreadStatus {
     Searching(String),
-    Paused,
+    Paused(String),
 }
 
 // Data sent from the UI to the manager thread.
@@ -21,6 +21,7 @@ pub enum UISignal {
     Quit,
     IncreaseThreadCount,
     DecreaseThreadCount,
+    PauseUnpause,
 }
 
 // The trait itself.

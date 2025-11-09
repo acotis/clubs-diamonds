@@ -21,9 +21,10 @@ use crate::ui::UI;
 use crate::ui::DefaultUI;
 use crate::ui::NullUI;
 use crate::ui::UISignal::*;
-
-use self::ThreadReport::*;
 use crate::ui::ThreadStatus::{self, *};
+
+use ThreadReport::*;
+use ThreadCommand::*;
 
 // Helper types.
 
@@ -74,6 +75,7 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
 
     let mut total_count = 0u128; // total count of expressions
     let mut target_thread_count = config.threads;
+    let mut paused = false;
     let mut threads: Vec<Thread> = vec![];
     let mut solutions = vec![];
     let mut counts = [(0, 0); 99];
@@ -181,8 +183,15 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
             for action in ui.handle_inputs() {
                 match action {
                     Quit => break 'search,
-                    IncreaseThreadCount => target_thread_count += 1,
-                    DecreaseThreadCount => if target_thread_count > 0 {target_thread_count -= 1},
+                    IncreaseThreadCount => {target_thread_count += 1}
+                    DecreaseThreadCount => {if target_thread_count > 0 {target_thread_count -= 1}}
+                    PauseUnpause => {
+                        for thread in &mut threads {
+                            let signal = if paused {Unpause} else {Pause};
+                            thread.tx.send(signal).unwrap();
+                        }
+                        paused = !paused;
+                    }
                 }
             }
 
@@ -233,14 +242,17 @@ fn find_with_length_and_op<N: Number, const C: usize>(
 
         // Process inbound messages from the manager thread.
 
-        /*
         while let Ok(msg) = rx.try_recv() {
             match msg {
-                Pause => {paused = true}
-                Unpause => {paused = false}
+                Pause => {
+                    paused = true;
+                    tx.send(UpdateStatus {thread_id, status: Paused(format!("{expr}"))}).unwrap();
+                }
+                Unpause => {
+                    paused = false;
+                }
             }
         }
-        */
         
         // Do an appropriate task (either searching or sleeping) according to
         // whether we are paused.

@@ -215,30 +215,21 @@ impl UI for DefaultUI {
                                      .map(|number| if number > 0 {number - 1} else {0})
                                      .or(if self.face.solutions_found.is_empty() {None} else {Some(0)});
                         }
-                        Char('+') => {
-                            ret.push(IncreaseThreadCount);
-                        }
-                        Char('-') => {
-                            ret.push(DecreaseThreadCount);
-                        }
-                        Char('d') => {
-                            self.face.description_shown = !self.face.description_shown;
-                        }
-                        Char('i') => {
-                            self.face.inspector_shown = !self.face.inspector_shown;
-                        }
-                        Char('s') => {
-                            self.face.stats_shown = !self.face.stats_shown;
-                        }
-                        Char('t') => {
-                            self.face.threads_shown = !self.face.threads_shown;
-                        }
-                        Char('n') => {
-                            self.face.news_feed_shown = !self.face.news_feed_shown;
-                        }
+
+                        Char('+') => {ret.push(IncreaseThreadCount);}
+                        Char('-') => {ret.push(DecreaseThreadCount);}
+                        Char('p') => {ret.push(PauseUnpause);}
+
+                        Char('d') => {self.face.description_shown = !self.face.description_shown;}
+                        Char('i') => {self.face.inspector_shown = !self.face.inspector_shown;}
+                        Char('s') => {self.face.stats_shown = !self.face.stats_shown;}
+                        Char('t') => {self.face.threads_shown = !self.face.threads_shown;}
+                        Char('n') => {self.face.news_feed_shown = !self.face.news_feed_shown;}
+
                         Esc => {
                             self.face.solution_selected = None;
                         }
+
                         _ => (),
                     }
                 },
@@ -526,7 +517,7 @@ impl DefaultUIFace {
             } else {
                 Span::raw("Q: quit").style(*STYLE_CONTROLS)
             },
-            Span::raw(", S: hide)").style(*STYLE_CONTROLS)
+            Span::raw(", S: hide, P: pause)").style(*STYLE_CONTROLS)
         ]);
         
         // Intermediate calculations.
@@ -591,16 +582,18 @@ impl DefaultUIFace {
                         Span::raw("<New thread...>").style(*STYLE_THREAD_META),
                     ])));
                 }
-                Some(Paused) => {
+                Some(Paused(expr)) => {
                     ret.push(ListItem::from(Line::from(vec![
                         number_span,
-                        Span::raw("<Paused>").style(*STYLE_THREAD_META),
+                        Span::raw(format!("[{}] ", expr.len())).style(*STYLE_THREAD_META),
+                        Span::raw(format!("{}", expr)).style(*STYLE_ALT_VALUE),
+                        Span::raw(" <Paused>").style(*STYLE_THREAD_META),
                     ])));
                 }
                 Some(Searching(expr)) => {
                     ret.push(ListItem::from(Line::from(vec![
                         number_span,
-                        Span::raw(format!("{}", format!("[{}] ", expr.len()))).style(*STYLE_THREAD_META),
+                        Span::raw(format!("[{}] ", expr.len())).style(*STYLE_THREAD_META),
                         Span::raw(format!("{}", expr)).style(*STYLE_THREAD),
                     ])));
                 }
