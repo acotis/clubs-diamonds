@@ -31,11 +31,11 @@ type Judge    <N, const C: usize> = fn(&Expression<N, C>) -> bool;
 type Inspector<N, const C: usize> = fn(&Expression<N, C>) -> String;
 type Penalizer<N, const C: usize> = fn(&Expression<N, C>) -> usize;
 
-#[derive(Clone, PartialEq, Eq, Debug)]
 struct Thread {
     id: usize,
     length: usize, // length of expressions being tested
     status: Option<ThreadStatus>,
+    tx: mpsc::Sender<ThreadCommand>,
 }
 
 // Commands from the manager thread to the worker thread.
@@ -76,6 +76,7 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
     let mut target_thread_count = config.threads;
     let mut threads: Vec<Thread> = vec![];
     let mut solutions = vec![];
+    let mut counts = [(0, 0); 99];
 
     let op_requirements = [
         None,
@@ -88,9 +89,8 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
         (config.min_length..=config.max_length)
             .flat_map(|l| op_requirements.clone().into_iter().map(move |or| (l, or)))
             .peekable();
-    let (tx, rx) = mpsc::channel();
 
-    let mut counts = [(0, 0); 99];
+    let (tx, rx) = mpsc::channel();
 
     'search: loop {
 
@@ -138,11 +138,13 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
 
         while threads.len() < target_thread_count {
             let Some((length, op_requirement)) = task_iterator.next() else {break};
+            let (thread_tx, thread_rx) = mpsc::channel();
 
             threads.push(Thread {
                 status: None,
                 length,
                 id: (0..).find(|x| threads.iter().all(|thread| thread.id != *x)).unwrap(),
+                tx: thread_tx,
             });
 
             let idx = threads.len() - 1;
@@ -161,6 +163,7 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
                     length,
                     Some(op_requirement),
                     tx_clone,
+                    thread_rx,
                 );
             });
         }
@@ -213,6 +216,7 @@ fn find_with_length_and_op<N: Number, const C: usize>(
     length: usize,
     op_requirement: Option<Option<Op>>,
     tx: mpsc::Sender<ThreadReport<N, C>>,
+    rx: mpsc::Receiver<ThreadCommand>,
 ) {
     //println!("New thread! — length = {length}, op_requirement = {op_requirement:?}");
 
