@@ -4,12 +4,9 @@ Todo
 ——————————
 
 — Implement pausing via the UI.
-    — Create a struct WorkerReport with variants:
-        — FoundSolution {expr}
-        — FinishedBatch {length, count}
-        — UpdateStatus {thread_id, thread_status}
-    — If there is to be any state-tracking within the worker thread function,
-      make the enum local to that function.
+    — Give each worker thread a receiver for messages.
+    — Add a PauseUnpause variant to the UISignal enum.
+    — Make the manager thread pause/unpause worker threads as needed.
 
 — Benchmarking tasks:
     — Add a way to compare two reports to each other.

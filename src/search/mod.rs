@@ -12,6 +12,8 @@ pub use number::Number;
 use std::thread;
 use std::sync::mpsc;
 use std::marker::PhantomData;
+use std::time::Duration;
+use std::thread::sleep;
 
 use pivot::Op::{self, *};
 use expression_writer::ExpressionWriter;
@@ -30,18 +32,26 @@ type Inspector<N, const C: usize> = fn(&Expression<N, C>) -> String;
 type Penalizer<N, const C: usize> = fn(&Expression<N, C>) -> usize;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
-pub struct Thread {
-    pub id: usize,
-    pub status: Option<ThreadStatus>,
+struct Thread {
+    id: usize,
+    length: usize, // length of expressions being tested
+    status: Option<ThreadStatus>,
+}
+
+// Commands from the manager thread to the worker thread.
+
+enum ThreadCommand {
+    Pause,
+    Unpause,
 }
 
 // Reports from the worker thread back to the manager thread.
 
 enum ThreadReport<N: Number, const C: usize> {
     FoundSolution   {expr: Expression<N, C>},
-    FinishedBatch   {length: usize, count: u128},
+    TriedN          {thread_id: usize, count: u128},
+    Done            {thread_id: usize},
     UpdateStatus    {thread_id: usize, status: ThreadStatus},
-    Done            {thread_id: usize, length: usize},
 }
 
 fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<Expression<N, C>>) {
@@ -97,8 +107,9 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
                     ui.push_solution(string, score, inspection);
                 },
 
-                FinishedBatch {length, count} => {
-                    counts[length].0 += count;
+                TriedN {thread_id, count} => {
+                    let thread = threads.iter_mut().find(|thread| thread.id == thread_id).unwrap();
+                    counts[thread.length].0 += count;
                     total_count += count;
                 }
 
@@ -107,14 +118,14 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
                     thread.status = Some(status);
                 }
 
-                Done {thread_id, length} => {
+                Done {thread_id} => {
                     let thread = threads.iter_mut().find(|thread| thread.id == thread_id).unwrap();
 
                     thread.status = None;
-                    counts[length].1 += 1;
+                    counts[thread.length].1 += 1;
 
-                    if counts[length].1 == op_requirements.len() {
-                        ui.finished_expression_length(length, counts[length].0);
+                    if counts[thread.length].1 == op_requirements.len() {
+                        ui.finished_expression_length(thread.length, counts[thread.length].0);
                     }
 
                     threads.retain(|thread| thread.id != thread_id);
@@ -130,6 +141,7 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
 
             threads.push(Thread {
                 status: None,
+                length,
                 id: (0..).find(|x| threads.iter().all(|thread| thread.id != *x)).unwrap(),
             });
 
@@ -200,39 +212,59 @@ fn find_with_length_and_op<N: Number, const C: usize>(
     judge: Judge<N, C>,
     length: usize,
     op_requirement: Option<Option<Op>>,
-    mpsc: mpsc::Sender<ThreadReport<N, C>>,
+    tx: mpsc::Sender<ThreadReport<N, C>>,
 ) {
     //println!("New thread! — length = {length}, op_requirement = {op_requirement:?}");
 
     let mut count = 0u128;
+    let mut writer = ExpressionWriter::new(C, length, op_requirement);
     let mut expr = Expression {
         field: vec![255; 16],
         nothing: PhantomData::default(),
     };
-    let mut writer = ExpressionWriter::new(C, length, op_requirement);
 
-    while writer.write(&mut expr.field) {
-        count += 1;
+    let mut paused = false;
 
-        if judge(&expr) {
-            mpsc.send(FoundSolution {
-                expr: expr.clone(),
-            }).unwrap();
-        } else if count == notification_spacing {
-            mpsc.send(UpdateStatus {
-                thread_id,
-                expr: expr.clone(),
-                length,
-                count,
-            }).unwrap();
-            count = 0;
+    loop {
+
+        // Process inbound messages from the manager thread.
+
+        /*
+        while let Ok(msg) = rx.try_recv() {
+            match msg {
+                Pause => {paused = true}
+                Unpause => {paused = false}
+            }
+        }
+        */
+        
+        // Do an appropriate task (either searching or sleeping) according to
+        // whether we are paused.
+
+        if paused {
+            sleep(Duration::from_millis(100));
+        } else {
+            loop {
+                if writer.write(&mut expr.field) {
+                    count += 1;
+
+                    if judge(&expr) {
+                        tx.send(FoundSolution {expr: expr.clone()}).unwrap();
+                    }
+
+                    if count == notification_spacing {
+                        tx.send(TriedN {thread_id, count}).unwrap();
+                        tx.send(UpdateStatus {thread_id, status: Searching(format!("{expr}"))}).unwrap();
+                        count = 0;
+                        break;
+                    }
+                } else {
+                    tx.send(TriedN {thread_id, count}).unwrap();
+                    tx.send(Done {thread_id}).unwrap();
+                    return;
+                }
+            }
         }
     }
-
-    mpsc.send(Done {
-        thread_id,
-        length,
-        count,
-    }).unwrap();
 }
 
