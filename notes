@@ -4,8 +4,7 @@ Todo
 ——————————
 
 — Implement pausing via the UI.
-    — Make the Paused state have an expression attached just like the Searching
-      state does.
+    — Run correctness tests and benchmarks.
 
 — Benchmarking tasks:
     — Add a way to compare two reports to each other.

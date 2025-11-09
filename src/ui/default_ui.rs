@@ -148,7 +148,7 @@ impl UI for DefaultUI {
         self.face.stat_moments.push(
             self.face.last_stat_moment().step_to_now(
                 total_count,
-                self.face.thread_statuses.len()
+                self.face.unpaused_thread_count(),
             )
         );
     }
@@ -157,7 +157,7 @@ impl UI for DefaultUI {
         self.face.stat_moments.push(
             self.face.last_stat_moment().step_to_now(
                 self.face.total_count(),
-                self.face.thread_statuses.len()
+                self.face.unpaused_thread_count(),
             )
         );
 
@@ -306,6 +306,10 @@ impl DefaultUIFace {
                 Span::raw(format!("{}", solution)).style(*STYLE_SOLUTION),
             ]
         }
+    }
+
+    fn unpaused_thread_count(&self) -> usize {
+        self.thread_statuses.iter().filter(|status| !matches!(status, Some(Paused(_)))).count()
     }
 
     fn last_stat_moment(&self) -> &StatMoment {
