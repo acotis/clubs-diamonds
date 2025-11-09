@@ -77,6 +77,7 @@ struct DefaultUIFace {
     inspector_enabled: bool,
     stat_moments: Vec<StatMoment>,
     in_quit_dialog: bool,
+    paused: bool,
     target_thread_count: usize,
     thread_statuses: Vec<Option<ThreadStatus>>,
     news_feed: Vec<(DateTime<Local>, String)>,
@@ -105,6 +106,7 @@ impl UI for DefaultUI {
                 inspector_enabled: false,
                 stat_moments: vec![StatMoment::zero()],
                 in_quit_dialog: false,
+                paused: false,
                 target_thread_count: 0,
                 thread_statuses: vec![],
                 news_feed: vec![],
@@ -218,7 +220,7 @@ impl UI for DefaultUI {
 
                         Char('+') => {ret.push(IncreaseThreadCount);}
                         Char('-') => {ret.push(DecreaseThreadCount);}
-                        Char('p') => {ret.push(PauseUnpause);}
+                        Char('p') => {ret.push(PauseUnpause); self.face.paused = !self.face.paused;}
 
                         Char('d') => {self.face.description_shown = !self.face.description_shown;}
                         Char('i') => {self.face.inspector_shown = !self.face.inspector_shown;}
@@ -521,7 +523,12 @@ impl DefaultUIFace {
             } else {
                 Span::raw("Q: quit").style(*STYLE_CONTROLS)
             },
-            Span::raw(", S: hide, P: pause)").style(*STYLE_CONTROLS)
+            Span::raw(", S: hide, ").style(*STYLE_CONTROLS),
+            if self.paused {
+                Span::raw("P: resume)").style(*STYLE_CONTROLS)
+            } else {
+                Span::raw("P: pause)").style(*STYLE_CONTROLS)
+            },
         ]);
         
         // Intermediate calculations.
