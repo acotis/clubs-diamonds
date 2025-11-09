@@ -4,7 +4,7 @@ Todo
 ——————————
 
 — Implement pausing via the UI.
-    — Run correctness tests and benchmarks.
+    — Run benchmarks.
 
 — Benchmarking tasks:
     — Add a way to compare two reports to each other.
