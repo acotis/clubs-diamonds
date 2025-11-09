@@ -15,8 +15,6 @@
 //! - [`Expression`]: A struct representing a mathematical expression, such as `3*(a+5)` or `b>>a|89%c`. Uses an optimized representation internally, but adheres to Rust syntax, Rust operators, Rust precedence levels, and Rust semantics.
 //! - [`Searcher`]: A configurable search type which can be used to systematically search all syntactically valid expressions in increasing order of length, and yield only those which meet a customizeable, user-specified criterion.
 //!
-//! It also provides a helper trait called [`Number`], which it implements for all of Rust's built-in integer data types: `u8`, `u16`, `u32`, `u64`, `u128`, `usize`, `i8`, `i16`, `i32`, `i64`, `i128`, and `isize`.
-//!
 //! # Usage note
 //!
 //! Clubs must be compiled in release mode in order to function! When you run a Rust program that depends on clubs, use this command:
