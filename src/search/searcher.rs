@@ -35,7 +35,7 @@ impl<N: Number, const C: usize> Searcher <N, C> {
             penalizer: None,
             description: None,
             threads: 1,
-            report_every: 1<<16,
+            report_every: 1<<20,
             min_length: 1,
             max_length: usize::MAX,
             debug_banner_enabled: true,
