@@ -260,7 +260,7 @@ fn find_with_length_and_op<N: Number, const C: usize>(
     let mut count = 0u128;
     let mut writer = ExpressionWriter::new(C, length, op_requirement);
     let mut expr = Expression {
-        field: vec![255; 16], // TODO: shouldn't this be "length", not 16??
+        field: vec![255; length],
         nothing: PhantomData::default(),
     };
 
