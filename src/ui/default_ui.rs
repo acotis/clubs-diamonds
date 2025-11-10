@@ -551,12 +551,7 @@ impl DefaultUIFace {
             } else {
                 Span::raw("Q: quit").style(*STYLE_CONTROLS)
             },
-            Span::raw(", S: hide, ").style(*STYLE_CONTROLS),
-            if self.paused {
-                Span::raw("P: resume)").style(*STYLE_CONTROLS)
-            } else {
-                Span::raw("P: pause)").style(*STYLE_CONTROLS)
-            },
+            Span::raw(", S: hide)").style(*STYLE_CONTROLS),
         ]);
         
         // Intermediate calculations.
@@ -602,7 +597,13 @@ impl DefaultUIFace {
                 self.target_thread_count,
             )).style(*STYLE_TITLE),
             Span::raw(" ").style(*STYLE_BLANK),
-            Span::raw("(+/-: change target, T: hide)").style(*STYLE_CONTROLS),
+            Span::raw("(+/-: change, ").style(*STYLE_CONTROLS),
+            if self.paused {
+                Span::raw("P: resume, ").style(*STYLE_CONTROLS)
+            } else {
+                Span::raw("P: pause, ").style(*STYLE_CONTROLS)
+            },
+            Span::raw("T: hide)").style(*STYLE_CONTROLS),
         ])));
 
         ret.push(ListItem::new(Span::from("—".repeat(50)).style(*STYLE_TITLE)));
