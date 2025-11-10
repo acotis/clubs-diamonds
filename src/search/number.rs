@@ -1,7 +1,6 @@
 
 use std::ops::*;
 use num_traits::ops::{checked::*, wrapping::*};
-use std::fmt::Display;
 
 /// Used in trait bounds by `Expression` and `Searcher`. Exposed as part of the public ABI so that you can use it in trait bounds for functions that take or return `Expression`s.
 
