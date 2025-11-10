@@ -3,7 +3,9 @@
 Todo
 ——————————
 
-— Make the engine never render an expression as a string unless there is a UI
+— Move the pause/resume control to the threads panel.
+
+— Make the engine try not to render an expression as a string unless there's a UI
   involved to receive that String. Otherwise, you are wasting time. And yes, you
   really *are* wasting time, because one use-case of clubs is to generate a list
   of all expresssions of a given length, and then there can be millions of
@@ -18,8 +20,6 @@ Todo
     — Add a way to compare two reports to each other.
     — Clean out empty and mostly-empty benchmarks.
     — Work on the benchmark binary search project (below).
-
-— Make it so that decreasing the thread count pauses extra threads!
 
 — Try using u64's to count expressions instead of u128's, see if it's any
   faster (it might be, since we increment one every time we try a candidate

@@ -136,39 +136,70 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
             }
         }
 
-        // Spawn threads up to the thread limit (as long as there are
-        // tasks to give them).
+        // Compute the effective target thread count (0 if we are paused)
+        // and effective current thread count (doesn't include paused
+        // threads).
 
-        while threads.len() < target_thread_count {
-            let Some((length, op_requirement)) = task_iterator.next() else {break};
-            let (thread_tx, thread_rx) = mpsc::channel();
+        let effective_target_thread_count = if paused {0} else {target_thread_count};
+        let mut active_thread_count =
+            threads
+                .iter()
+                .filter(|thread| !matches!(thread.status, Some(Paused(_))))
+                .count();
 
-            threads.push(Thread {
-                status: None,
-                length,
-                id: (0..).find(|x| threads.iter().all(|thread| thread.id != *x)).unwrap(),
-                tx: thread_tx,
-            });
+        // Unpause threads, and/or spawn new ones, up to the thread limit
+        // (as long as there are tasks to give them).
 
-            let idx = threads.len() - 1;
-            let tx_clone = tx.clone();
-            let judge_clone = config.judge.clone();
-            let thread_id = threads[idx].id;
-            let report_every = config.report_every;
+        while active_thread_count < effective_target_thread_count {
 
-            threads[idx].status = None;
+            // If we have paused threads, unpause one.
 
-            thread::spawn(move || {
-                find_with_length_and_op(
-                    thread_id,
-                    report_every,
-                    judge_clone,
+            if active_thread_count < threads.len() {
+                threads[active_thread_count].tx.send(Unpause).unwrap();
+            }
+
+            // Otherwise, spawn a new one.
+
+            else {
+                let Some((length, op_requirement)) = task_iterator.next() else {break};
+                let (thread_tx, thread_rx) = mpsc::channel();
+
+                threads.push(Thread {
+                    status: None,
                     length,
-                    Some(op_requirement),
-                    tx_clone,
-                    thread_rx,
-                );
-            });
+                    id: (0..).find(|x| threads.iter().all(|thread| thread.id != *x)).unwrap(),
+                    tx: thread_tx,
+                });
+
+                let idx = threads.len() - 1;
+                let tx_clone = tx.clone();
+                let judge_clone = config.judge.clone();
+                let thread_id = threads[idx].id;
+                let report_every = config.report_every;
+
+                threads[idx].status = None;
+
+                thread::spawn(move || {
+                    find_with_length_and_op(
+                        thread_id,
+                        report_every,
+                        judge_clone,
+                        length,
+                        Some(op_requirement),
+                        tx_clone,
+                        thread_rx,
+                    );
+                });
+            }
+
+            active_thread_count += 1;
+        }
+
+        // Pause threads down to the thread limit if necessary.
+
+        while active_thread_count > effective_target_thread_count {
+            threads[active_thread_count-1].tx.send(Pause).unwrap();
+            active_thread_count -= 1;
         }
 
         // If at this point there are no threads and also no tasks left
@@ -187,10 +218,6 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
                     IncreaseThreadCount => {target_thread_count += 1}
                     DecreaseThreadCount => {if target_thread_count > 0 {target_thread_count -= 1}}
                     PauseUnpause => {
-                        for thread in &mut threads {
-                            let signal = if paused {Unpause} else {Pause};
-                            thread.tx.send(signal).unwrap();
-                        }
                         paused = !paused;
                     }
                 }
