@@ -34,6 +34,7 @@ lazy_static! {
     static ref STYLE_INSPECTION:              Style = Style::default(); //.bg(Color::Magenta);
     static ref STYLE_NEWS_HEADER:             Style = Style::default().fg(Color::Indexed(106)).underlined(); // green
     static ref STYLE_CONFIRM:                 Style = Style::default().fg(Color::Red).add_modifier(Modifier::BOLD);
+    static ref STYLE_DEBUG_BANNER:            Style = Style::default().fg(Color::Indexed(52)).bg(Color::Indexed(167)); // dark red on pale red
 }
 
 struct StatMoment {
@@ -75,6 +76,7 @@ struct DefaultUIFace {
     solution_selected: Option<usize>,
     description: Option<String>,
     inspector_enabled: bool,
+    debug_banner_enabled: bool,
     stat_moments: Vec<StatMoment>,
     in_quit_dialog: bool,
     paused: bool,
@@ -82,6 +84,7 @@ struct DefaultUIFace {
     thread_statuses: Vec<Option<ThreadStatus>>,
     news_feed: Vec<(DateTime<Local>, String)>,
 
+    debug_banner_shown: bool,
     description_shown: bool,
     inspector_shown: bool,
     stats_shown: bool,
@@ -104,6 +107,7 @@ impl UI for DefaultUI {
                 solution_selected: None,
                 description: None,
                 inspector_enabled: false,
+                debug_banner_enabled: true,
                 stat_moments: vec![StatMoment::zero()],
                 in_quit_dialog: false,
                 paused: false,
@@ -111,6 +115,8 @@ impl UI for DefaultUI {
                 thread_statuses: vec![],
                 news_feed: vec![],
 
+                #[cfg(debug_assertions)] debug_banner_shown: true,
+                #[cfg(not(debug_assertions))] debug_banner_shown: false,
                 description_shown: true,
                 inspector_shown: true,
                 stats_shown: true,
@@ -122,6 +128,10 @@ impl UI for DefaultUI {
 
     fn set_inspector_enabled(&mut self, enabled: bool) {
         self.face.inspector_enabled = enabled;
+    }
+
+    fn set_debug_banner_enabled(&mut self, enabled: bool) {
+        self.face.debug_banner_enabled = enabled;
     }
 
     fn finished_expression_length(&mut self, length: usize, count: u128) {
@@ -269,11 +279,12 @@ impl Widget for &DefaultUIFace {
 
         let mut db_items = vec![]; // Items for the dashboard (it's all implemented as a single list).
 
-        if self.description_shown {db_items.push(self.description_ui());}
-        if self.inspector_shown   {db_items.push(self.solution_inspector_ui());}
-        if self.stats_shown       {db_items.push(self.stats_ui());}
-        if self.threads_shown     {db_items.push(self.thread_viewer_ui());}
-        if self.news_feed_shown   {db_items.push(self.news_feed_ui());}
+        if self.debug_banner_enabled && self.debug_banner_shown {db_items.push(self.debug_banner_ui());}
+        if self.description_shown  {db_items.push(self.description_ui());}
+        if self.inspector_shown    {db_items.push(self.solution_inspector_ui());}
+        if self.stats_shown        {db_items.push(self.stats_ui());}
+        if self.threads_shown      {db_items.push(self.thread_viewer_ui());}
+        if self.news_feed_shown    {db_items.push(self.news_feed_ui());}
 
         // Intersperse blank lines between the panels.
 
@@ -364,6 +375,23 @@ impl DefaultUIFace {
         // Return.
 
         ret
+    }
+
+    fn debug_banner_ui(&self) -> Vec<ListItem<'_>> {
+        let lines = [
+        //   12345678901234567890123456789012345678901234567890
+            "                                                  ",
+            "  Warning: you are running Clubs in debug mode,   ",
+            "  which slows it down by ~10x. Consider running   ",
+            "  it in release mode with `cargo run --release`   ",
+            "  Hide this banner with Searcher::no_banner().    ",
+            "                                                  ",
+        ];
+
+        lines
+            .into_iter()
+            .map(|line| ListItem::new(Line::from(Span::raw(line).style(*STYLE_DEBUG_BANNER),)))
+            .collect()
     }
 
     fn description_ui(&self) -> Vec<ListItem<'_>> {

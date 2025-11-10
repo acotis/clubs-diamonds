@@ -65,6 +65,7 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
 
     let mut ui = U::new();
 
+    ui.set_debug_banner_enabled(config.debug_banner_enabled);
     ui.set_inspector_enabled(config.inspector.is_some());
 
     if let Some(ref description) = config.description {

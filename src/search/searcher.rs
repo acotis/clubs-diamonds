@@ -21,6 +21,7 @@ pub struct Searcher<N: Number, const C: usize> {
     pub(super) report_every: u128,
     pub(super) min_length: usize,
     pub(super) max_length: usize,
+    pub(super) debug_banner_enabled: bool,
 }
 
 impl<N: Number, const C: usize> Searcher <N, C> {
@@ -37,6 +38,7 @@ impl<N: Number, const C: usize> Searcher <N, C> {
             report_every: 1<<16,
             min_length: 1,
             max_length: usize::MAX,
+            debug_banner_enabled: true,
         }
     }
 
@@ -103,6 +105,15 @@ impl<N: Number, const C: usize> Searcher <N, C> {
     pub fn max_length(self, max_length: usize) -> Self {
         Self {
             max_length,
+            ..self
+        }
+    }
+
+    /// Disable the banner which warns you that you are running Clubs in debug mode. Note that running Clubs this way slows it down by around an order of magnitude. You can run it in release mode instead by executing your code with the command `cargo run --release`. Only use this method if you're completely sure you don't want to do that.
+
+    pub fn no_banner(self) -> Self {
+        Self {
+            debug_banner_enabled: false,
             ..self
         }
     }

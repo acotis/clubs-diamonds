@@ -4,8 +4,6 @@ Todo
 ——————————
 
 — Make it work even in debug mode?
-    — Add a banner that detects debug mode and admonishes the user to try release
-      mode instead. Include a method to hide this banner.
     — Update docs.
 
 — Make the engine never render an expression as a string unless there is a UI
