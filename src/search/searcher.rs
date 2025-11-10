@@ -89,20 +89,20 @@ impl<N: Number, const C: usize> Searcher <N, C> {
         }
     }
 
-    /// Set the minimum length of expression to consider. For example, if you call `.min_length(6)` then expressions of length 1-5 are skipped at the start of the search process.
+    /// Set the minimum length of expression to consider. For example, if you call `.min_len(6)` then expressions of length 1-5 are skipped at the start of the search process.
 
-    pub fn min_length(self, min_length: usize) -> Self {
+    pub fn min_len(self, min_length: usize) -> Self {
         Self {
             min_length,
             ..self
         }
     }
 
-    /// Set the maximum length of expression to consider. For example, if you call `.max_length(10)`, then once the searcher has exhausted all expressions of length 1-10, it will automatically quit the UI (if there was a UI for this search) and return the results.
+    /// Set the maximum length of expression to consider. For example, if you call `.max_len(10)`, then once the searcher has exhausted all expressions of length 1-10, it will automatically quit the UI (if there was a UI for this search) and return the results.
     ///
     /// Useful if you want to use the `.run_silently()` method, as setting a maximum expression length is currently the only way to render a search process naturally finite.
 
-    pub fn max_length(self, max_length: usize) -> Self {
+    pub fn max_len(self, max_length: usize) -> Self {
         Self {
             max_length,
             ..self
