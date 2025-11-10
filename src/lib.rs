@@ -21,7 +21,7 @@
 //! cargo run --release
 //! ```
 //!
-//! Additionally, I recommend enabling link-time optimizations by putting the following snippet in your `Cargo.toml`. This speeds it up by a further 40% or so:
+//! Additionally, I recommend enabling [link-time optimizations](https://doc.rust-lang.org/cargo/reference/profiles.html#lto) by putting the following snippet in your `Cargo.toml`. This speeds it up by a further 40% or so:
 //!
 //! ```toml
 //! [profile.release]
@@ -71,9 +71,9 @@
 //!
 #![doc = embed_doc_image::embed_image!("demo", "assets/demo_medium.png")]
 //!
-//! When you quit the UI, control flow returns to the main function, and the `println!` statements display the information returned by the `.search_with_ui()` method. The returned information is:
+//! As solutions are found, they will appear in the Solutions column on the left. When you quit the UI, the `.run_with_ui()` method returns, and control flow returns to the main function. In this demo program, we then print out the information which is returned to us by that method. The information is:
 //!
-//! - `count`: a `u128` representing the total number of expressions which were considered during the search (including those which were rejected because they didn't meet the specified criterion).
+//! - `count`: a `u128` representing the total number of candidate expressions which were considered during the search (including those which were rejected because they didn't meet the specified criterion).
 //! - `solutions`: a `Vec` containing the expressions that did meet the criterion.
 //! 
 //! **Limitation note:** Clubs does not currently consider expressions containing the unary `-` operator (arithmetic negation). For unsigned types, this doesn't matter because the operator is inapplicable anyway. For signed types, this means Clubs will sometimes miss valid expressions that could have been solutions. In their place, it will find longer versions of these expressions that contain terms like `0-a` instead of `-a`. This is planned to be fixed in a later version of the crate.
@@ -82,7 +82,7 @@
 //!
 //! There is a four-step workflow for performing a search using the `Searcher` type:
 //!
-//! 1. **Decide the number and type of variables** which will appear in the expression.
+//! 1. **Decide the type and number of variables** which will appear in the expression.
 //!     - Specify these choices as type parameters of the `Searcher`.
 //! 2. **Construct** the searcher using the method `Searcher::new()`.
 //!     - When you call this method, you supply a closure that accepts an `&Expression` and returns a `bool`. This is the "judge" that is used to determine which expressions are displayed in the Solutions panel in the UI (and eventually returned in the solutions Vec).
