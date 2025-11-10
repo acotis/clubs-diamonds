@@ -15,15 +15,13 @@
 //! - [`Expression`]: A struct representing a mathematical expression, such as `3*(a+5)` or `b>>a|89%c`. Uses an optimized representation internally, but adheres to Rust syntax, Rust operators, Rust precedence levels, and Rust semantics.
 //! - [`Searcher`]: A configurable search type which can be used to systematically search all syntactically valid expressions in increasing order of length, and yield only those which meet a customizeable, user-specified criterion.
 //!
-//! # Usage note
-//!
-//! Clubs must be compiled in release mode in order to function! When you run a Rust program that depends on clubs, use this command:
+//! The brute-forcer runs around 10 times faster in release mode than in debug mode. You can run your code in release mode by executing it with the following command, and you should do this unless you have a great reason not to:
 //!
 //! ```txt
 //! cargo run --release
 //! ```
 //!
-//! Additionally, I recommend enabling link-time optimizations by putting the following snippet in your Cargo.toml. This speeds clubs up by around 40%:
+//! Additionally, I recommend enabling link-time optimizations by putting the following snippet in your `Cargo.toml`. This speeds it up by a further 40% or so:
 //!
 //! ```toml
 //! [profile.release]
