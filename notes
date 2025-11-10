@@ -4,9 +4,17 @@ Todo
 ——————————
 
 — Make it work even in debug mode?
-    — Switch out the code in Expression::apply().
-    — Clean up the bounds of the Number trait.
+    — Add a banner that detects debug mode and admonishes the user to try release
+      mode instead. Include a method to hide this banner.
     — Update docs.
+
+— Make the engine never render an expression as a string unless there is a UI
+  involved to receive that String. Otherwise, you are wasting time. And yes, you
+  really *are* wasting time, because one use-case of clubs is to generate a list
+  of all expresssions of a given length, and then there can be millions of
+  "solutions". You do not, in fact, get to purely throw away the "this is a
+  solution" prong of the computational fork as basically never happening. It
+  may happen quite a bit.
 
 — Idea for testing: create a TestUI type that implements the UI trait and whose
   behavior is to randomly fiddle with the controls during the test run.
@@ -53,6 +61,10 @@ Todo
     — Benchmark variations to the max stack size of Expression::apply().
     — Benchmark variations to the field size of find_with_length_and_op().
       On 2025 Jun 04, lowering it from 99 to 20 genuinely seems to matter.
+    — Also try having it be uninitialized memory; it doesn't need to start at
+      zeros (not even if we separate numbers out so that they are one symbol per
+      digit; the "init" digits will take care of overwriting the uninitialized
+      junk).
     — Add the option back of using a "scorer" (but still usize) instead of a penalizer.
     — Factor out a SearchUI::toggle_block().
     — Benchmark a 100us control cycle delay over 1ms; switch if faster.

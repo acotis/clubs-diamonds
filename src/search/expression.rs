@@ -27,36 +27,25 @@ impl<N: Number, const C: usize> Expression<N, C> {
     /// Example #2: when the expression `4/a` is applied to the array `[0]`, it will yield `None`.
 
     pub fn apply(&self, inputs: &[N; C]) -> Option<N> {
-        let zero = N::from_u8(0);
-
-        let mut stack = [zero; 99];
+        let mut stack = [N::from_u8(0); 99];
         let mut pointer = 0;
 
         for index in (0..self.field.len()).rev() {
             match Op::interpret_code(self.field[index]) {
-                Nop           => {/* do nothing */},
+                Nop           => {},
                 OpPivot(NOT)  => {stack[pointer-1] = !stack[pointer-1];}
-                OpPivot(MUL)  => {stack[pointer-2] = stack[pointer-2].wrapping_mul(&stack[pointer-1]); pointer -= 1;},
-                OpPivot(DIV)  => {
-                    if stack[pointer-1] == zero {return None}
-                    if N::is_signed() && stack[pointer-1] == !zero && stack[pointer-2] == <N as Number>::min() {return None}
-                    stack[pointer-2]  /= stack[pointer-1]; pointer -= 1;
-
-                },
-                OpPivot(MOD)  => {
-                    if stack[pointer-1] == zero {return None}
-                    if N::is_signed() && stack[pointer-1] == !zero && stack[pointer-2] == <N as Number>::min() {return None}
-                    stack[pointer-2]  %= stack[pointer-1]; pointer -= 1;
-                },
-                OpPivot(ADD)  => {stack[pointer-2] = stack[pointer-2].wrapping_add(&stack[pointer-1]); pointer -= 1;},
-                OpPivot(SUB)  => {stack[pointer-2] = stack[pointer-2].wrapping_sub(&stack[pointer-1]); pointer -= 1;},
-                OpPivot(LSL)  => {stack[pointer-2] = stack[pointer-2].wrapping_shl(stack[pointer-1].as_u32()); pointer -= 1;},
-                OpPivot(LSR)  => {stack[pointer-2] = stack[pointer-2].wrapping_shr(stack[pointer-1].as_u32()); pointer -= 1;},
-                OpPivot(AND)  => {stack[pointer-2] &= stack[pointer-1]; pointer -= 1;},
-                OpPivot(XOR)  => {stack[pointer-2] ^= stack[pointer-1]; pointer -= 1;},
-                OpPivot(ORR)  => {stack[pointer-2] |= stack[pointer-1]; pointer -= 1;},
-                ConstPivot(p) => {stack[pointer] = N::from_u8(p); pointer += 1;},
-                VarPivot(v)   => {stack[pointer] = inputs[v as usize]; pointer += 1;},
+                OpPivot(MUL)  => {stack[pointer-2] = stack[pointer-2].wrapping_mul(&stack[pointer-1]);          pointer -= 1;},
+                OpPivot(DIV)  => {stack[pointer-2] = stack[pointer-2] .checked_div(&stack[pointer-1])?;         pointer -= 1;},
+                OpPivot(MOD)  => {stack[pointer-2] = stack[pointer-2] .checked_rem(&stack[pointer-1])?;         pointer -= 1;}
+                OpPivot(ADD)  => {stack[pointer-2] = stack[pointer-2].wrapping_add(&stack[pointer-1]);          pointer -= 1;},
+                OpPivot(SUB)  => {stack[pointer-2] = stack[pointer-2].wrapping_sub(&stack[pointer-1]);          pointer -= 1;},
+                OpPivot(LSL)  => {stack[pointer-2] = stack[pointer-2].wrapping_shl( stack[pointer-1].as_u32()); pointer -= 1;},
+                OpPivot(LSR)  => {stack[pointer-2] = stack[pointer-2].wrapping_shr( stack[pointer-1].as_u32()); pointer -= 1;},
+                OpPivot(AND)  => {stack[pointer-2] = stack[pointer-2]             & stack[pointer-1];           pointer -= 1;},
+                OpPivot(XOR)  => {stack[pointer-2] = stack[pointer-2]             ^ stack[pointer-1];           pointer -= 1;},
+                OpPivot(ORR)  => {stack[pointer-2] = stack[pointer-2]             | stack[pointer-1];           pointer -= 1;},
+                ConstPivot(p) => {stack[pointer  ] = N::from_u8(p);                                             pointer += 1;},
+                VarPivot(v)   => {stack[pointer  ] = inputs[v as usize];                                        pointer += 1;},
             }
         }
 
