@@ -71,22 +71,10 @@
 //!
 #![doc = embed_doc_image::embed_image!("demo", "assets/demo_medium.png")]
 //!
-//! The controls are:
-//!
-//! - `D`: show/hide description box
-//! - `T`: show/hide thread list
-//! - `S`: show/hide runtime stat box
-//! - `I`: show/hide solution inspector
-//! - `N`: show/hide news feed
-//! - `+` / `-`: increase/decrease target thread count
-//!   - Decreases in thread count may take a while to take effect because the thread count cannot decrease until one of the currently-running threads finishes its task, and the tasks can be minutes or hours long.
-//! - `J` / `K`: navigate downward/upward in the list of solutions
-//! - `Q`: quit (confirm/cancel with `Y` / `N`)
-//! 
 //! When you quit the UI, control flow returns to the main function, and the `println!` statements display the information returned by the `.search_with_ui()` method. The returned information is:
 //!
-//! - `count`: a u128 representing the total number of expressions which were considered during the search (including those which were rejected because they didn't meet the specified criterion).
-//! - `solutions`: a Vec containing the expressions that did meet the criterion.
+//! - `count`: a `u128` representing the total number of expressions which were considered during the search (including those which were rejected because they didn't meet the specified criterion).
+//! - `solutions`: a `Vec` containing the expressions that did meet the criterion.
 //! 
 //! **Limitation note:** Clubs does not currently consider expressions containing the unary `-` operator (arithmetic negation). For unsigned types, this doesn't matter because the operator is inapplicable anyway. For signed types, this means Clubs will sometimes miss valid expressions that could have been solutions. In their place, it will find longer versions of these expressions that contain terms like `0-a` instead of `-a`. This is planned to be fixed in a later version of the crate.
 //!
