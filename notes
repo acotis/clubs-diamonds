@@ -3,8 +3,6 @@
 Todo
 ——————————
 
-— Move the pause/resume control to the threads panel.
-
 — Make the engine try not to render an expression as a string unless there's a UI
   involved to receive that String. Otherwise, you are wasting time. And yes, you
   really *are* wasting time, because one use-case of clubs is to generate a list
