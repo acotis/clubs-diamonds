@@ -3,9 +3,6 @@
 Todo
 ——————————
 
-— Make it work even in debug mode?
-    — Update docs.
-
 — Make the engine never render an expression as a string unless there is a UI
   involved to receive that String. Otherwise, you are wasting time. And yes, you
   really *are* wasting time, because one use-case of clubs is to generate a list
