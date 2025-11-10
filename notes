@@ -3,84 +3,75 @@
 Todo
 ——————————
 
-— Make the engine try not to render an expression as a string unless there's a UI
-  involved to receive that String. Otherwise, you are wasting time. And yes, you
-  really *are* wasting time, because one use-case of clubs is to generate a list
-  of all expresssions of a given length, and then there can be millions of
-  "solutions". You do not, in fact, get to purely throw away the "this is a
-  solution" prong of the computational fork as basically never happening. It
-  may happen quite a bit.
+— Features:
+    — Implement Expression::parse(String).
+    — In UI, make the solutions list scrollable.
+    — Implement max_to_find().
+    — Implement max_to_search().
+    — Implement timeout().
+    — Implement scorer() as distinct from penalizer().
+    — Implement max_constant().
+        — Benchmark the changes.
+        — Add correctness tests and benchmarks specifically for this.
+    — Implement required_variables().
+        — Benchmark the changes.
+        — Add correctness tests and benchmark tests for this.
+
+— Bugfixes:
+    — Fix the bug where zero-variable expressions don't work.
+    — Clean up the threads when you return (just join on them I guess).
+        — Is this not already happening?
+    — In UI, make it only render the solutions which will fit on the screen.
+    — Fix the issue where you can't capture variables in closures you pass to 
+      Searcher (maybe the type it takes should be "closure" (if that's possible) 
+      instead of "fn"?).
+
+— Performance:
+    — Make the engine try not to render expressions unless it needs to.
+        — Particularly, don't render every solution you find. One use-case of
+          Clubs is to find all expressions of a given length, and then there
+          are millions of solutions.
+    — Try using u64's to count expressions instead of u128's, see if it's any
+      faster (it might be, since we increment one every time we try a candidate
+      expression, and u128's are not native on most machines).
+    — Try the u128 implementation (again).
+    — Try varying the stack size of Expression::apply().
+    — Try varying the field size of find_with_length_and_op().
+    — Try letting Expression::apply() use uninitialized memory as its stack.
+    — Try varying the delay length between control thread cycles and the max
+      value of the frame clock.
+
+— Testing:
+    — Work on the benchmark binary search project (below).
+    — Add a way to compare two benchmark reports to each other.
+    — Clean out empty and mostly-empty benchmarks.
+    — Generalize benchmarking infrastructure to accept arbitrary tasks.
+    — Write benchmarks that specifically target expression application.
+
+——————————
+Ideas
+——————————
 
 — Idea for testing: create a TestUI type that implements the UI trait and whose
   behavior is to randomly fiddle with the controls during the test run.
 
-— Benchmarking tasks:
-    — Add a way to compare two reports to each other.
-    — Clean out empty and mostly-empty benchmarks.
-    — Work on the benchmark binary search project (below).
-
-— Try using u64's to count expressions instead of u128's, see if it's any
-  faster (it might be, since we increment one every time we try a candidate
-  expression, and u128's are not native on most machines).
-
-— Add a .timeout() configurable parameter for Searcher.
-
-— Generalize benchmarking infrastructure to accept arbitrary tasks.
-— Write benchmarks that specifically target expression application.
-
-3. Add constant-limiting to the public API.
-    — Benchmark the changes.
-    — Add correctness tests and benchmark tests for this.
-4. Add variable-requirement toggling to the public API.
-    — Fix the bug where zero-variable expressions don't work.
-    — Benchmark the changes.
-    — Add correctness tests and benchmark tests for this.
-
-— Try the u128 implementation.
-
-— Clean up the threads when you return (just join on them I guess).
-— Implement max_to_find().
-— Implement max_to_search().
-
-— Fix the issue where you can't capture variables in closures you pass to 
-  Searcher (maybe the type it takes should be "closure" (if that's possible) 
-  instead of "fn"?).
-— Implement Expression::parse(String).
-    — Then, implement trial expressions where you can "seed" a search with
-      some expressions to try first and treat as solutions, as a way of
-      testing your inspector.
-
-— Little improvments:
-    — Benchmark variations to the max stack size of Expression::apply().
-    — Benchmark variations to the field size of find_with_length_and_op().
-      On 2025 Jun 04, lowering it from 99 to 20 genuinely seems to matter.
-    — Also try having it be uninitialized memory; it doesn't need to start at
-      zeros (not even if we separate numbers out so that they are one symbol per
-      digit; the "init" digits will take care of overwriting the uninitialized
-      junk).
-    — Add the option back of using a "scorer" (but still usize) instead of a penalizer.
-    — Factor out a SearchUI::toggle_block().
-    — Benchmark a 100us control cycle delay over 1ms; switch if faster.
-    — In UI, make it only render the first 1000 solutions for speed.
-    — Make the solution inspector always visible again.
-        — Add a timestamp to each solution that is displayed in the inspector.
-
-— In UI, make the solutions list scrollable.
 — Make the "report every N expressions" thing automatically scale to a duration?
-    — This would be good for cleaning up threads; if the worker thread only checks for
-      signals from the manager thread every N expressions, and N is configured to be
-      too high, then it could take a while before the thread sees that it's supposed
-      to terminate. If it auto-scales, this mostly can't be an issue (actually it still
-      could be, if some expressions take wildly longer to evaluate than others or some
-      weird thing like that — maybe it should autoscale by default but there should
-      still be a "report every N expressions" setting for if the user knows this will
-      be an issue). Either way, there could maybe be a "report every N milliseconds"
-      setting. Also, mind you that the worker threads do NOT need to coordinate with or
-      wait for the manager thread to autoscale their report timings! They only time
-      anyone waits for the manager thread is when a worker thread finishes its task.
-— In UI, get rid of "initializing" state. It's misleading.
-— Implement some kind of mechanism for blocking sub-expressions that are purely constants?
-    — But mind you that some of these are good, like 1<<20.
+    — This would be good for cleaning up threads; if the worker thread only
+      checks for signals from the manager thread every N expressions, and N is
+      configured to be too high, then it could take a while before the thread
+      sees that it's supposed to terminate. If it auto-scales, this mostly can't
+      be an issue (actually it still could be, if some expressions take wildly
+      longer to evaluate than others or some weird thing like that — maybe it
+      should autoscale by default but there should still be a "report every N
+      expressions" setting for if the user knows this will be an issue). Either
+      way, there could maybe be a "report every N milliseconds" setting. Also,
+      mind you that the worker threads do NOT need to coordinate with or wait
+      for the manager thread to autoscale their report timings! They only time
+      anyone waits for the manager thread is when a worker thread finishes its
+      task.
+
+— Implement some kind of mechanism for blocking sub-expressions that are
+  purely constants? But mind you that some of these are good, like 1<<20.
 
 ——————————
 Binary search for the slowdown
