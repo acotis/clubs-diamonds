@@ -3,9 +3,6 @@
 Todo
 ——————————
 
-— Next up:
-    — Write correctness tests for the max-constant feature specifically.
-
 — Features:
     — In UI, make the solutions list scrollable.
     — Implement Expression::parse(String).
@@ -42,6 +39,7 @@ Todo
       value of the frame clock.
 
 — Testing:
+    — Write correctness tests for the max-constant feature specifically.
     — Work on the benchmark binary search project (below).
     — Add a way to compare two benchmark reports to each other.
     — Clean out empty and mostly-empty benchmarks.
