@@ -3,18 +3,18 @@
 Todo
 ——————————
 
+— Next up:
+    — Write correctness tests for the max-constant feature specifically.
+
 — Features:
     — In UI, make the solutions list scrollable.
     — Implement Expression::parse(String).
-    — Implement max_constant().
-        — Benchmark the changes.
-        — Add correctness tests and benchmarks specifically for this.
     — Implement required_variables().
         — Benchmark the changes.
         — Add correctness tests and benchmark tests for this.
     — Implement max_to_find().
     — Implement max_to_search().
-    — Implement timeout().
+    — Implement timeout() maybe?
     — Implement scorer() as distinct from penalizer().
 
 — Bugfixes:
@@ -47,6 +47,8 @@ Todo
     — Clean out empty and mostly-empty benchmarks.
     — Generalize benchmarking infrastructure to accept arbitrary tasks.
     — Write benchmarks that specifically target expression application.
+    — Write benchmarks that invoke the .max_constant() feature, specifically
+      with low maximums (as this seems to slow Clubs down significantly).
 
 ——————————
 Ideas

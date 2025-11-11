@@ -177,6 +177,7 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
                 let judge_clone = config.judge.clone();
                 let thread_id = threads[idx].id;
                 let report_every = config.report_every;
+                let constant_cap = config.constant_cap;
 
                 threads[idx].status = None;
 
@@ -185,6 +186,7 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
                         thread_id,
                         report_every,
                         judge_clone,
+                        constant_cap,
                         length,
                         Some(op_requirement),
                         tx_clone,
@@ -252,15 +254,14 @@ fn find_with_length_and_op<N: Number, const C: usize>(
     thread_id: usize,
     notification_spacing: u128,
     judge: Judge<N, C>,
+    constant_cap: u8,
     length: usize,
     op_requirement: Option<Option<Op>>,
     tx: mpsc::Sender<ThreadReport<N, C>>,
     rx: mpsc::Receiver<ThreadCommand>,
 ) {
-    //println!("New thread! — length = {length}, op_requirement = {op_requirement:?}");
-
     let mut count = 0u128;
-    let mut writer = ExpressionWriter::new(C, length, op_requirement);
+    let mut writer = ExpressionWriter::new(C, length, constant_cap, op_requirement);
     let mut expr = Expression {
         field: vec![255; length],
         nothing: PhantomData::default(),

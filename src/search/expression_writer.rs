@@ -21,6 +21,7 @@ pub struct ExpressionWriter {
     required_vars: usize,
     length: usize,
     min_prec: usize,
+    constant_cap: u8,
     op_requirement: Option<Option<Op>>,
 
     state: EWState,
@@ -28,13 +29,14 @@ pub struct ExpressionWriter {
 }
 
 impl ExpressionWriter {
-    pub fn new(input_count: usize, length: usize, op_requirement: Option<Option<Op>>) -> Self {
+    pub fn new(input_count: usize, length: usize, constant_cap: u8, op_requirement: Option<Option<Op>>) -> Self {
         Self {
             input_count: input_count as u8,
             required_vars: (1 << input_count) - 1,
             //required_vars: 0,
             length,
             min_prec: 0,
+            constant_cap,
             op_requirement,
             state: Init,
             vum_of_last_write: 0,
@@ -68,12 +70,12 @@ impl ExpressionWriter {
                                 Variable {next: self.required_vars.trailing_zeros() as u8, max: self.required_vars.trailing_zeros() as u8}
                             },
                             2 => if self.required_vars == 0 {
-                                Constant {next: 10, max: 99}
+                                Constant {next: 10, max: 100.min(self.constant_cap)}
                             } else {
                                 return false
                             },
                             3 => if self.required_vars == 0 {
-                                Constant {next: 100, max: 155}
+                                Constant {next: 100, max: 156.min(self.constant_cap)}
                             } else {
                                 return false
                             },
@@ -90,12 +92,12 @@ impl ExpressionWriter {
                             Variable {next: self.required_vars.trailing_zeros() as u8, max: self.required_vars.trailing_zeros() as u8}
                         },
                         2 => if self.required_vars == 0 {
-                            Constant {next: 10, max: 99}
+                            Constant {next: 10, max: 100.min(self.constant_cap)}
                         } else {
                             PrepareOp {op: Op::first()}
                         },
                         3 => if self.required_vars == 0 {
-                            Constant {next: 100, max: 155}
+                            Constant {next: 100, max: 156.min(self.constant_cap)}
                         } else {
                             PrepareOp {op: Op::first()}
                         },
@@ -124,18 +126,12 @@ impl ExpressionWriter {
                     return false;
                 }
 
-                self.state = Constant {next: 0, max: 9};
+                self.state = Constant {next: 0, max: 10.min(self.constant_cap)};
                 return self.write(dest);
             },
 
             Constant {next, max} => {
-                if next <= max
-                //&& next <= 3 // perfect implementation!! but seems slow so don't forget to
-                             // benchmark it! try minning the max with this when you set up
-                             // the state instead. also the fact that this is slow might mean
-                             // clubs' performance is very sensitive to the details of this
-                             // method's implementation.
-                {
+                if next < max {
                     self.state = Constant {next: next + 1, max};
                     dest[0] = next;
                     self.vum_of_last_write = 0;
@@ -180,6 +176,7 @@ impl ExpressionWriter {
                             input_count: 0,
                             length: 0,
                             min_prec: 0,
+                            constant_cap: self.constant_cap,
                             required_vars: 0,
                             op_requirement: None,
                             state: Dummy,
@@ -189,6 +186,7 @@ impl ExpressionWriter {
                             input_count: self.input_count,
                             length: self.length - wasted_space,
                             min_prec: op.prec(),
+                            constant_cap: self.constant_cap,
                             required_vars: self.required_vars,
                             op_requirement: None,
                             state: Init,
@@ -202,6 +200,7 @@ impl ExpressionWriter {
                             input_count: self.input_count,
                             length: 1,
                             min_prec: op.prec(),
+                            constant_cap: self.constant_cap,
                             required_vars: 0,
                             op_requirement: None,
                             state: Init,
@@ -211,6 +210,7 @@ impl ExpressionWriter {
                             input_count: self.input_count,
                             length: self.length - wasted_space - 1,
                             min_prec: op.prec() + 1,
+                            constant_cap: self.constant_cap,
                             required_vars: 0, // filled in later
                             op_requirement: None,
                             state: Init,

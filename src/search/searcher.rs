@@ -21,6 +21,7 @@ pub struct Searcher<N: Number, const C: usize> {
     pub(super) report_every: u128,
     pub(super) min_length: usize,
     pub(super) max_length: usize,
+    pub(super) constant_cap: u8,
     pub(super) debug_banner_enabled: bool,
 }
 
@@ -38,6 +39,7 @@ impl<N: Number, const C: usize> Searcher <N, C> {
             report_every: 1<<20,
             min_length: 1,
             max_length: usize::MAX,
+            constant_cap: 156,
             debug_banner_enabled: true,
         }
     }
@@ -105,6 +107,32 @@ impl<N: Number, const C: usize> Searcher <N, C> {
     pub fn max_len(self, max_length: usize) -> Self {
         Self {
             max_length,
+            ..self
+        }
+    }
+
+    /// Set the maximum constant value to use in expressions, e.g. if you set this to 20, then Clubs will not consider expressions which contain constants above 20. Clubs always considers all constant values up to the maximum (you can't pick and choose exactly which constants you want it to consider, you can only set a maximum).
+    ///
+    /// The default value is 155, and due to implementation details, it cannot be set any higher than this. Note that this is just high enough that, when performing a search over `u8` variables, every constant value is accessible in three bytes of text (because 156 is equal to `!99`, 157 is equal to `!98`, and so on).
+
+    pub fn max_constant(self, max_constant: u8) -> Self {
+        if max_constant > 155 {
+            panic!("Cannot call Searcher::max_constant() with a value above 155 (received {max_constant})");
+        }
+
+        Self {
+            constant_cap: max_constant + 1,
+            ..self
+        }
+    }
+
+    /// Do not consider expressions with constant values in them at all.
+    ///
+    /// Equivalent to calling `.max_constant()` with an argument of -1 (which is otherwise impossible to do because that method takes a `u8`).
+
+    pub fn no_constants(self) -> Self {
+        Self {
+            constant_cap: 0,
             ..self
         }
     }
