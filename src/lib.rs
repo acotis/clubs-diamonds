@@ -131,7 +131,7 @@
 //!
 //! In Rust, every variable has an unchanging type, and Rust is generally a hard-ass about enforcing that types match. If `x` is a `u32` and `y` is an `i128`, then `x*y` is a syntactically invalid expression and will fail to compile with a type error.
 //!
-//! In Clubs, the `Searcher` requires that every variable in an expression has the same type, and this type must be specified as a type parameter of the `Searcher` itself. If you set it to `u8`, it will find expressions whose inputs (and output) are `u8`s. If you set it to `isize`, it will find expressions whose inputs (and output) are `isize`s.
+//! In Clubs, the `Searcher` requires that every variable in an expression has the same type, and this type must be specified as a type parameter of the `Searcher` itself. If you set it to `u8`, it will find expressions whose inputs (and output) are `u8`s. If you set it to `isize`, it will find expressions whose inputs (and output) are `isize`s, and so on.
 //!
 //! #### Extra details for type nerds
 //!
