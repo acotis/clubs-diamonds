@@ -4,18 +4,18 @@ Todo
 ——————————
 
 — Features:
-    — Implement Expression::parse(String).
     — In UI, make the solutions list scrollable.
-    — Implement max_to_find().
-    — Implement max_to_search().
-    — Implement timeout().
-    — Implement scorer() as distinct from penalizer().
+    — Implement Expression::parse(String).
     — Implement max_constant().
         — Benchmark the changes.
         — Add correctness tests and benchmarks specifically for this.
     — Implement required_variables().
         — Benchmark the changes.
         — Add correctness tests and benchmark tests for this.
+    — Implement max_to_find().
+    — Implement max_to_search().
+    — Implement timeout().
+    — Implement scorer() as distinct from penalizer().
 
 — Bugfixes:
     — Fix the bug where zero-variable expressions don't work.
