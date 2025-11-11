@@ -7,6 +7,7 @@ pub struct NullUI;
 
 impl UI for NullUI {
     fn new() -> Self {NullUI}
+    fn require_manual_exit() -> bool {false}
 
     fn set_description(&mut self, _description: String) {}
     fn set_inspector_enabled(&mut self, _enabled: bool) {}

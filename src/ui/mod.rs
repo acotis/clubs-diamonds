@@ -28,6 +28,7 @@ pub enum UISignal {
 
 pub trait UI {
     fn new() -> Self;
+    fn require_manual_exit() -> bool;
 
     fn set_description(&mut self, description: String);
     fn set_inspector_enabled(&mut self, enabled: bool);

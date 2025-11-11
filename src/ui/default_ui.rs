@@ -126,6 +126,10 @@ impl UI for DefaultUI {
         }
     }
 
+    fn require_manual_exit() -> bool {
+        true
+    }
+
     fn set_inspector_enabled(&mut self, enabled: bool) {
         self.face.inspector_enabled = enabled;
     }

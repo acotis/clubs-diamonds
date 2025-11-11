@@ -158,7 +158,8 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
                 threads[active_thread_count].tx.send(Unpause).unwrap();
             }
 
-            // Otherwise, spawn a new one.
+            // Otherwise, spawn a new one (as long as there are more tasks to
+            // allocate).
 
             else {
                 let Some((length, op_requirement)) = task_iterator.next() else {break};
@@ -203,9 +204,10 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
         }
 
         // If at this point there are no threads and also no tasks left
-        // in the task iterator, return.
+        // in the task iterator, and the UI type does not require a manual
+        // quit in order to exit the search, return.
 
-        if threads.is_empty() && task_iterator.peek() == None {
+        if threads.is_empty() && task_iterator.peek() == None && !U::require_manual_exit() {
             break 'search;
         }
 
