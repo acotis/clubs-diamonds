@@ -4,11 +4,11 @@ Todo
 ——————————
 
 — Features:
-    — In UI, make the solutions list scrollable.
-    — Implement Expression::parse(String).
     — Implement required_variables().
         — Benchmark the changes.
         — Add correctness tests and benchmark tests for this.
+    — In UI, make the solutions list scrollable.
+    — Implement Expression::parse(String).
     — Implement max_to_find().
     — Implement max_to_search().
     — Implement timeout() maybe?
