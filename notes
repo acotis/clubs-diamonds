@@ -15,6 +15,7 @@ Todo
     — Implement scorer() as distinct from penalizer().
 
 — Bugfixes:
+    — Fix the pausing glitch!!
     — Fix the bug where zero-variable expressions don't work.
     — Clean up the threads when you return (just join on them I guess).
         — Is this not already happening?
