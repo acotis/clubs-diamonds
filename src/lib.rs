@@ -7,23 +7,24 @@
 //     TODO: Fix the problem where quitting the UI can cause threads to panic.
 //     TODO: Write Expression::from_str() (or whatever).
 
-//! A brute-forcer for finding short mathematical expressions in Rust, for code golf. May also be
-//! useful for golfing in other languages, if the language's syntax for math is similar enough to Rust's.
+//! A brute-forcer for finding short mathematical expressions in Rust, for code golf. May also be useful for golfing in other languages, if the language's syntax for math is similar enough to Rust's.
 //!
 //! This crate provides the following types:
 //!
 //! - [`Expression`]: A struct representing a mathematical expression, such as `3*(a+5)` or `b>>a|89%c`. Uses an optimized representation internally, but adheres to Rust syntax, Rust operators, Rust precedence levels, and Rust semantics.
 //! - [`Searcher`]: A configurable search type which can be used to systematically search all syntactically valid expressions in increasing order of length, and yield only those which meet a customizeable, user-specified criterion.
 //!
-//! ##### Usage note
+//! Clubs is the brute-forcer which performs the search, and Diamonds is the TUI frontend it ships with.
 //!
-//! The brute-forcer runs around 10 times faster in release mode than in debug mode. You can run your code in release mode by executing it with the following command, and you should do this unless you have a great reason not to:
+//! #### Performance note
+//!
+//! Clubs runs around 10 times faster in release mode than in debug mode. You can run your code in release mode by executing it with the following command, and you should do this unless you have a great reason not to:
 //!
 //! ```txt
 //! cargo run --release
 //! ```
 //!
-//! Additionally, I recommend enabling [link-time optimizations](https://doc.rust-lang.org/cargo/reference/profiles.html#lto) by putting the following snippet in your `Cargo.toml`. This speeds it up by a further 40% or so:
+//! Additionally, I recommend enabling [link-time optimizations](https://doc.rust-lang.org/cargo/reference/profiles.html#lto) by putting the following snippet in your `Cargo.toml`. This speeds Clubs up by a further 40% or so:
 //!
 //! ```toml
 //! [profile.release]
@@ -91,7 +92,7 @@
 //! 3. Optionally, **specify additional parameters** for the search by using some of `Searcher`'s Builder-Lite methods.
 //! 4. **Execute** the search using either the `.run_with_ui()` method or the `.run_silently()` method.
 //!
-//! Here is how the steps are completed by the example code above:
+//! Here is how the steps are followed by the example code above:
 //!
 //! ```
 //! // step 1: type and number of variables as type parameters
