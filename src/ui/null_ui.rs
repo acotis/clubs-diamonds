@@ -1,5 +1,4 @@
 
-use super::ThreadStatus;
 use super::UI;
 use super::UISignal;
 

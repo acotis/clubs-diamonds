@@ -30,14 +30,14 @@ pub trait UI {
     fn new() -> Self;
     fn require_manual_exit() -> bool;
 
-    fn set_description(&mut self, description: String) {}
-    fn set_inspector_enabled(&mut self, enabled: bool) {}
-    fn set_debug_banner_enabled(&mut self, enabled: bool) {}
-    fn push_solution(&mut self, face: String, score: usize, inspection: Option<String>) {}
-    fn set_total_count(&mut self, total_count: u128) {}
-    fn set_target_thread_count(&mut self, target_thread_count: usize) {}
-    fn set_thread_statuses(&mut self, thread_statuses: Vec<Option<ThreadStatus>>) {}
-    fn finished_expression_length(&mut self, length: usize, count: u128) {}
+    fn set_description(&mut self, _description: String) {}
+    fn set_inspector_enabled(&mut self, _enabled: bool) {}
+    fn set_debug_banner_enabled(&mut self, _enabled: bool) {}
+    fn push_solution(&mut self, _face: String, _score: usize, _inspection: Option<String>) {}
+    fn set_total_count(&mut self, _total_count: u128) {}
+    fn set_target_thread_count(&mut self, _target_thread_count: usize) {}
+    fn set_thread_statuses(&mut self, _thread_statuses: Vec<Option<ThreadStatus>>) {}
+    fn finished_expression_length(&mut self, _length: usize, _count: u128) {}
     fn draw(&mut self) {}
 
     fn handle_inputs(&mut self) -> Vec<UISignal>;
