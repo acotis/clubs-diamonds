@@ -4,7 +4,6 @@ Todo
 ——————————
 
 — Features:
-    — Implement ability to name variables whatever you want.
     — Implement required_variables().
         — Benchmark the changes.
         — Add correctness tests and benchmark tests for this.

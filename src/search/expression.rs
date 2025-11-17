@@ -52,7 +52,21 @@ impl<N: Number, const C: usize> Expression<N, C> {
         Some(stack[0])
     }
 
-    fn stringify(&self, start: usize) -> (String, usize, usize) {
+    /// Render this expression as text. Same as calling `format!("{expr}")`.
+
+    pub fn render(&self) -> String {
+        self.stringify(0, &['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', ]).0
+    }
+
+    /// Render this expression as text, using the provided array of characters as the variable names.
+
+    pub fn render_with_var_names(&self, var_names: [char; C]) -> String {
+        self.stringify(0, &var_names).0
+    }
+}
+
+impl<N: Number, const C: usize> Expression<N, C> {
+    fn stringify(&self, start: usize, var_names: &[char]) -> (String, usize, usize) {
         if start >= self.field.len() {
             for i in 0..self.field.len() {
                 print!("{:?} ", Op::interpret_code(self.field[i]));
@@ -61,18 +75,18 @@ impl<N: Number, const C: usize> Expression<N, C> {
         }
 
         match Op::interpret_code(self.field[start]) {
-            Nop           => {let (a, b, c) = self.stringify(start+1); (a, b, c+1)},
+            Nop           => {let (a, b, c) = self.stringify(start+1, var_names); (a, b, c+1)},
             ConstPivot(p) => (format!("{p}"),                  !0, 1),
-            VarPivot(v)   => (format!("{}", (v + 97) as char), !0, 1),
+            VarPivot(v)   => (format!("{}", var_names[v as usize]), !0, 1),
             OpPivot(op)   => {
                 if op.arity() == 1 {
-                    let (right, right_prec, right_len) = self.stringify(start + 1);
+                    let (right, right_prec, right_len) = self.stringify(start + 1, var_names);
                     let right_render = if right_prec >= op.prec() {right} else {format!("({right})")};
 
                     (format!("{}{}", op.render_face(), right_render), op.prec(), 1 + right_len)
                 } else {
-                    let (right, right_prec, right_len) = self.stringify(start + 1);
-                    let (left,  left_prec,  left_len ) = self.stringify(start + 1 + right_len);
+                    let (right, right_prec, right_len) = self.stringify(start + 1, var_names);
+                    let (left,  left_prec,  left_len ) = self.stringify(start + 1 + right_len, var_names);
 
                     let left_render  = if left_prec  >= op.prec() {left } else {format!("({left})")};
                     let right_render = if right_prec >  op.prec() {right} else {format!("({right})")};
@@ -82,11 +96,19 @@ impl<N: Number, const C: usize> Expression<N, C> {
             }
         }
     }
+
+    pub(super) fn render_with_optional_var_names(&self, var_names_option: Option<[char; C]>) -> String {
+        if let Some(var_names) = var_names_option {
+            self.render_with_var_names(var_names)
+        } else {
+            self.render()
+        }
+    }
 }
 
 impl<N: Number, const C: usize> std::fmt::Display for Expression<N, C> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.stringify(0).0)
+        write!(f, "{}", self.render())
     }
 }
 

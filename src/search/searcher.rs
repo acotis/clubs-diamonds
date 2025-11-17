@@ -23,6 +23,7 @@ pub struct Searcher<N: Number, const C: usize> {
     pub(super) max_length: usize,
     pub(super) constant_cap: u8,
     pub(super) debug_banner_enabled: bool,
+    pub(super) var_names: Option<[char; C]>, // if none, default to names 'a', 'b', 'c'...
 }
 
 impl<N: Number, const C: usize> Searcher <N, C> {
@@ -41,6 +42,7 @@ impl<N: Number, const C: usize> Searcher <N, C> {
             max_length: usize::MAX,
             constant_cap: 156,
             debug_banner_enabled: true,
+            var_names: None,
         }
     }
 
@@ -142,6 +144,17 @@ impl<N: Number, const C: usize> Searcher <N, C> {
     pub fn no_banner(self) -> Self {
         Self {
             debug_banner_enabled: false,
+            ..self
+        }
+    }
+
+    /// Set the variable names that expressions will be rendered with when they appear in the UI.
+    ///
+    /// The `Expression`s returned in the solutions vector will still have default variable names when rendered with `format!()` or `Expression::render()`, but can be rendered with the same custom variable names (or any custom variable names) via `Expression::render_with_var_names()`.
+
+    pub fn var_names(self, var_names: [char; C]) -> Self {
+        Self {
+            var_names: Some(var_names),
             ..self
         }
     }

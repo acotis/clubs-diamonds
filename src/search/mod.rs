@@ -102,7 +102,7 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
         while let Ok(msg) = rx.try_recv() {
             match msg {
                 FoundSolution {expr} => {
-                    let string = format!("{expr}");
+                    let string = expr.render_with_optional_var_names(config.var_names);
                     let inspection = config.inspector.as_ref().map(|insp| insp(&expr));
                     let score = string.len() + config.penalizer.as_ref().map(|scorer| scorer(&expr)).unwrap_or(0);
 
@@ -178,6 +178,7 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
                 let thread_id = threads[idx].id;
                 let report_every = config.report_every;
                 let constant_cap = config.constant_cap;
+                let var_names = config.var_names;
 
                 threads[idx].status = None;
 
@@ -189,6 +190,7 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
                         constant_cap,
                         length,
                         Some(op_requirement),
+                        var_names,
                         tx_clone,
                         thread_rx,
                     );
@@ -257,6 +259,7 @@ fn find_with_length_and_op<N: Number, const C: usize>(
     constant_cap: u8,
     length: usize,
     op_requirement: Option<Option<Op>>,
+    var_names: Option<[char; C]>,
     tx: mpsc::Sender<ThreadReport<N, C>>,
     rx: mpsc::Receiver<ThreadCommand>,
 ) {
@@ -277,7 +280,7 @@ fn find_with_length_and_op<N: Number, const C: usize>(
             match msg {
                 Pause => {
                     paused = true;
-                    tx.send(UpdateStatus {thread_id, status: Paused(format!("{expr}"))}).unwrap();
+                    tx.send(UpdateStatus {thread_id, status: Paused(expr.render_with_optional_var_names(var_names))}).unwrap();
                 }
                 Unpause => {
                     paused = false;
@@ -301,7 +304,7 @@ fn find_with_length_and_op<N: Number, const C: usize>(
 
                     if count == notification_spacing {
                         tx.send(TriedN {thread_id, count}).unwrap();
-                        tx.send(UpdateStatus {thread_id, status: Searching(format!("{expr}"))}).unwrap();
+                        tx.send(UpdateStatus {thread_id, status: Searching(expr.render_with_optional_var_names(var_names))}).unwrap();
                         count = 0;
                         break;
                     }
