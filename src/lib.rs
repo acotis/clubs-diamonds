@@ -1,12 +1,4 @@
 
-// TODO: Read, and try to comply with, Rust library guidelines.
-// TODO: Fix the problem where the UI takes over your terminal.
-
-// For the next version:
-//     TODO: Make unary arithmetic negation optionally included.
-//     TODO: Fix the problem where quitting the UI can cause threads to panic.
-//     TODO: Write Expression::from_str() (or whatever).
-
 //! A brute-forcer for finding short mathematical expressions in Rust, for code golf. May also be useful for golfing in other languages, if the language's syntax for math is similar enough to Rust's.
 //!
 //! This crate provides the following types:

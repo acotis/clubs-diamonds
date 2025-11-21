@@ -3,7 +3,10 @@
 Todo
 ——————————
 
+— Read, and try to comply with, Rust library guidelines.
+
 — Features:
+    — Make unary arithmetic negation optionally included.
     — Implement required_variables().
         — Benchmark the changes.
         — Add correctness tests and benchmark tests for this.
@@ -15,7 +18,11 @@ Todo
     — Implement scorer() as distinct from penalizer().
 
 — Bugfixes:
-    — Fix the pausing glitch!!
+    — Fix the problem where quitting the UI can cause threads to panic.
+    — Fix "the problem where the UI takes over your terminal".
+        — Not sure what I meant by this but I think I'm talking about how it
+          can stay in screwed-up ratatui mode after Clubs is closed (maybe after
+          it's force-quit?).
     — Fix the bug where zero-variable expressions don't work.
     — Clean up the threads when you return (just join on them I guess).
         — Is this not already happening?
