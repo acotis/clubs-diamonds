@@ -35,7 +35,8 @@ type Penalizer<N, const C: usize> = fn(&Expression<N, C>) -> usize;
 struct Thread {
     id: usize,
     length: usize, // length of expressions being tested
-    status: Option<ThreadStatus>,
+    reported_status: Option<ThreadStatus>,
+    should_be_running: bool,
     tx: mpsc::Sender<ThreadCommand>,
 }
 
@@ -118,13 +119,13 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
 
                 UpdateStatus {thread_id, status} => {
                     let thread = threads.iter_mut().find(|thread| thread.id == thread_id).unwrap();
-                    thread.status = Some(status);
+                    thread.reported_status = Some(status);
                 }
 
                 Done {thread_id} => {
                     let thread = threads.iter_mut().find(|thread| thread.id == thread_id).unwrap();
 
-                    thread.status = None;
+                    thread.reported_status = None;
                     counts[thread.length].1 += 1;
 
                     if counts[thread.length].1 == op_requirements.len() {
@@ -144,7 +145,7 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
         let mut active_thread_count =
             threads
                 .iter()
-                .filter(|thread| !matches!(thread.status, Some(Paused(_))))
+                .filter(|thread| thread.should_be_running)
                 .count();
 
         // Unpause threads, and/or spawn new ones, up to the thread limit
@@ -156,6 +157,7 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
 
             if active_thread_count < threads.len() {
                 threads[active_thread_count].tx.send(Unpause).unwrap();
+                threads[active_thread_count].should_be_running = true;
             }
 
             // Otherwise, spawn a new one (as long as there are more tasks to
@@ -166,7 +168,8 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
                 let (thread_tx, thread_rx) = mpsc::channel();
 
                 threads.push(Thread {
-                    status: None,
+                    should_be_running: true,
+                    reported_status: None,
                     length,
                     id: (0..).find(|x| threads.iter().all(|thread| thread.id != *x)).unwrap(),
                     tx: thread_tx,
@@ -179,8 +182,6 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
                 let report_every = config.report_every;
                 let constant_cap = config.constant_cap;
                 let var_names = config.var_names;
-
-                threads[idx].status = None;
 
                 thread::spawn(move || {
                     find_with_length_and_op(
@@ -204,6 +205,7 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
 
         while active_thread_count > effective_target_thread_count {
             threads[active_thread_count-1].tx.send(Pause).unwrap();
+            threads[active_thread_count-1].should_be_running = false;
             active_thread_count -= 1;
         }
 
@@ -231,7 +233,7 @@ fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<
 
             ui.set_total_count(total_count);
             ui.set_target_thread_count(target_thread_count);
-            ui.set_thread_statuses(threads.iter().map(|thread| thread.status.clone()).collect());
+            ui.set_thread_statuses(threads.iter().map(|thread| thread.reported_status.clone()).collect());
 
             ui.draw();
 
