@@ -6,9 +6,7 @@
 //! - [`Expression`]: A struct representing a mathematical expression, such as `3*(a+5)` or `b>>a|89%c`. Uses an optimized representation internally, but adheres to Rust syntax, Rust operators, Rust precedence levels, and Rust semantics.
 //! - [`Searcher`]: A configurable search type which can be used to systematically search all syntactically valid expressions in increasing order of length, and yield only those which meet a customizeable, user-specified criterion.
 //!
-//! #### Performance note
-//!
-//! Clubs runs around 10 times faster in release mode than in debug mode. You can run your code in release mode by executing it with the following command, and you should do this unless you have a great reason not to:
+//! **Performance note:** Clubs runs around 10 times faster in release mode than in debug mode. You can run your code in release mode by executing it with the following command, and you should do this unless you have a great reason not to:
 //!
 //! ```txt
 //! cargo run --release
