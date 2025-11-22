@@ -151,7 +151,7 @@ impl<N: Number, const C: usize> Searcher <N, C> {
         }
     }
 
-    /// Disable the banner which warns you that you are running Clubs in debug mode. Note that running Clubs this way slows it down by around an order of magnitude. You can run it in release mode instead by executing your code with the command `cargo run --release`. Only use this method if you're completely sure you don't want to do that.
+    /// Disable the banner which warns you that you are running Clubs in debug mode. Note that running Clubs in debug mode slows it down by around an order of magnitude. You can run it in release mode instead by executing your code with the command `cargo run --release`. Only use this method if you're completely sure you don't want to do that.
 
     pub fn no_banner(self) -> Self {
         Self {
