@@ -17,6 +17,8 @@ use crate::search::pivot::Op::{self, *};
 //     — PartialOrd + Ord: meaningless
 //     — Hash: same basic reason as PartialEq + Eq
 //     — Default: no sensible default
+//     — Serialize + Deserialize: would expose implementation details that I'm
+//       not ready to stabilize
 
 #[derive(Clone, Debug)] // impls Display below
 pub struct Expression<N: Number, const C: usize> {
