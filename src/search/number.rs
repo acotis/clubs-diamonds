@@ -3,6 +3,8 @@ use std::ops::*;
 use num_traits::ops::{checked::*, wrapping::*};
 
 /// Used in trait bounds by `Expression` and `Searcher`. Exposed as part of the public ABI so that you can use it in trait bounds for functions that take or return `Expression`s.
+///
+/// **Note:** This trait is even less stable than the rest of the crate. Do not implement it for your type unless you're okay with it changing later and ruining your code.
 
 pub trait Number: 
     Copy + Send + 'static
