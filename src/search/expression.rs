@@ -9,7 +9,16 @@ use crate::search::pivot::Op::{self, *};
 ///
 /// Currently, the only way to get your hands on an `Expression` is to be given it by a `Searcher`.
 
-#[derive(Clone)]
+// Non-doc comment for devs: here is a list of common traits and why Expression
+// doesn't implement them:
+//     — Copy: uses a Vec internally
+//     — PartialEq + Eq: I'd want this to be semantic and the default impl
+//       would by symbolic against the vec's contents
+//     — PartialOrd + Ord: meaningless
+//     — Hash: same basic reason as PartialEq + Eq
+//     — Default: no sensible default
+
+#[derive(Clone, Debug)] // impls Display below
 pub struct Expression<N: Number, const C: usize> {
     pub(super) field: Vec<u8>,
     pub(super) nothing: PhantomData<N>,

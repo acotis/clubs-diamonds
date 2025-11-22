@@ -12,6 +12,18 @@ use crate::Expression;
 
 /// Used to configure and execute searches for short mathematical expressions.
 
+// Non-doc comment for devs: here is a list of common traits and why Searcher
+// doesn't implement them:
+//     — Copy: potentially owns a String
+//     — PartialEq + Eq: per the Rust compiler: "warning: function pointer
+//       comparisons do not produce meaningful results since their addresses
+//       are not guaranteed to be unique"
+//     — Hash: derived (by me) from reason for PartialEq + Eq
+//     — PartialOrd + Ord: nonsensical
+//     — Display: no strong reason to display it
+//     — Default: no sensible default value because the judge is mandatory
+
+#[derive(Clone, Debug)]
 pub struct Searcher<N: Number, const C: usize> {
     pub(super) judge: Judge<N, C>,
     pub(super) inspector: Option<Inspector<N, C>>,
