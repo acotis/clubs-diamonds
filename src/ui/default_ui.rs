@@ -29,7 +29,7 @@ lazy_static! {
     static ref STYLE_SOLUTION_HIGHLIGHT:      Style = Style::default().bg(Color::Blue);
     static ref STYLE_SOLUTION_META:           Style = Style::default().fg(Color::Indexed(245)); // gray
     static ref STYLE_SOLUTION_HIGHLIGHT_META: Style = Style::default().bg(Color::Indexed(245)); // gray
-    static ref STYLE_THREAD:                  Style = Style::default().fg(Color::Indexed(136)); // orange
+    static ref STYLE_THREAD:                  Style = Style::default().fg(Color::Indexed(172)); // orange
     static ref STYLE_THREAD_META:             Style = Style::default().fg(Color::Indexed(241)); // darker gray
     static ref STYLE_INSPECTION:              Style = Style::default(); //.bg(Color::Magenta);
     static ref STYLE_NEWS_HEADER:             Style = Style::default().fg(Color::Indexed(106)).underlined(); // green
