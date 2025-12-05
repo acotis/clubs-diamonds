@@ -16,6 +16,10 @@ path = "src/bin/demo.rs"
 name = "demo-2"
 path = "src/bin/demo_2.rs"
 
+[[bin]]
+name = "demo-penalizer"
+path = "src/bin/demo_penalizer.rs"
+
 [dependencies]
 chrono = "0.4.42"
 crossterm = "0.29.0"

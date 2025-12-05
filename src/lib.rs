@@ -60,7 +60,7 @@
 //!
 //! Executing the above code brings up a text-based UI that looks like this:
 //!
-//! ![A screenshot of the text-based interface of the Clubs expression searcher. On the right, several information boxes tell us what expressions are currently being searched by each of four threads, how long the search has been running for, how many expressions are being searched per second, and other stats. On the left, six found solutions are listed.][demo]
+//! ![A screenshot of the text-based interface of the Clubs expression searcher. On the right, several information boxes tell us what expressions are currently being searched by each of three threads, how long the search has been running for, how many expressions are being searched per second, and other stats. On the left, seven found solutions are listed.][demo]
 //!
 #![doc = embed_doc_image::embed_image!("demo", "assets/demo_medium.png")]
 //!
@@ -180,6 +180,45 @@
 //! For a list of `Searcher`'s methods, including the ones for specifying additional search parameters and executing the search, see [its documentation page][crate::Searcher].
 //!
 //! **Note:** If you opt to use the `.run_silently()` method, then there will be no way to quit the search before Clubs decides it's done. So, if you plan to use that method, you probably want to specify a combination of search parameters that make the search task finite.
+//!
+//! # The `.penalizer()` method
+//!
+//! By default, Clubs will sort the expressions it discovers in order of length, shortest first, because that's what's usually appropriate for code golf. However, sometimes the length of the expression itself isn't the only thing you care about. The overall program that you're using the expression in may have parts that grow or shrink based on the expression's properties. In that case, the shortest working expression may not be the best one.
+//!
+//! Clubs can be configured to sort the solutions it finds based on other criteria. The way to do this is using the `.penalizer()` method of the `Searcher` type. The `.penalizer()` method accepts a closure whose argument is an `&Expression` and whose return value is a `usize`. The supplied closure is called a "penalizer". The penalizer is called once for each solution Clubs discovers, and its output is **added to** to the length of each solution to compute the solution's overall score. Solutions are then sorted in order of score, lowest first.
+//!
+//! As an example, suppose you are searching for a one-variable expression, and your program architecture is such that, if the input variable appears multiple times in the expression you choose, another part of the program will grow by 7 bytes. You can ask Clubs to penalize such expressions by 7 bytes like this:
+//!
+//! ```
+//! use clubs_diamonds::{Searcher, Expression};
+//! 
+//! fn main() {
+//!     Searcher::<i32, 1>::new(|expr: &Expression::<i32, 1>| {
+//!         expr.apply(&[1]) == Some(2) &&
+//!         expr.apply(&[2]) == Some(3) &&
+//!         expr.apply(&[3]) == Some(5) &&
+//!         expr.apply(&[4]) == Some(7) &&
+//!         expr.apply(&[5]) == Some(11)
+//!     })
+//!     .penalizer(|expr: &Expression::<i32, 1>| {
+//!         if format!("{expr}").chars().filter(|&c| c == 'a').count() > 1 {
+//!             7
+//!         } else {
+//!             0
+//!         }
+//!     })
+//!     .threads(3)
+//!     .run_with_ui();
+//! }
+//! ```
+//!
+//! After running this program for a few minutes, the solutions list will look like this:
+//!
+//! ![Another screenshot of Clubs. This time, there are many solutions listed, and they are no longer ordered by length. Instead, the top solutions in the list are slightly longer than the ones below, but have lower scores because they use the input variable only once.][demo_penalizer]
+//!
+#![doc = embed_doc_image::embed_image!("demo_penalizer", "assets/demo_penalizer_medium.png")]
+//!
+//! The expressions listed in the Solutions panel are no longer ordered only by length; instead, slightly longer expressions have been surfaced to the top because they use the input variable only once and so go unpenalized by the penalizer, while slightly shorter expressions which use the input variable multiple times receive the penalty and have scores that are 7 more than their lengths. Note that in the Threads panel, which displays expressions which are currently being considered, the number to the left of each expression *is* simply its length, because Clubs does not call the penalizer on an expression unless it is accepted by the judge and so does not yet know what these expressions' scores would be.
 //!
 
 mod ui;
