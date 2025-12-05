@@ -1,6 +1,6 @@
 [package]
 name = "clubs-diamonds"
-version = "0.1.10"
+version = "0.1.11"
 edition = "2024"
 license-file = "LICENSE"
 description = "A brute-forcer for finding short mathematical expressions in Rust, for code golf"
