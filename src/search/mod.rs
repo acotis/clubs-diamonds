@@ -26,12 +26,6 @@ use crate::ui::ThreadStatus::{self, *};
 use ThreadReport::*;
 use ThreadCommand::*;
 
-// Helper types.
-
-type Judge    <N, const C: usize> = fn(&Expression<N, C>) -> bool;
-type Inspector<N, const C: usize> = fn(&Expression<N, C>) -> String;
-type Penalizer<N, const C: usize> = fn(&Expression<N, C>) -> usize;
-
 struct Thread {
     id: usize,
     length: usize, // length of expressions being tested
@@ -56,7 +50,18 @@ enum ThreadReport<N: Number, const C: usize> {
     UpdateStatus    {thread_id: usize, status: ThreadStatus},
 }
 
-fn run<N: Number, const C: usize, I: Fn(&Expression<N, C>) -> String, U: UI>(config: &Searcher<N, C, I>) -> (u128, Vec<Expression<N, C>>) {
+fn run<
+    N: Number,
+    const C: usize,
+    J: Fn(&Expression<N, C>) -> bool + Clone + Send + 'static,
+    I: Fn(&Expression<N, C>) -> String,
+    P: Fn(&Expression<N, C>) -> usize,
+    U: UI
+>(
+    config: &Searcher<N, C, J, I, P>
+)
+    -> (u128, Vec<Expression<N, C>>)
+{
 
     // Set up the TUI.
 
@@ -254,10 +259,10 @@ fn run<N: Number, const C: usize, I: Fn(&Expression<N, C>) -> String, U: UI>(con
     (total_count, solutions)
 }
 
-fn find_with_length_and_op<N: Number, const C: usize>(
+fn find_with_length_and_op<N: Number, const C: usize, J: Fn(&Expression<N, C>) -> bool>(
     thread_id: usize,
     notification_spacing: u128,
-    judge: Judge<N, C>,
+    judge: J,
     constant_cap: u8,
     length: usize,
     op_requirement: Option<Option<Op>>,

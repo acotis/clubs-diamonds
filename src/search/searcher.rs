@@ -1,8 +1,4 @@
 
-use super::Judge;
-use super::Inspector;
-use super::Penalizer;
-
 use super::run;
 use super::NullUI;
 use super::DefaultUI;
@@ -23,15 +19,78 @@ use crate::Expression;
 //     — Display: no strong reason to display it
 //     — Default: no sensible default value because the judge is mandatory
 
+// Note about type parameters: The following bits of Rust syntax are distinct
+// in meaning (note the capitalization):
+//     — Fn(u32) -> bool
+//     — fn(u32) -> bool
+// The first bit of syntax names a trait; it is the trait of closures, i.e.,
+// function-like objects which can be "called" with arguments to produce a
+// return value, whose arguments are a u32 and whose return type is bool.
+// The second bit of syntax names a type; it is the type of function pointers
+// whose arguments are a u32 and whose return type is bool. A function
+// pointer is one example a function-like object that can be called, so the
+// type implements the trait.
+//
+// A notable example of a function-like object which is not just a function
+// pointer is the object created when you use anonymous function syntax in
+// a way that captures variables from the environment. This object is called
+// a closure.
+//
+// It will be useful to users of Clubs if they can pass closures to the
+// Searcher methods, rather than only being able to use function pointers.
+// So, it is better design if the Searcher's fields and method signatures use
+// trait bounds based on the closure trait rather than requiring function
+// pointers specifically.
+//
+// Doing this without causing problems with type inference requires some
+// finesse. The Searcher struct uses the Builder Lite pattern, which means
+// we construct a Searcher in stages, like this:
+//
+//     Searcher::new(|expr| ...)
+//         .inspector(|expr| ...)
+//         .penalizer(|expr| ...)
+//         .run_with_ui();
+//
+// or this:
+//
+//     Searcher::new(|expr| ...)
+//         .run_with_ui();
+//
+// The problem here is that, if we don't call the .inspector() method, we
+// never nail down the type of the "I" type parameter. Rust doesn't like
+// this, and it isn't willing to assume a reasonable default. If we simply
+// give Searcher five type parameters at all times in all ways (those five
+// being Number, Count, Judge, Inspector, and Penalizer) then the user would
+// be required to type:
+//
+//     Searcher::<u32, 1, fn(&Expression<u32, 1>) -> bool>::new(|expr| ...)
+//         .run_with_ui();
+//
+// and that's unacceptable. So, we need a solution where the Searcher struct
+// does have all five type parameters (so that any one of the three functions
+// can be a closure) but doesn't cause type inference issues.
+//
+// The solution, h/t Claude AI, is to allow each Builder Lite method to have
+// a different type signature as approrpiate for its action. For example, the
+// Searcher::new() method can produce a Searcher whose Inspector and Penalizer
+// types are specifically function pointers (so that Rust doesn't complain
+// that it can't figure out what those parameters should be just from the new()
+// call alone) and then the .inspector() method can take an arbitrary Searcher
+// and return *a new Searcher whose I parameter is different than that of the
+// supplied Searcher*, simply matching whatever function-like object was
+// passed.
+
 #[derive(Clone, Debug)]
 pub struct Searcher<
     N: Number,
     const C: usize,
-    I: Fn(&Expression<N, C>) -> String = fn(&Expression<N, C>) -> String,
+    J: Fn(&Expression<N, C>) -> bool + Clone + Send + 'static = fn(&Expression<N, C>) -> bool,
+    I: Fn(&Expression<N, C>) -> String                        = fn(&Expression<N, C>) -> String,
+    P: Fn(&Expression<N, C>) -> usize                         = fn(&Expression<N, C>) -> usize,
 > {
-    pub(super) judge: Judge<N, C>,
+    pub(super) judge: J,
     pub(super) inspector: Option<I>,
-    pub(super) penalizer: Option<Penalizer<N, C>>,
+    pub(super) penalizer: Option<P>,
     pub(super) description: Option<String>,
     pub(super) threads: usize,
     pub(super) report_every: u128,
@@ -40,13 +99,20 @@ pub struct Searcher<
     pub(super) constant_cap: u8,
     pub(super) debug_banner_enabled: bool,
     pub(super) var_names: Option<[char; C]>, // if none, default to names 'a', 'b', 'c'...
+    pub(super) phantom_data: std::marker::PhantomData<N>,
 }
 
-impl<N: Number, const C: usize, I: Fn(&Expression<N, C>) -> String> Searcher <N, C, I> {
+impl<
+    N: Number,
+    const C: usize,
+    J: Fn(&Expression<N, C>) -> bool + Clone + Send + 'static,
+>
+    Searcher<N, C, J, fn(&Expression<N, C>) -> String, fn(&Expression<N, C>) -> usize>
+{
 
     /// Construct a new `Searcher`. The provided closure is used as a judge to determine which expressions to accept as solutions and which to reject.
 
-    pub fn new(judge: Judge<N, C>) -> Self {
+    pub fn new(judge: J) -> Self {
         Self {
             judge,
             inspector: None,
@@ -59,15 +125,39 @@ impl<N: Number, const C: usize, I: Fn(&Expression<N, C>) -> String> Searcher <N,
             constant_cap: 156,
             debug_banner_enabled: true,
             var_names: None,
+            phantom_data: Default::default(),
         }
     }
+}
+
+impl<
+    N: Number,
+    const C: usize,
+    J: Fn(&Expression<N, C>) -> bool + Clone + Send + 'static,
+    I: Fn(&Expression<N, C>) -> String,
+    P: Fn(&Expression<N, C>) -> usize,
+>
+    Searcher <N, C, J, I, P>
+{
 
     /// Provide an "inspector" for the UI. The inspector is a closure that accepts an `&Expression` and returns a `String`. If provided, this closure is called on each solution the `Searcher` finds, and the returned String is displayed in the Solution Inspector panel of the UI when the solution is selected. The closure is called only once per solution, when the solution is first discovered.
 
-    pub fn inspector(self, inspector: I) -> Self {
-        Self {
+    pub fn inspector<I2>(self, inspector: I2) -> Searcher<N, C, J, I2, P>
+        where I2: Fn(&Expression<N, C>) -> String,
+    {
+        Searcher {
+            judge: self.judge,
             inspector: Some(inspector),
-            ..self
+            penalizer: self.penalizer,
+            description: self.description,
+            threads: self.threads,
+            report_every: self.report_every,
+            min_length: self.min_length,
+            max_length: self.max_length,
+            constant_cap: self.constant_cap,
+            debug_banner_enabled: self.debug_banner_enabled,
+            var_names: self.var_names,
+            phantom_data: self.phantom_data,
         }
     }
 
@@ -75,10 +165,22 @@ impl<N: Number, const C: usize, I: Fn(&Expression<N, C>) -> String> Searcher <N,
     ///
     /// By default, the score of a solution is its length in bytes (solutions are sorted with lower scores towards the top). A penalizer is a closure that accepts an `&Expression` and returns a `usize`. If provided, this closure is called on each solution the `Searcher` finds, and the returned value is **added to** the length of the solution to calculate the score. (If you don't want this behavior, simply subtract the length of the solution from the value you return. You can obtain the length of the solution by `format!()`ing it.) The closure is called only once per solution, when the solution is first discovered. 
 
-    pub fn penalizer(self, penalizer: Penalizer<N, C>) -> Self {
-        Self {
+    pub fn penalizer<P2>(self, penalizer: P2) -> Searcher<N, C, J, I, P2>
+        where P2: Fn(&Expression<N, C>) -> usize,
+    {
+        Searcher {
+            judge: self.judge,
+            inspector: self.inspector,
             penalizer: Some(penalizer),
-            ..self
+            description: self.description,
+            threads: self.threads,
+            report_every: self.report_every,
+            min_length: self.min_length,
+            max_length: self.max_length,
+            constant_cap: self.constant_cap,
+            debug_banner_enabled: self.debug_banner_enabled,
+            var_names: self.var_names,
+            phantom_data: self.phantom_data,
         }
     }
 
@@ -178,7 +280,7 @@ impl<N: Number, const C: usize, I: Fn(&Expression<N, C>) -> String> Searcher <N,
     /// Execute the configured search process in a text-based UI.
 
     pub fn run_with_ui(&self) -> (u128, Vec<Expression<N, C>>) {
-        run::<N, C, I, DefaultUI>(&self)
+        run::<N, C, J, I, P, DefaultUI>(&self)
     }
 
     /// Execute the configured search process silently.
@@ -186,6 +288,6 @@ impl<N: Number, const C: usize, I: Fn(&Expression<N, C>) -> String> Searcher <N,
     /// **Note:** When you use this method, there is no way to quit the search process before Clubs decides it's done. So, if you plan to use it, you probably want to specify a combination of search parameters that make the search task finite.
 
     pub fn run_silently(&self) -> (u128, Vec<Expression<N, C>>) {
-        run::<N, C, I, NullUI>(&self)
+        run::<N, C, J, I, P, NullUI>(&self)
     }
 }
