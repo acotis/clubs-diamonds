@@ -24,9 +24,13 @@ use crate::Expression;
 //     — Default: no sensible default value because the judge is mandatory
 
 #[derive(Clone, Debug)]
-pub struct Searcher<N: Number, const C: usize> {
+pub struct Searcher<
+    N: Number,
+    const C: usize,
+    I: Fn(&Expression<N, C>) -> String = fn(&Expression<N, C>) -> String,
+> {
     pub(super) judge: Judge<N, C>,
-    pub(super) inspector: Option<Inspector<N, C>>,
+    pub(super) inspector: Option<I>,
     pub(super) penalizer: Option<Penalizer<N, C>>,
     pub(super) description: Option<String>,
     pub(super) threads: usize,
@@ -38,7 +42,7 @@ pub struct Searcher<N: Number, const C: usize> {
     pub(super) var_names: Option<[char; C]>, // if none, default to names 'a', 'b', 'c'...
 }
 
-impl<N: Number, const C: usize> Searcher <N, C> {
+impl<N: Number, const C: usize, I: Fn(&Expression<N, C>) -> String> Searcher <N, C, I> {
 
     /// Construct a new `Searcher`. The provided closure is used as a judge to determine which expressions to accept as solutions and which to reject.
 
@@ -60,7 +64,7 @@ impl<N: Number, const C: usize> Searcher <N, C> {
 
     /// Provide an "inspector" for the UI. The inspector is a closure that accepts an `&Expression` and returns a `String`. If provided, this closure is called on each solution the `Searcher` finds, and the returned String is displayed in the Solution Inspector panel of the UI when the solution is selected. The closure is called only once per solution, when the solution is first discovered.
 
-    pub fn inspector(self, inspector: Inspector<N, C>) -> Self {
+    pub fn inspector(self, inspector: I) -> Self {
         Self {
             inspector: Some(inspector),
             ..self
@@ -174,7 +178,7 @@ impl<N: Number, const C: usize> Searcher <N, C> {
     /// Execute the configured search process in a text-based UI.
 
     pub fn run_with_ui(&self) -> (u128, Vec<Expression<N, C>>) {
-        run::<N, C, DefaultUI>(&self)
+        run::<N, C, I, DefaultUI>(&self)
     }
 
     /// Execute the configured search process silently.
@@ -182,6 +186,6 @@ impl<N: Number, const C: usize> Searcher <N, C> {
     /// **Note:** When you use this method, there is no way to quit the search process before Clubs decides it's done. So, if you plan to use it, you probably want to specify a combination of search parameters that make the search task finite.
 
     pub fn run_silently(&self) -> (u128, Vec<Expression<N, C>>) {
-        run::<N, C, NullUI>(&self)
+        run::<N, C, I, NullUI>(&self)
     }
 }

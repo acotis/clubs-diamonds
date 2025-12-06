@@ -56,7 +56,7 @@ enum ThreadReport<N: Number, const C: usize> {
     UpdateStatus    {thread_id: usize, status: ThreadStatus},
 }
 
-fn run<N: Number, const C: usize, U: UI>(config: &Searcher<N, C>) -> (u128, Vec<Expression<N, C>>) {
+fn run<N: Number, const C: usize, I: Fn(&Expression<N, C>) -> String, U: UI>(config: &Searcher<N, C, I>) -> (u128, Vec<Expression<N, C>>) {
 
     // Set up the TUI.
 
