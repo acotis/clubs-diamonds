@@ -105,15 +105,16 @@ pub struct Searcher<
 impl<
     N: Number,
     const C: usize,
-    J: Fn(&Expression<N, C>) -> bool + Clone + Send + 'static,
 >
-    Searcher<N, C, J, fn(&Expression<N, C>) -> String, fn(&Expression<N, C>) -> usize>
+    Searcher<N, C, fn(&Expression<N, C>) -> bool, fn(&Expression<N, C>) -> String, fn(&Expression<N, C>) -> usize>
 {
 
     /// Construct a new `Searcher`. The provided closure is used as a judge to determine which expressions to accept as solutions and which to reject.
 
-    pub fn new(judge: J) -> Self {
-        Self {
+    pub fn new<J2>(judge: J2) -> Searcher::<N, C, J2, fn(&Expression<N, C>) -> String, fn(&Expression<N, C>) -> usize>
+        where J2: Fn(&Expression<N, C>) -> bool + Clone + Send + 'static,
+    {
+        Searcher::<N, C, J2, fn(&Expression<N, C>) -> String, fn(&Expression<N, C>) -> usize> {
             judge,
             inspector: None,
             penalizer: None,
