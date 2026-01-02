@@ -12,7 +12,7 @@ pub enum Pivot {
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Op {
-    NOT,
+    NOT, NEG,
     MUL, DIV, MOD,
     ADD, SUB,
     LSL, LSR,
@@ -23,11 +23,12 @@ pub enum Op {
 
 impl Op {
     pub fn first() -> Op {
-        NOT
+        NEG
     }
 
     pub fn next(self) -> Option<Op> {
         match self {
+            NEG => Some(NOT),
             NOT => Some(MUL),
             MUL => Some(DIV),
             DIV => Some(MOD),
@@ -44,6 +45,7 @@ impl Op {
 
     pub fn len(self) -> usize {
         match self {
+            NEG => 1,
             NOT => 1,
             MUL => 1,
             DIV => 1,
@@ -60,6 +62,7 @@ impl Op {
 
     pub fn arity(self) -> usize {
         match self {
+            NEG => 1,
             NOT => 1,
             MUL => 2,
             DIV => 2,
@@ -76,6 +79,7 @@ impl Op {
 
     pub fn prec(self) -> usize {
         match self {
+            NEG => 6,
             NOT => 6,
             MUL => 5,
             DIV => 5,
@@ -92,6 +96,7 @@ impl Op {
 
     pub fn code(self) -> u8 {
         match self {
+            NEG => 243,
             NOT => 254,
             MUL => 253,
             DIV => 252,
@@ -108,6 +113,7 @@ impl Op {
 
     pub fn render_face(self) -> &'static str {
         match self {
+            NEG => "-",
             NOT => "!",
             MUL => "*",
             DIV => "/",
@@ -125,6 +131,7 @@ impl Op {
     pub fn interpret_code(code: u8) -> Pivot {
         match code {
             255      => Nop,
+            243      => OpPivot(NEG),
             254      => OpPivot(NOT),
             253      => OpPivot(MUL),
             252      => OpPivot(DIV),
@@ -137,13 +144,13 @@ impl Op {
             245      => OpPivot(XOR),
             244      => OpPivot(ORR),
             ..=155   => ConstPivot(code),
-            230..244 => VarPivot(243 - code),
+            230..243 => VarPivot(242 - code),
             x   => panic!("Unrecognized op {x}"),
         }
     }
 
     pub fn highest_unused_code() -> u8 {
-        243
+        242
     }
 }
 
