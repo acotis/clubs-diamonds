@@ -1,9 +1,41 @@
 
 ——————————
+North star idea
+——————————
+
+Redundant expressions are the devil. It may seem okay to generate lots of
+redundant expressions as long as you're faster at processing each expression
+as a trade-off, but you CAN'T be faster at processing expressions because
+YOU DON'T DECIDE HOW LONG IT TAKES TO EVALUATE AN EXPRESSION. The user's
+code does. Generating an expression can be fast as lightning but if they're
+taking a millisecond to judge it then it takes a millisecond to process.
+
+——————————
 Todo
 ——————————
 
-— Read, and try to comply with, Rust library guidelines.
+— Rewrite attempt:
+    1. Transition Expression to use a Vec<Pivot> instead of a Vec<u8>.
+    2. Make sure this didn't affect the speed too much.
+    3. Write the new architecture.
+    4. Test it.
+
+— Testing:
+    — Guiding thought: you do want a separate test program; it allows you to
+      do things like generate color-coded reports showing performance changes.
+      Also, #[test] code is a little bit slower (like 2x) even when you use
+      `cargo test --release`.
+    — Write correctness tests for the max-constant feature specifically.
+    — Work on the benchmark binary search project (below).
+    — Add a way to compare two benchmark reports to each other.
+    — Clean out empty and mostly-empty benchmarks.
+    — Generalize benchmarking infrastructure to accept arbitrary tasks.
+    — Write benchmarks that specifically target expression application.
+    — Write benchmarks that invoke the .max_constant() feature, specifically
+      with low maximums (as this seems to slow Clubs down significantly).
+
+— Publically maintaining:
+    — Read, and try to comply with, Rust library guidelines.
 
 — Features:
     — Make unary arithmetic negation optionally included.
@@ -16,6 +48,7 @@ Todo
     — Implement max_to_search().
     — Implement timeout() maybe?
     — Implement scorer() as distinct from penalizer().
+    — Implement an Expression::len() that doesn't go through format!()?
 
 — Bugfixes:
     — Fix the problem where quitting the UI can cause threads to panic.
@@ -45,16 +78,6 @@ Todo
     — Try letting Expression::apply() use uninitialized memory as its stack.
     — Try varying the delay length between control thread cycles and the max
       value of the frame clock.
-
-— Testing:
-    — Write correctness tests for the max-constant feature specifically.
-    — Work on the benchmark binary search project (below).
-    — Add a way to compare two benchmark reports to each other.
-    — Clean out empty and mostly-empty benchmarks.
-    — Generalize benchmarking infrastructure to accept arbitrary tasks.
-    — Write benchmarks that specifically target expression application.
-    — Write benchmarks that invoke the .max_constant() feature, specifically
-      with low maximums (as this seems to slow Clubs down significantly).
 
 ——————————
 Ideas
