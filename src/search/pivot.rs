@@ -94,23 +94,6 @@ impl Op {
         }
     }
 
-    pub fn code(self) -> u8 {
-        match self {
-            NEG => 243,
-            NOT => 254,
-            MUL => 253,
-            DIV => 252,
-            MOD => 251,
-            ADD => 250,
-            SUB => 249,
-            LSL => 248,
-            LSR => 247,
-            AND => 246,
-            XOR => 245,
-            ORR => 244,
-        }
-    }
-
     pub fn render_face(self) -> &'static str {
         match self {
             NEG => "-",
@@ -127,30 +110,48 @@ impl Op {
             ORR => "|",
         }
     }
+}
 
-    pub fn interpret_code(code: u8) -> Pivot {
+impl Pivot {
+    pub fn decode(code: u8) -> Pivot {
         match code {
             255      => Nop,
-            243      => OpPivot(NEG),
-            254      => OpPivot(NOT),
-            253      => OpPivot(MUL),
-            252      => OpPivot(DIV),
-            251      => OpPivot(MOD),
-            250      => OpPivot(ADD),
-            249      => OpPivot(SUB),
-            248      => OpPivot(LSL),
-            247      => OpPivot(LSR),
-            246      => OpPivot(AND),
-            245      => OpPivot(XOR),
-            244      => OpPivot(ORR),
+            254      => OpPivot(NEG),
+            253      => OpPivot(NOT),
+            252      => OpPivot(MUL),
+            251      => OpPivot(DIV),
+            250      => OpPivot(MOD),
+            249      => OpPivot(ADD),
+            248      => OpPivot(SUB),
+            247      => OpPivot(LSL),
+            246      => OpPivot(LSR),
+            245      => OpPivot(AND),
+            244      => OpPivot(XOR),
+            243      => OpPivot(ORR),
             ..=155   => ConstPivot(code),
             230..243 => VarPivot(242 - code),
-            x   => panic!("Unrecognized op {x}"),
+            x        => panic!("Unrecognized opcode {x}"),
         }
     }
 
-    pub fn highest_unused_code() -> u8 {
-        242
+    pub fn encode(self) -> u8 {
+        match self {
+            Nop => 255,
+            OpPivot(NEG) => 254,
+            OpPivot(NOT) => 253,
+            OpPivot(MUL) => 252,
+            OpPivot(DIV) => 251,
+            OpPivot(MOD) => 250,
+            OpPivot(ADD) => 249,
+            OpPivot(SUB) => 248,
+            OpPivot(LSL) => 247,
+            OpPivot(LSR) => 246,
+            OpPivot(AND) => 245,
+            OpPivot(XOR) => 244,
+            OpPivot(ORR) => 243,
+            ConstPivot(c) => c,
+            VarPivot(v) => 242 - v,
+        }
     }
 }
 

@@ -1,9 +1,10 @@
 
 use std::marker::PhantomData;
 
+use crate::search::pivot::Pivot;
 use crate::search::number::Number;
 use crate::search::pivot::Pivot::*;
-use crate::search::pivot::Op::{self, *};
+use crate::search::pivot::Op::*;
 
 /// Represents a syntactically-valid mathematical Rust expression. Can be applied to a set of input values to yield a result value. Can also be rendered as text using the `format!` macro or `.to_string()` method.
 ///
@@ -42,7 +43,7 @@ impl<N: Number, const C: usize> Expression<N, C> {
         let mut pointer = 0;
 
         for code in &self.field {
-            match Op::interpret_code(*code) {
+            match Pivot::decode(*code) {
                 Nop           => {},
                 OpPivot(NEG)  => {stack[pointer-1] = N::from_u8(0) - stack[pointer-1]}
                 OpPivot(NOT)  => {stack[pointer-1] = !stack[pointer-1];}
@@ -81,12 +82,12 @@ impl<N: Number, const C: usize> Expression<N, C> {
     fn stringify(&self, start: usize, var_names: &[char]) -> (String, usize, usize) {
         if start >= self.field.len() {
             for i in 0..self.field.len() {
-                print!("{:?} ", Op::interpret_code(self.field[i]));
+                print!("{:?} ", Pivot::decode(self.field[i]));
             }
             println!();
         }
 
-        match Op::interpret_code(self.field[start]) {
+        match Pivot::decode(self.field[start]) {
             Nop           => {let (a, b, c) = self.stringify(start-1, var_names); (a, b, c+1)},
             ConstPivot(p) => (format!("{p}"),                  !0, 1),
             VarPivot(v)   => (format!("{}", var_names[v as usize]), !0, 1),

@@ -1,4 +1,5 @@
 
+use crate::search::pivot::Pivot::*;
 use crate::search::pivot::Op;
 use self::EWState::*;
 
@@ -113,7 +114,7 @@ impl ExpressionWriter {
             Variable {next, max} => {
                 if next <= max {
                     self.state = Variable {next: next + 1, max};
-                    dest[self.length-1] = Op::highest_unused_code() - next;
+                    dest[self.length-1] = VarPivot(next).encode();
                     self.vum_of_last_write = 1 << next;
                     return true;
                 }
@@ -167,7 +168,7 @@ impl ExpressionWriter {
                 // Else, set it up.
 
                 dest.fill(255);
-                dest[self.length-1] = op.code();
+                dest[self.length-1] = OpPivot(op).encode();
 
                 if op.arity() == 1 {
                     self.state = OpState {
