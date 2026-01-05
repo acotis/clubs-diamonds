@@ -23,7 +23,7 @@ pub enum Op {
 
 impl Op {
     pub fn first() -> Op {
-        NEG
+        NOT
     }
 
     pub fn next(self) -> Option<Op> {

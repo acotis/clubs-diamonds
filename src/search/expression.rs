@@ -41,8 +41,8 @@ impl<N: Number, const C: usize> Expression<N, C> {
         let mut stack = [N::from_u8(0); 99];
         let mut pointer = 0;
 
-        for index in (0..self.field.len()).rev() {
-            match Op::interpret_code(self.field[index]) {
+        for code in &self.field {
+            match Op::interpret_code(*code) {
                 Nop           => {},
                 OpPivot(NEG)  => {stack[pointer-1] = N::from_u8(0) - stack[pointer-1]}
                 OpPivot(NOT)  => {stack[pointer-1] = !stack[pointer-1];}
@@ -67,7 +67,7 @@ impl<N: Number, const C: usize> Expression<N, C> {
     /// Render this expression as text. Same as calling `format!("{expr}")`.
 
     pub fn render(&self) -> String {
-        self.stringify(0, &['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', ]).0
+        self.stringify(self.field.len()-1, &['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', ]).0
     }
 
     /// Render this expression as text, using the provided array of characters as the variable names.
@@ -87,18 +87,18 @@ impl<N: Number, const C: usize> Expression<N, C> {
         }
 
         match Op::interpret_code(self.field[start]) {
-            Nop           => {let (a, b, c) = self.stringify(start+1, var_names); (a, b, c+1)},
+            Nop           => {let (a, b, c) = self.stringify(start-1, var_names); (a, b, c+1)},
             ConstPivot(p) => (format!("{p}"),                  !0, 1),
             VarPivot(v)   => (format!("{}", var_names[v as usize]), !0, 1),
             OpPivot(op)   => {
                 if op.arity() == 1 {
-                    let (right, right_prec, right_len) = self.stringify(start + 1, var_names);
+                    let (right, right_prec, right_len) = self.stringify(start - 1, var_names);
                     let right_render = if right_prec >= op.prec() {right} else {format!("({right})")};
 
                     (format!("{}{}", op.render_face(), right_render), op.prec(), 1 + right_len)
                 } else {
-                    let (right, right_prec, right_len) = self.stringify(start + 1, var_names);
-                    let (left,  left_prec,  left_len ) = self.stringify(start + 1 + right_len, var_names);
+                    let (right, right_prec, right_len) = self.stringify(start - 1, var_names);
+                    let (left,  left_prec,  left_len ) = self.stringify(start - 1 - right_len, var_names);
 
                     let left_render  = if left_prec  >= op.prec() {left } else {format!("({left})")};
                     let right_render = if right_prec >  op.prec() {right} else {format!("({right})")};

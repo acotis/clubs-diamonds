@@ -15,7 +15,8 @@ Todo
 ——————————
 
 — Rewrite attempt:
-    1. Transition Expression to use a Vec<Pivot> instead of a Vec<u8>.
+    1. Transition Expression to read its array forward rather than backward
+       (just because it's easier to remember and stuff).
     2. Make sure this didn't affect the speed too much.
     3. Write the new architecture.
     4. Test it.

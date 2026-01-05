@@ -113,7 +113,7 @@ impl ExpressionWriter {
             Variable {next, max} => {
                 if next <= max {
                     self.state = Variable {next: next + 1, max};
-                    dest[0] = Op::highest_unused_code() - next;
+                    dest[self.length-1] = Op::highest_unused_code() - next;
                     self.vum_of_last_write = 1 << next;
                     return true;
                 }
@@ -133,7 +133,7 @@ impl ExpressionWriter {
             Constant {next, max} => {
                 if next < max {
                     self.state = Constant {next: next + 1, max};
-                    dest[0] = next;
+                    dest[self.length-1] = next;
                     self.vum_of_last_write = 0;
                     return true;
                 }
@@ -167,7 +167,7 @@ impl ExpressionWriter {
                 // Else, set it up.
 
                 dest.fill(255);
-                dest[0] = op.code();
+                dest[self.length-1] = op.code();
 
                 if op.arity() == 1 {
                     self.state = OpState {
@@ -224,7 +224,7 @@ impl ExpressionWriter {
             
             OpState {op, ref mut left, ref mut right} => {
                 if matches!(left.state, Init) {
-                    if !left.write(&mut dest[1 + right.length..]) {
+                    if !left.write(&mut dest[..self.length-1-right.length]) {
                         if let Some(next) = op.next() {
                             if self.op_requirement.is_some() {return false;}
                             self.state = PrepareOp {op: next};
@@ -237,12 +237,12 @@ impl ExpressionWriter {
                     right.required_vars = self.required_vars & !left.vum_of_last_write;
                 }
 
-                if right.write(&mut dest[1..1 + right.length]) {
+                if right.write(&mut dest[self.length-1-right.length..self.length-1]) {
                     self.vum_of_last_write = left.vum_of_last_write | right.vum_of_last_write;
                     return true;
                 }
 
-                if left.write(&mut dest[1 + right.length..]) {
+                if left.write(&mut dest[..self.length-1-right.length]) {
                     right.state = Init;
                     right.required_vars = self.required_vars & !left.vum_of_last_write;
                     return self.write(dest);
