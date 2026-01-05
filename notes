@@ -10,14 +10,19 @@ YOU DON'T DECIDE HOW LONG IT TAKES TO EVALUATE AN EXPRESSION. The user's
 code does. Generating an expression can be fast as lightning but if they're
 taking a millisecond to judge it then it takes a millisecond to process.
 
+Note: I have just modified Expression to read its instruction array forward
+rather than backward. I did this even though testing suggests it might be 5%
+slower, because I'm deciding that it's just too frustrating in general to try
+to really detect these 5% speed differences under messy real-world operating
+conditions, and a forward array is what makes sense to me. I should be spending
+my time having big good ideas that affect runtime by 2x, not fucking around
+with decisions I can barely observe the effects of.
+
 ——————————
 Todo
 ——————————
 
 — Rewrite attempt:
-    1. Transition Expression to read its array forward rather than backward
-       (just because it's easier to remember and stuff).
-    2. Make sure this didn't affect the speed too much.
     3. Write the new architecture.
     4. Test it.
 
