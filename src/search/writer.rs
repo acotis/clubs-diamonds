@@ -6,6 +6,16 @@ use self::EWState::*;
 
 use std::marker::PhantomData;
 
+// Rules to remember:
+//    — These op levels are fully commutative and associative: | ^ &
+//    — These op levels have commutativity/associativity rules: + -
+//    — These op levels have commutative and associative ops: * / %
+//    — These op levels have pretty much nothing: << >> ! -
+//    — These op levels probably never care about multiple constants: | ^ & + -
+//    — These op levesl have ops that probably never care: * / %
+//    — % does care about multiple constants (a%50%7)
+
+
 // Note to future self: because the final array representation of the expression
 // is read backwards, the "left" subexpression of a binary operator appears to
 // the right of the "left" subexpression in that array; the expression "a/2"
