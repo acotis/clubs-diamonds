@@ -4,21 +4,23 @@ use crate::search::pivot::Op;
 use crate::Number;
 use self::EWState::*;
 
+use std::marker::PhantomData;
+
 // Note to future self: because the final array representation of the expression
 // is read backwards, the "left" subexpression of a binary operator appears to
 // the right of the "left" subexpression in that array; the expression "a/2"
 // would be represented as [DIV 2 a].
 
-enum EWState {
+enum EWState<N: Number> {
     Dummy,
     Init,
     Variable  {next: u8, max: u8},
     Constant  {next: u8, max: u8},
     PrepareOp {op: Op},
-    OpState   {op: Op, left: Box<ExpressionWriter>, right: Box<ExpressionWriter>},
+    OpState   {op: Op, left: Box<ExpressionWriter<N>>, right: Box<ExpressionWriter<N>>},
 }
 
-pub struct ExpressionWriter {
+pub struct ExpressionWriter<N: Number> {
     input_count: u8,
     required_vars: usize,
     length: usize,
@@ -26,11 +28,12 @@ pub struct ExpressionWriter {
     constant_cap: u8,
     op_requirement: Option<Option<Op>>,
 
-    state: EWState,
+    state: EWState<N>,
     vum_of_last_write: usize,
+    nothing: PhantomData<N>,
 }
 
-impl ExpressionWriter {
+impl<N: Number> ExpressionWriter<N> {
     pub fn new(input_count: usize, length: usize, constant_cap: u8, op_requirement: Option<Option<Op>>) -> Self {
         Self {
             input_count: input_count as u8,
@@ -42,10 +45,11 @@ impl ExpressionWriter {
             op_requirement,
             state: Init,
             vum_of_last_write: 0,
+            nothing: PhantomData,
         }
     }
 
-    pub fn write<N: Number>(&mut self, dest: &mut [u8]) -> bool {
+    pub fn write(&mut self, dest: &mut [u8]) -> bool {
         match self.state {
             Dummy => {
                 return false;
@@ -109,7 +113,7 @@ impl ExpressionWriter {
                 };
 
                 dest.fill(255);
-                return self.write::<N>(dest);
+                return self.write(dest);
             },
 
             Variable {next, max} => {
@@ -129,7 +133,7 @@ impl ExpressionWriter {
                 }
 
                 self.state = Constant {next: 0, max: 10.min(self.constant_cap)};
-                return self.write::<N>(dest);
+                return self.write(dest);
             },
 
             Constant {next, max} => {
@@ -145,7 +149,7 @@ impl ExpressionWriter {
                 }
 
                 self.state = PrepareOp {op: Op::first(N::is_signed())};
-                return self.write::<N>(dest);
+                return self.write(dest);
             }
 
             PrepareOp {op} => {
@@ -160,7 +164,7 @@ impl ExpressionWriter {
                     if let Some(next) = op.next() {
                         if self.op_requirement.is_some() {return false;}
                         self.state = PrepareOp {op: next};
-                        return self.write::<N>(dest);
+                        return self.write(dest);
                     } else {
                         return false;
                     }
@@ -183,6 +187,7 @@ impl ExpressionWriter {
                             op_requirement: None,
                             state: Dummy,
                             vum_of_last_write: 0,
+                            nothing: PhantomData,
                         }),
                         right: Box::new(Self {
                             input_count: self.input_count,
@@ -193,6 +198,7 @@ impl ExpressionWriter {
                             op_requirement: None,
                             state: Init,
                             vum_of_last_write: 0,
+                            nothing: PhantomData,
                         }),
                     };
                 } else {
@@ -207,6 +213,7 @@ impl ExpressionWriter {
                             op_requirement: None,
                             state: Init,
                             vum_of_last_write: 0,
+                            nothing: PhantomData,
                         }),
                         right: Box::new(Self {
                             input_count: self.input_count,
@@ -217,20 +224,21 @@ impl ExpressionWriter {
                             op_requirement: None,
                             state: Init,
                             vum_of_last_write: 0,
+                            nothing: PhantomData,
                         }),
                     };
                 }
 
-                return self.write::<N>(dest);
+                return self.write(dest);
             },
             
             OpState {op, ref mut left, ref mut right} => {
                 if matches!(left.state, Init) {
-                    if !left.write::<N>(&mut dest[..self.length-1-right.length]) {
+                    if !left.write(&mut dest[..self.length-1-right.length]) {
                         if let Some(next) = op.next() {
                             if self.op_requirement.is_some() {return false;}
                             self.state = PrepareOp {op: next};
-                            return self.write::<N>(dest);
+                            return self.write(dest);
                         } else {
                             return false;
                         }
@@ -239,27 +247,27 @@ impl ExpressionWriter {
                     right.required_vars = self.required_vars & !left.vum_of_last_write;
                 }
 
-                if right.write::<N>(&mut dest[self.length-1-right.length..self.length-1]) {
+                if right.write(&mut dest[self.length-1-right.length..self.length-1]) {
                     self.vum_of_last_write = left.vum_of_last_write | right.vum_of_last_write;
                     return true;
                 }
 
-                if left.write::<N>(&mut dest[..self.length-1-right.length]) {
+                if left.write(&mut dest[..self.length-1-right.length]) {
                     right.state = Init;
                     right.required_vars = self.required_vars & !left.vum_of_last_write;
-                    return self.write::<N>(dest);
+                    return self.write(dest);
                 }
 
                 if right.length > 1 && !matches!(left.state, Dummy) {
                     left.length  += 1; left.state  = Init;
                     right.length -= 1; right.state = Init;
-                    return self.write::<N>(dest);
+                    return self.write(dest);
                 }
 
                 if let Some(next) = op.next() {
                     if self.op_requirement.is_some() {return false;}
                     self.state = PrepareOp {op: next};
-                    return self.write::<N>(dest);
+                    return self.write(dest);
                 }
 
                 return false;
