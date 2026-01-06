@@ -22,8 +22,8 @@ pub enum Op {
 }
 
 impl Op {
-    pub fn first() -> Op {
-        NOT
+    pub fn first(signed: bool) -> Op {
+        if signed {NEG} else {NOT}
     }
 
     pub fn next(self) -> Option<Op> {

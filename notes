@@ -23,6 +23,8 @@ Todo
 ——————————
 
 — Rewrite attempt:
+    1. Make negation optional based on the signedness of the type.
+    2. Make sure this is not too slow.
     3. Write the new architecture.
     4. Test it.
 
