@@ -1,7 +1,7 @@
 
 mod searcher;
 mod expression;
-mod expression_writer;
+mod writer;
 mod pivot;
 mod number;
 
@@ -16,7 +16,7 @@ use std::time::Duration;
 use std::thread::sleep;
 
 use pivot::Op::{self, *};
-use expression_writer::ExpressionWriter;
+use writer::Writer;
 use crate::ui::UI;
 use crate::ui::DefaultUI;
 use crate::ui::NullUI;
@@ -271,7 +271,7 @@ fn find_with_length_and_op<N: Number, const C: usize, J: Fn(&Expression<N, C>) -
     rx: mpsc::Receiver<ThreadCommand>,
 ) {
     let mut count = 0u128;
-    let mut writer = ExpressionWriter::<N>::new(C, length, constant_cap, op_requirement);
+    let mut writer = Writer::<N>::new(C, length, constant_cap, op_requirement);
     let mut expr = Expression {
         field: vec![255; length],
         nothing: PhantomData::default(),

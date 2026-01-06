@@ -17,10 +17,10 @@ enum EWState<N: Number> {
     Variable  {next: u8, max: u8},
     Constant  {next: u8, max: u8},
     PrepareOp {op: Op},
-    OpState   {op: Op, left: Box<ExpressionWriter<N>>, right: Box<ExpressionWriter<N>>},
+    OpState   {op: Op, left: Box<Writer<N>>, right: Box<Writer<N>>},
 }
 
-pub struct ExpressionWriter<N: Number> {
+pub struct Writer<N: Number> {
     input_count: u8,
     required_vars: usize,
     length: usize,
@@ -33,7 +33,7 @@ pub struct ExpressionWriter<N: Number> {
     nothing: PhantomData<N>,
 }
 
-impl<N: Number> ExpressionWriter<N> {
+impl<N: Number> Writer<N> {
     pub fn new(input_count: usize, length: usize, constant_cap: u8, op_requirement: Option<Option<Op>>) -> Self {
         Self {
             input_count: input_count as u8,
