@@ -74,7 +74,7 @@ impl<N: Number, const C: usize> Expression<N, C> {
     /// Render this expression as text, using the provided array of characters as the variable names.
 
     pub fn render_with_var_names(&self, var_names: [char; C]) -> String {
-        self.stringify(0, &var_names).0
+        self.stringify(self.field.len()-1, &var_names).0
     }
 }
 
