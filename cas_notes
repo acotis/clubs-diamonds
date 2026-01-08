@@ -53,5 +53,27 @@ least one instance of its operator, or else the whole level is considered
 skipped. For example, in the expression a+b|3, the expression "a+b" is
 situated in the "|" context; there is no implicit trivial "^" level, no
 implicit trivial "&" level, and no implicit trivial "<< >>" level.
+
+Here's a table summarizing the context rules:
+
+    |               different pivot     parens: never
+    ^               different pivot     parens: if lower prec than ^
+    &               different pivot     parens: if lower prec than &
+    left of << >>   anything            parens: if lower prec than << >>
+    right of << >>  anything            parens: if lower or equal prec than << >>
+    + -             different pivot     parens: if lower prec than + -
+    left of * / %   anything            parens: if lower prec than * / %
+    right of * / %  anything            parens: if lower or equal prec than * / %
+    - !             anything            parens: if lower prec than - !
+
+The "different pivot" levels are exactly those levels which do not sort
+out their own nest applications. The | level takes care of the fact that
+there may be multiple layers of | pivot, because by taking care of that
+all in one level allows for hefty optimizations. The << >> level does not
+take care of this fact, because doing so has no benefit and is harder.
+So, on that << >> level, there are only ever one pivot and two children.
+The pivot is either a single << or a single >>, the left child gets the
+"left of << >>" context and the right child gets the "right of << >>"
+context.
     
 
