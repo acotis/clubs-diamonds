@@ -132,6 +132,31 @@ impl OnelessPartition {
 }
 
 
+// Now let's write the AddSubtract writer.
+
+pub struct AddSubtractWriter<N: Number> {
+    length: usize,
+
+    add_allocation: usize, // virtual bytes
+    add_partition: OnelessPartition,
+    sub_partition: OnelessPartition,
+    children: Vec<(usize, XorWriter<N>)>, // just use this silly thing for now
+}
+
+impl<N: Number> AddSubtractWriter<N> {
+    pub fn new(_: usize, length: usize, _: u8, _: Option<Option<Op>>) -> Self {
+        Self {
+            length,
+            add_allocation: 2,
+            add_partition: OnelessPartition::new(2),
+            sub_partition: OnelessPartition::new(length + 1 - 2),
+            children: vec![(0, XorWriter::<N>::new(length))],
+        }
+    }
+
+}
+
+
 // This is implicitly an OrWriter.
 
 pub struct Writer<N: Number> {
