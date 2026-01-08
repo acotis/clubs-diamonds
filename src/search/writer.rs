@@ -42,34 +42,41 @@ impl<N: Number> Writer<N> {
 
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
 
+        // In all content below, an expression of length N is considered
+        // to honorarily comprise N+1 bytes, with the first byte being an
+        // unwritten additional '|' sign before the first component. Each
+        // component, including the first, therefore takes up exactly one
+        // more byte than its actual length. We'll consider an expression
+        // of actual length 12, and so virtual length 13.
+
         // To avoid wasting computation, we only want to fiddle with the
         // length distributions as many times as we need to. So for example,
         // the first thing an OrWriter will try is to allocate all of its
-        // bytes to a single XorWrite, so the pattern is 12. Once this
-
+        // bytes to a single XorWrite, so the pattern is 13. Once this
         // XorWriter is exhaused, the OrWriter will try another allocation
-        // of bytes. It peels back the 12 and has 12 bytes to spare. It can
-        // try writing an 11, leaving 1 byte to spare, but then there is
-        // nowhere to go, so that doesn't work. So it peels back the 11 and
-        // writes a 10, leaving 2 bytes to spare, and then it can write a
-        // 1, leaving 0 bytes to spare, for the pattern 10|1.
+        // of bytes. It peels back the 13 and has 13 bytes to spare. It can
+        // try writing an 12, leaving 1 byte to spare, but we are forbidden
+        // to write a 1, so that doesn't work. So it peels back the 12 and
+        // writes an 11, leaving 2 bytes to spare, and then it can write a
+        // 2, leaving 0 bytes to spare, for the pattern 11+2.
 
-        // Now it will increment the 10 and 1 in a cycle until they both
-        // collectively run out.
+        // Now it will increment the 11 (actually 10) and 2 (actually 1)
+        // in a cycle until they both collectively run out.
 
         // Next, it will try another combination of lengths. It will peel
-        // back the 1, and since it's a 1, it can't write anything else
-        // there. So it peels back the 10 and has 12 bytes to spare. It will
-        // try writing a 9, leaving 3 bytes, and then it can write a 2,
-        // for the pattern 9|2.
+        // back the 2, and since it's a 2, it can't write anything else
+        // there. So it peels back the 11 and has 13 bytes to spare. It will
+        // try writing a 10, leaving 3 bytes, and then it can write a 3,
+        // for the pattern 10+3.
 
-        // Once that's done, it peels back the 2. It can write a 1, for
-        // a 9|1, leaving 1 byte, but then it's stuck, so it peels back
-        // the 1, leaving 9, peels back the 9, tries an 8, and then writes
-        // a 3, for 8|3.
+        // Once that's done, it peels back the 3. It can write a 2, for
+        // a 10+2, leaving 1 byte, but then it's stuck, so it peels back
+        // the 2, leaving 10, peels back the 10, tries a 9, and then writes
+        // a 4, for 9+4.
 
-        // Once that's done, it goes to 8|1|1, and so on.
+        // Once that's done, it goes to 9+2+2, and so on.
 
+        let vlen = self.length + 1;
         let mut next_to_write = self.children.len()-1;
 
         loop {
@@ -82,47 +89,54 @@ impl<N: Number> Writer<N> {
         // If we fell through to here, we have exhausted all our writers
         // and need to re-distribute bytes.
 
-        // Quick-exit conditions.
+        // Quick-exit conditions:
+        //     1. 2 and 3 cannot be written as sums at all.
+        //     2. 4 can only be split as 2+2.
+        //     3. 5 can only be split as 3+2.
+        // Todo: consider the condition "self.children.len() * 2 == vlen".
 
-        if self.length <= 2 {return false}
-        if self.length == 3 && self.children.len() == 1 {return false}
+        if vlen <= 3 {return false}
+        if vlen <= 5 && self.children.len() == 2 {return false}
 
         // Step to the next byte allocation. You'd think this step would
         // be a huge pain, but it doesn't have to be. We can produce one
         // allocation from the previous by simply scanning through the
         // current allocation in reverse and finding the last chunk that
         // can be made smaller. A chunk can be made smaller if it is
-        // greater than 1 and if by subtracting 1 or 2 from it it can be
-        // left greater than 0 and the subtracted part, combined with the
+        // greater than 2 and if by subtracting 1 or 2 from it it can be
+        // left greater than 1 and the subtracted part, combined with the
         // total value of all the chunks after it, can be re-partitioned
         // into chunks not greater than the new value. This partitioning
         // is only impossible if the subtracted part is 1 and the chunks
         // following the decremented chunk had been a sequence of all
-        // ones.
+        // twos.
 
-        println!("  about to step to next allocation");
+        //println!("  about to step to next allocation");
 
         let mut spare_bytes = 0;
 
         while let Some((_offset, xor_writer)) = self.children.pop() {
             let len = xor_writer.length;
-            spare_bytes += len + 1;
+            let pop = len + 1;
 
-            // If we just popped a 1, we can't go anywhere, so continue.
+            spare_bytes += pop;
 
-            if len == 1 {
+            // If we just popped a 2, we can't go anywhere because
+            // writing a 1 is forbidden, so continue.
+
+            if pop == 2 {
                 continue;
             }
 
-            // If we just popped a 2, we can only push ones, and that's
+            // If we just popped a 3, we can only push 2's, and that's
             // only possible if the number of spare bytes is even. If
             // we did, but it's not, continue.
 
-            if len == 2 && spare_bytes % 2 != 0 {
+            if pop == 3 && spare_bytes % 2 != 0 {
                 continue;
             }
 
-            // If we just popped a 3 or higher, we can decrement no
+            // If we just popped a 4 or higher, we can decrement no
             // matter what followed it, so if we got to this point, we
             // know we can decrement.
             //
@@ -136,43 +150,45 @@ impl<N: Number> Writer<N> {
             //   2. Your next push is forced to be a 1 and the number
             //      of remaining bytes is odd.
 
-            let mut last_push = len - 1;
+            let mut last_push = pop - 1;
 
             while spare_bytes > 0 {
-                println!("  spare bytes: {spare_bytes}");
-                let next_push = if last_push + 1 == spare_bytes || last_push + 3 <= spare_bytes {
+                //println!("  spare bytes: {spare_bytes}");
+
+                let next_push = if last_push > spare_bytes {
+                    spare_bytes
+                } else if last_push == spare_bytes || last_push + 2 <= spare_bytes {
                     last_push
-                } else if last_push > 2 || spare_bytes%2 == 0 {
-                    last_push - 1
                 } else {
-                    last_push - 2
+                    last_push - 1
                 };
 
-                self.children.push((0, XorWriter::<N>::new(next_push)));
-                spare_bytes -= next_push + 1;
+                self.children.push((0, XorWriter::<N>::new(next_push - 1)));
+                spare_bytes -= next_push;
                 last_push = next_push;
             }
+
+            // Now, reset all children and update their offsets, and write the
+            // '|' operators in.
+
+            //println!("  about to refill");
+
+            let mut running_offset = 0;
+
+            for (offset, child) in &mut self.children {
+                if running_offset > 0 {dest[running_offset-1] = b'|';}
+
+                *offset = running_offset;
+                *child = XorWriter::<N>::new(child.length);
+                child.write(&mut dest[*offset..]);
+
+                running_offset += child.length + 1;
+            }
+
+            return true;
         }
 
-        // Now, reset all children and update their offsets, and write the
-        // '|' operators in.
-
-        println!("  about to refill");
-
-        let mut running_offset = 0;
-
-        for (offset, child) in &mut self.children {
-            if running_offset > 0 {dest[running_offset-1] = b'|';}
-
-            *offset = running_offset;
-            *child = XorWriter::<N>::new(child.length);
-
-            running_offset += *offset + 1;
-        }
-
-        // Go again from the top.
-
-        self.write(dest)
+        false
     }
 }
 
