@@ -228,3 +228,4 @@ pub use search::Expression;
 pub use search::Searcher;
 pub use search::Number;
 
+pub use search::Writer; // temporary, for testing only; todo: remove this

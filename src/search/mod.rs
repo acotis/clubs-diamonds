@@ -16,7 +16,7 @@ use std::time::Duration;
 use std::thread::sleep;
 
 use pivot::Op::{self, *};
-use writer::Writer;
+pub use writer::Writer; // temporary for testing only; todo: make non-pub.
 use crate::ui::UI;
 use crate::ui::DefaultUI;
 use crate::ui::NullUI;

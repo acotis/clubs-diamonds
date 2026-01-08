@@ -2,7 +2,6 @@
 use crate::search::pivot::Pivot::*;
 use crate::search::pivot::Op;
 use crate::Number;
-use self::EWState::*;
 
 use std::marker::PhantomData;
 
@@ -16,273 +15,193 @@ use std::marker::PhantomData;
 //    — % does care about multiple constants (a%50%7)
 
 
-// Note to future self: because the final array representation of the expression
-// is read backwards, the "left" subexpression of a binary operator appears to
-// the right of the "left" subexpression in that array; the expression "a/2"
-// would be represented as [DIV 2 a].
-
-enum EWState<N: Number> {
-    Dummy,
-    Init,
-    Variable  {next: u8, max: u8},
-    Constant  {next: u8, max: u8},
-    PrepareOp {op: Op},
-    OpState   {op: Op, left: Box<Writer<N>>, right: Box<Writer<N>>},
-}
+// This is implicitly an OrWriter.
 
 pub struct Writer<N: Number> {
-    input_count: u8,
-    required_vars: usize,
-    length: usize,
-    min_prec: usize,
-    constant_cap: u8,
-    op_requirement: Option<Option<Op>>,
+    // assume one input for now
+    // assume no required vars for now
+    // minimum precedence is meaningless here
+    // assume constant_cap is 155 for now
 
-    state: EWState<N>,
-    vum_of_last_write: usize,
-    nothing: PhantomData<N>,
+    // intrinsic properties
+
+    length: usize,
+
+    // state
+
+    children: Vec<(usize, XorWriter<N>)>,
 }
 
 impl<N: Number> Writer<N> {
-    pub fn new(input_count: usize, length: usize, constant_cap: u8, op_requirement: Option<Option<Op>>) -> Self {
+    pub fn new(_: usize, length: usize, _: u8, _: Option<Option<Op>>) -> Self {
         Self {
-            input_count: input_count as u8,
-            required_vars: (1 << input_count) - 1,
-            //required_vars: 0,
             length,
-            min_prec: 0,
-            constant_cap,
-            op_requirement,
-            state: Init,
-            vum_of_last_write: 0,
-            nothing: PhantomData,
+            children: vec![(0, XorWriter::<N>::new(length))],
         }
     }
 
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
-        match self.state {
-            Dummy => {
-                return false;
-            },
 
-            Init => {
-                if self.length + 1 < self.required_vars.count_ones() as usize * 2 {
-                    return false;
-                }
+        // To avoid wasting computation, we only want to fiddle with the
+        // length distributions as many times as we need to. So for example,
+        // the first thing an OrWriter will try is to allocate all of its
+        // bytes to a single XorWrite, so the pattern is 12. Once this
 
-                self.state = if let Some(req) = self.op_requirement {
-                    if let Some(op) = req {
-                        match self.length {
-                            0 => panic!(),
-                            1 => return false,
-                            2.. => PrepareOp {op},
-                        }
-                    } else {
-                        match self.length {
-                            0 => panic!(),
-                            1 => if self.required_vars == 0 {
-                                Variable {next: 0, max: self.input_count-1}
-                            } else {
-                                Variable {next: self.required_vars.trailing_zeros() as u8, max: self.required_vars.trailing_zeros() as u8}
-                            },
-                            2 => if self.required_vars == 0 {
-                                Constant {next: 10, max: 100.min(self.constant_cap)}
-                            } else {
-                                return false
-                            },
-                            3 => if self.required_vars == 0 {
-                                Constant {next: 100, max: 156.min(self.constant_cap)}
-                            } else {
-                                return false
-                            },
-                            4.. => return false,
-                            //3.. => return false,
-                        }
-                    }
-                } else {
-                    match self.length {
-                        0 => panic!(),
-                        1 => if self.required_vars == 0 {
-                            Variable {next: 0, max: self.input_count-1}
-                        } else {
-                            Variable {next: self.required_vars.trailing_zeros() as u8, max: self.required_vars.trailing_zeros() as u8}
-                        },
-                        2 => if self.required_vars == 0 {
-                            Constant {next: 10, max: 100.min(self.constant_cap)}
-                        } else {
-                            PrepareOp {op: Op::first(N::is_signed())}
-                        },
-                        3 => if self.required_vars == 0 {
-                            Constant {next: 100, max: 156.min(self.constant_cap)}
-                        } else {
-                            PrepareOp {op: Op::first(N::is_signed())}
-                        },
-                        4.. => PrepareOp {op: Op::first(N::is_signed())},
-                        //3.. => PrepareOp {op: Op::first()},
-                    }
-                };
+        // XorWriter is exhaused, the OrWriter will try another allocation
+        // of bytes. It peels back the 12 and has 12 bytes to spare. It can
+        // try writing an 11, leaving 1 byte to spare, but then there is
+        // nowhere to go, so that doesn't work. So it peels back the 11 and
+        // writes a 10, leaving 2 bytes to spare, and then it can write a
+        // 1, leaving 0 bytes to spare, for the pattern 10|1.
 
-                dest.fill(255);
-                return self.write(dest);
-            },
+        // Now it will increment the 10 and 1 in a cycle until they both
+        // collectively run out.
 
-            Variable {next, max} => {
-                if next <= max {
-                    self.state = Variable {next: next + 1, max};
-                    dest[self.length-1] = VarPivot(next).encode();
-                    self.vum_of_last_write = 1 << next;
-                    return true;
-                }
+        // Next, it will try another combination of lengths. It will peel
+        // back the 1, and since it's a 1, it can't write anything else
+        // there. So it peels back the 10 and has 12 bytes to spare. It will
+        // try writing a 9, leaving 3 bytes, and then it can write a 2,
+        // for the pattern 9|2.
 
-                // If we are looping through variables, then the
-                // length is 1, so we know where we're going next
-                // based only on the required_vars thing.
+        // Once that's done, it peels back the 2. It can write a 1, for
+        // a 9|1, leaving 1 byte, but then it's stuck, so it peels back
+        // the 1, leaving 9, peels back the 9, tries an 8, and then writes
+        // a 3, for 8|3.
 
-                if self.required_vars > 0 {
-                    return false;
-                }
+        // Once that's done, it goes to 8|1|1, and so on.
 
-                self.state = Constant {next: 0, max: 10.min(self.constant_cap)};
-                return self.write(dest);
-            },
+        let mut next_to_write = self.children.len()-1;
 
-            Constant {next, max} => {
-                if next < max {
-                    self.state = Constant {next: next + 1, max};
-                    dest[self.length-1] = next;
-                    self.vum_of_last_write = 0;
-                    return true;
-                }
+        loop {
+            let (offset, child) = &mut self.children[next_to_write];
+            if child.write(&mut dest[*offset..]) {return true}
+            if next_to_write == 0 {break}
+            next_to_write -= 1;
+        }
 
-                if self.op_requirement.is_some() { // must have been Some(None)
-                    return false;
-                }
+        // If we fell through to here, we have exhausted all our writers
+        // and need to re-distribute bytes.
 
-                self.state = PrepareOp {op: Op::first(N::is_signed())};
-                return self.write(dest);
+        // Quick-exit conditions.
+
+        if self.length <= 2 {return false}
+        if self.length == 3 && self.children.len() == 1 {return false}
+
+        // Step to the next byte allocation. You'd think this step would
+        // be a huge pain, but it doesn't have to be. We can produce one
+        // allocation from the previous by simply scanning through the
+        // current allocation in reverse and finding the last chunk that
+        // can be made smaller. A chunk can be made smaller if it is
+        // greater than 1 and if by subtracting 1 or 2 from it it can be
+        // left greater than 0 and the subtracted part, combined with the
+        // total value of all the chunks after it, can be re-partitioned
+        // into chunks not greater than the new value. This partitioning
+        // is only impossible if the subtracted part is 1 and the chunks
+        // following the decremented chunk had been a sequence of all
+        // ones.
+
+        println!("  about to step to next allocation");
+
+        let mut spare_bytes = 0;
+
+        while let Some((_offset, xor_writer)) = self.children.pop() {
+            let len = xor_writer.length;
+            spare_bytes += len + 1;
+
+            // If we just popped a 1, we can't go anywhere, so continue.
+
+            if len == 1 {
+                continue;
             }
 
-            PrepareOp {op} => {
-                let wasted_space = 
-                    op.len() + 
-                    if op.prec() < self.min_prec {2} else {0};
+            // If we just popped a 2, we can only push ones, and that's
+            // only possible if the number of spare bytes is even. If
+            // we did, but it's not, continue.
 
-                // If this op wastes too much space, move on to
-                // the next one.
+            if len == 2 && spare_bytes % 2 != 0 {
+                continue;
+            }
 
-                if wasted_space + op.arity() > self.length {
-                    if let Some(next) = op.next() {
-                        if self.op_requirement.is_some() {return false;}
-                        self.state = PrepareOp {op: next};
-                        return self.write(dest);
-                    } else {
-                        return false;
-                    }
-                }
+            // If we just popped a 3 or higher, we can decrement no
+            // matter what followed it, so if we got to this point, we
+            // know we can decrement.
+            //
+            // The refilling algorithm is the same no matter what we just
+            // popped: push N-1, and then repeatedly push the largest
+            // number you can push, up to a limit of the previous pushed
+            // number, without getting stuck. You are only stuck if either
+            // of these two conditions is met:
+            //
+            //   1. You have exactly one byte remaining.
+            //   2. Your next push is forced to be a 1 and the number
+            //      of remaining bytes is odd.
 
-                // Else, set it up.
+            let mut last_push = len - 1;
 
-                dest.fill(255);
-                dest[self.length-1] = OpPivot(op).encode();
-
-                if op.arity() == 1 {
-                    self.state = OpState {
-                        op,
-                        left: Box::new(Self {
-                            input_count: 0,
-                            length: 0,
-                            min_prec: 0,
-                            constant_cap: self.constant_cap,
-                            required_vars: 0,
-                            op_requirement: None,
-                            state: Dummy,
-                            vum_of_last_write: 0,
-                            nothing: PhantomData,
-                        }),
-                        right: Box::new(Self {
-                            input_count: self.input_count,
-                            length: self.length - wasted_space,
-                            min_prec: op.prec(),
-                            constant_cap: self.constant_cap,
-                            required_vars: self.required_vars,
-                            op_requirement: None,
-                            state: Init,
-                            vum_of_last_write: 0,
-                            nothing: PhantomData,
-                        }),
-                    };
+            while spare_bytes > 0 {
+                println!("  spare bytes: {spare_bytes}");
+                let next_push = if last_push + 1 == spare_bytes || last_push + 3 <= spare_bytes {
+                    last_push
+                } else if last_push > 2 || spare_bytes%2 == 0 {
+                    last_push - 1
                 } else {
-                    self.state = OpState {
-                        op,
-                        left: Box::new(Self {
-                            input_count: self.input_count,
-                            length: 1,
-                            min_prec: op.prec(),
-                            constant_cap: self.constant_cap,
-                            required_vars: 0,
-                            op_requirement: None,
-                            state: Init,
-                            vum_of_last_write: 0,
-                            nothing: PhantomData,
-                        }),
-                        right: Box::new(Self {
-                            input_count: self.input_count,
-                            length: self.length - wasted_space - 1,
-                            min_prec: op.prec() + 1,
-                            constant_cap: self.constant_cap,
-                            required_vars: 0, // filled in later
-                            op_requirement: None,
-                            state: Init,
-                            vum_of_last_write: 0,
-                            nothing: PhantomData,
-                        }),
-                    };
-                }
+                    last_push - 2
+                };
 
-                return self.write(dest);
-            },
-            
-            OpState {op, ref mut left, ref mut right} => {
-                if matches!(left.state, Init) {
-                    if !left.write(&mut dest[..self.length-1-right.length]) {
-                        if let Some(next) = op.next() {
-                            if self.op_requirement.is_some() {return false;}
-                            self.state = PrepareOp {op: next};
-                            return self.write(dest);
-                        } else {
-                            return false;
-                        }
-                    }
-
-                    right.required_vars = self.required_vars & !left.vum_of_last_write;
-                }
-
-                if right.write(&mut dest[self.length-1-right.length..self.length-1]) {
-                    self.vum_of_last_write = left.vum_of_last_write | right.vum_of_last_write;
-                    return true;
-                }
-
-                if left.write(&mut dest[..self.length-1-right.length]) {
-                    right.state = Init;
-                    right.required_vars = self.required_vars & !left.vum_of_last_write;
-                    return self.write(dest);
-                }
-
-                if right.length > 1 && !matches!(left.state, Dummy) {
-                    left.length  += 1; left.state  = Init;
-                    right.length -= 1; right.state = Init;
-                    return self.write(dest);
-                }
-
-                if let Some(next) = op.next() {
-                    if self.op_requirement.is_some() {return false;}
-                    self.state = PrepareOp {op: next};
-                    return self.write(dest);
-                }
-
-                return false;
-            },
+                self.children.push((0, XorWriter::<N>::new(next_push)));
+                spare_bytes -= next_push + 1;
+                last_push = next_push;
+            }
         }
+
+        // Now, reset all children and update their offsets, and write the
+        // '|' operators in.
+
+        println!("  about to refill");
+
+        let mut running_offset = 0;
+
+        for (offset, child) in &mut self.children {
+            if running_offset > 0 {dest[running_offset-1] = b'|';}
+
+            *offset = running_offset;
+            *child = XorWriter::<N>::new(child.length);
+
+            running_offset += *offset + 1;
+        }
+
+        // Go again from the top.
+
+        self.write(dest)
+    }
+}
+
+struct XorWriter<N: Number> {
+    length: usize,
+    already_wrote: bool,
+    nothing: PhantomData<N>,
+}
+
+impl<N: Number> XorWriter<N> {
+    fn new(length: usize) -> Self {
+        Self {
+            length,
+            already_wrote: false,
+            nothing: PhantomData,
+        }
+    }
+
+    fn write(&mut self, field: &mut [u8]) -> bool {
+        if !self.already_wrote {
+            for i in 0..self.length {
+                field[i] = b'x';
+            }
+
+            self.already_wrote = true;
+            return true;
+        }
+
+        false
     }
 }
 
