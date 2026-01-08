@@ -1,0 +1,57 @@
+
+The children of the | level must be headed by something besides |.
+The children of the ^ level must be headed by something besides ^.
+The children of the & level must be headed by something besides &.
+A left child of the << >> level is the s
+
+
+
+An expression's *provenance* is the chain of pivots it is the child of.
+
+For example, in the expression (a+b|3)^c|d, the provenance of the 3 is
+that it is the right child of |, then the left child of ^, and finally
+the left child of |. Top to bottom: left of |, right of ^, right of |.
+
+However, in the CAS architecture (content-aware seiving), we consider
+expressions to be divided into levels. The provenance of an expression
+should probably be defined relative to that framing.
+
+So, in the expression a|b|c|d|e, the "raw" provenance of a is "left |,
+left |, left |, left |", but the level-aware provenance is just "|"
+because it is a direct child of the | level of the expression.
+
+Here are the provenances that seem distinct to me:
+
+    |
+    ^
+    &
+    left of << >>
+    right of << >>
+    +-
+    left of * % /
+    right of * % /
+    -!
+
+Each provenance can also be considered a "context" which imposes rules
+on which expressions may appear. In the | context, the next pivot cannot
+be |, but can be anything else. In the ^ context, the next pivot cannot
+be ^, but can be anything else (and needs parentheses if it's lower-
+precedence than ^). In the & context, the next pivot cannot be &, but can
+be anything else (and needs parens if lower prec). In the "left of << >>"
+context, the next pivot can be anything (and needs parens if strictly
+lower prec than << >>). In the "right of << >>" context, the next pivot
+can be anything (and needs parens if lower or equal prec than << >>). In
+the +- context, the next pivot can be anything other than + or - (and
+needs parens for lower prec). In the "left of * % /" context, the next
+pivot can be anything (and needs parens for strictly lower prec). In the
+"right of * % /" context, the next pivot can be anything (and needs
+parens for lower or equal prec). In the "-!" context, the next pivot can
+be anything (and needs parens for lower prec).
+
+Note that in this framing, we are saying that each level must contain at
+least one instance of its operator, or else the whole level is considered
+skipped. For example, in the expression a+b|3, the expression "a+b" is
+situated in the "|" context; there is no implicit trivial "^" level, no
+implicit trivial "&" level, and no implicit trivial "<< >>" level.
+    
+
