@@ -270,7 +270,7 @@ impl<N: Number> Writer<N> {
     }
 
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
-        if self.children.write(dest) {return true;}
+        if self.children.write(dest) {return true}
 
         // If we fell through to here, we have exhausted all our writers
         // and need to re-distribute bytes.
@@ -282,22 +282,22 @@ impl<N: Number> Writer<N> {
         // Todo: consider the condition "self.children.len() * 2 == vlen".
         // Todo: or how about "self.children[0].length == 2".
 
-        let vlen = self.length + 1;
-        if vlen <= 3 {return false}
-        if vlen <= 5 && self.children.children.len() == 2 {return false}
+        // let vlen = self.length + 1;
+        // if vlen <= 3 {return false}
+        // if vlen <= 5 && self.children.children.len() == 2 {return false}
 
-        // If we didn't exit, go to the next partition. If that fails,
-        // we're done, so return false.
+        // If we didn't exit, try to go to the next partition.
 
-        if !self.partition.next() {return false}
+        if self.partition.next() {
+            self.children = Children::new_from_sizes(&self.partition.state);
+            self.children.do_first_write(dest);
+            return true;
+        }
 
-        // If we made it to this point, we have a new partition and should
-        // set up our new children.
+        // If we got to this point, we have no more paritions to cycle
+        // through, so we are done.
 
-        self.children = Children::new_from_sizes(&self.partition.state);
-        self.children.do_first_write(dest);
-
-        true
+        false
     }
 }
 
