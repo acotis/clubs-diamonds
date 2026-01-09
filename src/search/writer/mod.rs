@@ -1,7 +1,12 @@
 
+mod partition;
+mod children;
+
 use crate::search::pivot::Pivot::*;
 use crate::search::pivot::Op;
 use crate::Number;
+use partition::Partition;
+use children::Children;
 
 use std::marker::PhantomData;
 
@@ -70,156 +75,6 @@ use std::marker::PhantomData;
 // subtracted-terms bucket. When all such bucket allocations have been
 // exhausted, we are done.
 //
-// First, let's factor out the OnelessParititon into its own struct. It
-// will use the convention that every term in the sum is the virtual length
-// of the relevant component, and that the sum of all terms is the virtual
-// length of the whole expression.
-
-struct OnelessPartition {
-    state: Vec<usize>,
-}
-
-impl OnelessPartition {
-    fn new(virtual_len: usize) -> Self {
-        Self {
-            state: if virtual_len > 0 {vec![virtual_len]} else {vec![]},
-        }
-    }
-
-    fn next(&mut self) -> bool {
-        
-        // Step to the next byte allocation. You'd think this step would
-        // be a huge pain, but it doesn't have to be. We can produce one
-        // allocation from the previous by simply scanning through the
-        // current allocation in reverse and finding the last chunk that
-        // can be made smaller. A chunk can be made smaller if it is
-        // greater than 2 and if by subtracting 1 or 2 from it it can be
-        // left greater than 1 and the subtracted part, combined with the
-        // total value of all the chunks after it, can be re-partitioned
-        // into chunks not greater than the new value. This partitioning
-        // is only impossible if the subtracted part is 1 and the chunks
-        // following the decremented chunk had been a sequence of all
-        // twos.
-
-        //println!("  about to step to next allocation");
-
-        let mut spare_bytes = 0;
-
-        while let Some(pop) = self.state.pop() {
-            spare_bytes += pop;
-
-            // If we just popped a 2, we can't go anywhere because
-            // writing a 1 is forbidden, so continue.
-
-            if pop == 2 {
-                continue;
-            }
-
-            // If we just popped a 3, we can only push 2's, and that's
-            // only possible if the number of spare bytes is even. If
-            // we did, but it's not, continue.
-
-            if pop == 3 && spare_bytes % 2 != 0 {
-                continue;
-            }
-
-            // If we just popped a 4 or higher, we can decrement no
-            // matter what followed it, so if we got to this point, we
-            // know we can decrement.
-            //
-            // The refilling algorithm is the same no matter what we just
-            // popped: push N-1, and then repeatedly push the largest
-            // number you can push, up to a limit of the previous pushed
-            // number, without getting stuck. You are only stuck if either
-            // of these two conditions is met:
-            //
-            //   1. You have exactly one byte remaining.
-            //   2. Your next push is forced to be a 1 and the number
-            //      of remaining bytes is odd.
-
-            let mut last_push = pop - 1;
-
-            while spare_bytes > 0 {
-                //println!("  spare bytes: {spare_bytes}");
-
-                let next_push = if last_push > spare_bytes {
-                    spare_bytes
-                } else if last_push == spare_bytes || last_push + 2 <= spare_bytes {
-                    last_push
-                } else {
-                    last_push - 1
-                };
-
-                self.state.push(next_push);
-                spare_bytes -= next_push;
-                last_push = next_push;
-            }
-
-            return true;
-        }
-
-        // If we got outside the loop, we unwound all of the terms and never
-        // found one we could decrement, so we have run out of partitions
-        // and should return false.
-
-        false
-    }
-}
-
-// Now let's factor out a struct that manages an array of children of fixed
-// lengths (every time the lengths change, an fresh Children instance is
-// created to manage the new set of children).
-
-struct Children {
-    children: Vec<(usize, XorWriter<i32>)>, // just XorWriter for now
-}
-
-impl Children {
-    fn new_from_sizes(sizes: &[usize]) -> Self {
-        let mut ret = Self {
-            children: vec![]
-        };
-
-        let mut offset = 0;
-
-        for size in sizes {
-            ret.children.push((offset, XorWriter::<i32>::new(size - 1)));
-            offset += size;
-        }
-
-        ret
-    }
-
-    // Todo: account for the fact that even a Writer's first write can return
-    // false (that is, it is already exhausted when it gets created because
-    // there are no valid things it can write).
-
-    fn do_first_write(&mut self, dest: &mut [u8]) {
-        for (offset, child) in &mut self.children {
-            if *offset > 0 {dest[*offset-1] = b'|';}
-            child.write(&mut dest[*offset..]);
-        }
-    }
-
-    fn write(&mut self, dest: &mut [u8]) -> bool {
-        let mut next_to_write = self.children.len()-1;
-
-        loop {
-            let (offset, child) = &mut self.children[next_to_write];
-            if child.write(&mut dest[*offset..]) {
-                // todo: must also reset all children following this one
-                return true;
-            }
-            if next_to_write == 0 {return false}
-            next_to_write -= 1;
-        }
-    }
-}
-
-
-// Let's create a merged construct that manages an array of children from
-// beginning to end (i.e., it manages both cycling and byte reallocations).
-
 
 
 
@@ -230,24 +85,24 @@ pub struct AddSubtractWriter<N: Number> {
     nothing: PhantomData<N>,
 
     add_allocation: usize, // virtual bytes (includes the unwritten + sign at the start of the expression)
-    add_partition: OnelessPartition,
-    sub_partition: OnelessPartition,
+    add_partition: Partition,
+    sub_partition: Partition,
     add_children: Children,
     sub_children: Children,
 }
 
 impl<N: Number> AddSubtractWriter<N> {
     pub fn new(_: usize, length: usize, _: u8, _: Option<Option<Op>>) -> Self {
-        let add_partition = OnelessPartition::new(length + 1);
-        let sub_partition = OnelessPartition::new(0);
+        let add_partition = Partition::new(length + 1);
+        let sub_partition = Partition::new(0);
 
         Self {
             length,
             nothing: PhantomData,
 
             add_allocation: length + 1,
-            add_children: Children::new_from_sizes(&add_partition.state),
-            sub_children: Children::new_from_sizes(&sub_partition.state),
+            add_children: Children::new_from_sizes(&add_partition.state()),
+            sub_children: Children::new_from_sizes(&sub_partition.state()),
             add_partition,
             sub_partition,
         }
@@ -267,7 +122,7 @@ impl<N: Number> AddSubtractWriter<N> {
 
         if self.add_children.write(dest) {
             if vadd < vlen {
-                self.sub_children = Children::new_from_sizes(&self.sub_partition.state);
+                self.sub_children = Children::new_from_sizes(&self.sub_partition.state());
                 dest[vadd-1] = b'-';
                 self.sub_children.do_first_write(&mut dest[vadd..]);
             }
@@ -289,7 +144,7 @@ impl<N: Number> AddSubtractWriter<N> {
         println!("  going to try incrementing subtracted partition");
 
         if vadd < vlen && self.sub_partition.next() {
-            self.sub_children = Children::new_from_sizes(&self.sub_partition.state);
+            self.sub_children = Children::new_from_sizes(&self.sub_partition.state());
             dest[vadd-1] = b'-';
             self.sub_children.do_first_write(&mut dest[vadd..]);
 
@@ -305,12 +160,12 @@ impl<N: Number> AddSubtractWriter<N> {
         println!("  going to try incrementing added partition");
         
         if self.add_partition.next() {
-            self.add_children = Children::new_from_sizes(&self.add_partition.state);
+            self.add_children = Children::new_from_sizes(&self.add_partition.state());
             self.add_children.do_first_write(dest);
 
             if vadd < vlen {
-                self.sub_partition = OnelessPartition::new(vlen - vadd);
-                self.sub_children = Children::new_from_sizes(&self.sub_partition.state);
+                self.sub_partition = Partition::new(vlen - vadd);
+                self.sub_children = Children::new_from_sizes(&self.sub_partition.state());
                 dest[vadd-1]= b'-';
                 self.sub_children.do_first_write(&mut dest[vadd..]);
             };
@@ -331,12 +186,12 @@ impl<N: Number> AddSubtractWriter<N> {
 
             let vadd = self.add_allocation;
 
-            self.add_partition = OnelessPartition::new(vadd);
-            self.add_children = Children::new_from_sizes(&self.add_partition.state);
+            self.add_partition = Partition::new(vadd);
+            self.add_children = Children::new_from_sizes(&self.add_partition.state());
             self.add_children.do_first_write(dest);
 
-            self.sub_partition = OnelessPartition::new(vlen - vadd);
-            self.sub_children = Children::new_from_sizes(&self.sub_partition.state);
+            self.sub_partition = Partition::new(vlen - vadd);
+            self.sub_children = Children::new_from_sizes(&self.sub_partition.state());
             dest[vadd-1]= b'-';
             self.sub_children.do_first_write(&mut dest[vadd..]);
 
@@ -366,18 +221,18 @@ pub struct Writer<N: Number> {
 
     // state
 
-    partition: OnelessPartition,
+    partition: Partition,
     children: Children,
 }
 
 impl<N: Number> Writer<N> {
     pub fn new(_: usize, length: usize, _: u8, _: Option<Option<Op>>) -> Self {
-        let initial_partition = OnelessPartition::new(length + 1);
+        let initial_partition = Partition::new(length + 1);
 
         Self {
             length,
             nothing: PhantomData,
-            children: Children::new_from_sizes(&initial_partition.state),
+            children: Children::new_from_sizes(&initial_partition.state()),
             partition: initial_partition,
         }
     }
@@ -402,7 +257,7 @@ impl<N: Number> Writer<N> {
         // If we didn't exit, try to go to the next partition.
 
         if self.partition.next() {
-            self.children = Children::new_from_sizes(&self.partition.state);
+            self.children = Children::new_from_sizes(&self.partition.state());
             self.children.do_first_write(dest);
             return true;
         }
