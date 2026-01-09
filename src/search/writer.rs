@@ -206,12 +206,21 @@ impl Children {
 
         loop {
             let (offset, child) = &mut self.children[next_to_write];
-            if child.write(&mut dest[*offset..]) {return true}
+            if child.write(&mut dest[*offset..]) {
+                // todo: must also reset all children following this one
+                return true;
+            }
             if next_to_write == 0 {return false}
             next_to_write -= 1;
         }
     }
 }
+
+
+// Let's create a merged construct that manages an array of children from
+// beginning to end (i.e., it manages both cycling and byte reallocations).
+
+
 
 
 // Now let's write the AddSubtract writer.
