@@ -82,7 +82,7 @@ struct OnelessPartition {
 impl OnelessPartition {
     fn new(virtual_len: usize) -> Self {
         Self {
-            state: vec![virtual_len],
+            state: if virtual_len > 0 {vec![virtual_len]} else {vec![]},
         }
     }
 
@@ -218,22 +218,126 @@ impl Children {
 
 pub struct AddSubtractWriter<N: Number> {
     length: usize,
+    nothing: PhantomData<N>,
 
-    add_allocation: usize, // virtual bytes
+    add_allocation: usize, // virtual bytes (includes the unwritten + sign at the start of the expression)
     add_partition: OnelessPartition,
     sub_partition: OnelessPartition,
-    children: Vec<(usize, XorWriter<N>)>, // just use this silly thing for now
+    add_children: Children,
+    sub_children: Children,
 }
 
 impl<N: Number> AddSubtractWriter<N> {
     pub fn new(_: usize, length: usize, _: u8, _: Option<Option<Op>>) -> Self {
+        let add_partition = OnelessPartition::new(length + 1);
+        let sub_partition = OnelessPartition::new(0);
+
         Self {
             length,
-            add_allocation: 2,
-            add_partition: OnelessPartition::new(2),
-            sub_partition: OnelessPartition::new(length + 1 - 2),
-            children: vec![(0, XorWriter::<N>::new(length))],
+            nothing: PhantomData,
+
+            add_allocation: length + 1,
+            add_children: Children::new_from_sizes(&add_partition.state),
+            sub_children: Children::new_from_sizes(&sub_partition.state),
+            add_partition,
+            sub_partition,
         }
+    }
+
+    pub fn write(&mut self, dest: &mut [u8]) -> bool {
+        let vlen = self.length + 1;
+        let vadd = self.add_allocation;
+
+        println!("  going to try writing subtracted chilren");
+
+        if vadd < vlen && self.sub_children.write(dest) {
+            return true;
+        }
+
+        println!("  going to try writing added children");
+
+        if self.add_children.write(dest) {
+            if vadd < vlen {
+                self.sub_children = Children::new_from_sizes(&self.sub_partition.state);
+                dest[vadd-1] = b'-';
+                self.sub_children.do_first_write(&mut dest[vadd..]);
+            }
+        
+            return true;
+        }
+
+        // If we fell through to here, we have exhausted all our writers
+        // and need to re-distribute bytes. The first thing to try is to
+        // redistribute bytes among the subtracted components only. We
+        // only try this if there are any bytes allocated to the subtracted
+        // components at all.
+        //
+        // To rephrase, if there are subtracted components, and we
+        // successfully increment the partitioning of their bytes, then
+        // that incrementation is the "solution" to this Writer's overall
+        // incrementation, and we return.
+
+        println!("  going to try incrementing subtracted partition");
+
+        if vadd < vlen && self.sub_partition.next() {
+            self.sub_children = Children::new_from_sizes(&self.sub_partition.state);
+            dest[vadd-1] = b'-';
+            self.sub_children.do_first_write(&mut dest[vadd..]);
+
+            return true;
+        }
+
+        // If that didn't work (either we don't have subtracted components
+        // or we couldn't increment the partitioning of their bytes) then
+        // the next thing to try is to increment the partitioning of the
+        // added components' bytes. If this occurs, we also reset the
+        // partitioning of the subtracted components.
+
+        println!("  going to try incrementing added partition");
+        
+        if self.add_partition.next() {
+            self.add_children = Children::new_from_sizes(&self.add_partition.state);
+            self.add_children.do_first_write(dest);
+
+            if vadd < vlen {
+                self.sub_partition = OnelessPartition::new(vlen - vadd);
+                self.sub_children = Children::new_from_sizes(&self.sub_partition.state);
+                dest[vadd-1]= b'-';
+                self.sub_children.do_first_write(&mut dest[vadd..]);
+            };
+
+            return true;
+        }
+
+        // Finally, if we couldn't even increment the partitioning of the
+        // added components' bytes, the last resort is to change the
+        // allocation of overall bytes between the added components and
+        // the subtracted components. If this occurs, we also reset the
+        // partitioning of added and subtracted components.
+
+        println!("  going to try shifting allocation");
+
+        if self.add_allocation > 2 {
+            self.add_allocation -= if vadd == vlen {2} else {1};
+
+            let vadd = self.add_allocation;
+
+            self.add_partition = OnelessPartition::new(vadd);
+            self.add_children = Children::new_from_sizes(&self.add_partition.state);
+            self.add_children.do_first_write(dest);
+
+            self.sub_partition = OnelessPartition::new(vlen - vadd);
+            self.sub_children = Children::new_from_sizes(&self.sub_partition.state);
+            dest[vadd-1]= b'-';
+            self.sub_children.do_first_write(&mut dest[vadd..]);
+
+            return true;
+        }
+
+        // But if even that isn't possible, then we are truly done, and
+        // we return false.
+
+        false
     }
 }
 

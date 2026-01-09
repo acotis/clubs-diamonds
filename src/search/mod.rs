@@ -15,8 +15,10 @@ use std::marker::PhantomData;
 use std::time::Duration;
 use std::thread::sleep;
 
-use pivot::Op::{self, *};
 pub use writer::Writer; // temporary for testing only; todo: make non-pub.
+pub use writer::AddSubtractWriter;
+
+use pivot::Op::{self, *};
 use crate::ui::UI;
 use crate::ui::DefaultUI;
 use crate::ui::NullUI;
