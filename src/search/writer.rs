@@ -14,6 +14,41 @@ use std::marker::PhantomData;
 //    — These op levels have ops that probably never care: * / %
 //    — % does care about multiple constants (a%50%7)
 
+// In all content below, an expression of length N is considered
+// to honorarily comprise N+1 bytes, with the first byte being an
+// unwritten additional '|' sign before the first component. Each
+// component, including the first, therefore takes up exactly one
+// more byte than its actual length. We'll consider an expression
+// of actual length 12, and so virtual length 13.
+//
+// To avoid wasting computation, we only want to fiddle with the
+// length distributions as many times as we need to. So for example,
+// the first thing an OrWriter will try is to allocate all of its
+// bytes to a single XorWrite, so the pattern is 13. Once this
+// XorWriter is exhaused, the OrWriter will try another allocation
+// of bytes. It peels back the 13 and has 13 bytes to spare. It can
+// try writing an 12, leaving 1 byte to spare, but we are forbidden
+// to write a 1, so that doesn't work. So it peels back the 12 and
+// writes an 11, leaving 2 bytes to spare, and then it can write a
+// 2, leaving 0 bytes to spare, for the pattern 11+2.
+//
+// Now it will increment the 11 (actually 10) and 2 (actually 1)
+// in a cycle until they both collectively run out.
+//
+// Next, it will try another combination of lengths. It will peel
+// back the 2, and since it's a 2, it can't write anything else
+// there. So it peels back the 11 and has 13 bytes to spare. It will
+// try writing a 10, leaving 3 bytes, and then it can write a 3,
+// for the pattern 10+3.
+//
+// Once that's done, it peels back the 3. It can write a 2, for
+// a 10+2, leaving 1 byte, but then it's stuck, so it peels back
+// the 2, leaving 10, peels back the 10, tries a 9, and then writes
+// a 4, for 9+4.
+//
+// Once that's done, it goes to 9+2+2, and so on.
+
+
 // Let's try writing that AddSubtractWriter algorithm.
 //
 // This is another situation where an expression with N actual bytes can
@@ -131,6 +166,53 @@ impl OnelessPartition {
     }
 }
 
+// Now let's factor out a struct that manages an array of children of fixed
+// lengths (every time the lengths change, an fresh Children instance is
+// created to manage the new set of children).
+
+struct Children {
+    children: Vec<(usize, XorWriter<i32>)>, // just XorWriter for now
+}
+
+impl Children {
+    fn new_from_sizes(sizes: &[usize]) -> Self {
+        let mut ret = Self {
+            children: vec![]
+        };
+
+        let mut offset = 0;
+
+        for size in sizes {
+            ret.children.push((offset, XorWriter::<i32>::new(size - 1)));
+            offset += size;
+        }
+
+        ret
+    }
+
+    // Todo: account for the fact that even a Writer's first write can return
+    // false (that is, it is already exhausted when it gets created because
+    // there are no valid things it can write).
+
+    fn do_first_write(&mut self, dest: &mut [u8]) {
+        for (offset, child) in &mut self.children {
+            if *offset > 0 {dest[*offset-1] = b'|';}
+            child.write(&mut dest[*offset..]);
+        }
+    }
+
+    fn write(&mut self, dest: &mut [u8]) -> bool {
+        let mut next_to_write = self.children.len()-1;
+
+        loop {
+            let (offset, child) = &mut self.children[next_to_write];
+            if child.write(&mut dest[*offset..]) {return true}
+            if next_to_write == 0 {return false}
+            next_to_write -= 1;
+        }
+    }
+}
+
 
 // Now let's write the AddSubtract writer.
 
@@ -153,7 +235,6 @@ impl<N: Number> AddSubtractWriter<N> {
             children: vec![(0, XorWriter::<N>::new(length))],
         }
     }
-
 }
 
 
@@ -168,67 +249,28 @@ pub struct Writer<N: Number> {
     // intrinsic properties
 
     length: usize,
+    nothing: PhantomData<N>,
 
     // state
 
     partition: OnelessPartition,
-    children: Vec<(usize, XorWriter<N>)>, // offsets and writers
+    children: Children,
 }
 
 impl<N: Number> Writer<N> {
     pub fn new(_: usize, length: usize, _: u8, _: Option<Option<Op>>) -> Self {
+        let initial_partition = OnelessPartition::new(length + 1);
+
         Self {
             length,
-            partition: OnelessPartition::new(length + 1),
-            children: vec![(0, XorWriter::<N>::new(length))],
+            nothing: PhantomData,
+            children: Children::new_from_sizes(&initial_partition.state),
+            partition: initial_partition,
         }
     }
 
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
-
-        // In all content below, an expression of length N is considered
-        // to honorarily comprise N+1 bytes, with the first byte being an
-        // unwritten additional '|' sign before the first component. Each
-        // component, including the first, therefore takes up exactly one
-        // more byte than its actual length. We'll consider an expression
-        // of actual length 12, and so virtual length 13.
-
-        // To avoid wasting computation, we only want to fiddle with the
-        // length distributions as many times as we need to. So for example,
-        // the first thing an OrWriter will try is to allocate all of its
-        // bytes to a single XorWrite, so the pattern is 13. Once this
-        // XorWriter is exhaused, the OrWriter will try another allocation
-        // of bytes. It peels back the 13 and has 13 bytes to spare. It can
-        // try writing an 12, leaving 1 byte to spare, but we are forbidden
-        // to write a 1, so that doesn't work. So it peels back the 12 and
-        // writes an 11, leaving 2 bytes to spare, and then it can write a
-        // 2, leaving 0 bytes to spare, for the pattern 11+2.
-
-        // Now it will increment the 11 (actually 10) and 2 (actually 1)
-        // in a cycle until they both collectively run out.
-
-        // Next, it will try another combination of lengths. It will peel
-        // back the 2, and since it's a 2, it can't write anything else
-        // there. So it peels back the 11 and has 13 bytes to spare. It will
-        // try writing a 10, leaving 3 bytes, and then it can write a 3,
-        // for the pattern 10+3.
-
-        // Once that's done, it peels back the 3. It can write a 2, for
-        // a 10+2, leaving 1 byte, but then it's stuck, so it peels back
-        // the 2, leaving 10, peels back the 10, tries a 9, and then writes
-        // a 4, for 9+4.
-
-        // Once that's done, it goes to 9+2+2, and so on.
-
-        let vlen = self.length + 1;
-        let mut next_to_write = self.children.len()-1;
-
-        loop {
-            let (offset, child) = &mut self.children[next_to_write];
-            if child.write(&mut dest[*offset..]) {return true}
-            if next_to_write == 0 {break}
-            next_to_write -= 1;
-        }
+        if self.children.write(dest) {return true;}
 
         // If we fell through to here, we have exhausted all our writers
         // and need to re-distribute bytes.
@@ -240,8 +282,9 @@ impl<N: Number> Writer<N> {
         // Todo: consider the condition "self.children.len() * 2 == vlen".
         // Todo: or how about "self.children[0].length == 2".
 
+        let vlen = self.length + 1;
         if vlen <= 3 {return false}
-        if vlen <= 5 && self.children.len() == 2 {return false}
+        if vlen <= 5 && self.children.children.len() == 2 {return false}
 
         // If we didn't exit, go to the next partition. If that fails,
         // we're done, so return false.
@@ -251,17 +294,8 @@ impl<N: Number> Writer<N> {
         // If we made it to this point, we have a new partition and should
         // set up our new children.
 
-        let mut offset = 0;
-        self.children.clear();
-
-        for size in &self.partition.state {
-            if offset > 0 {dest[offset-1] = b'|';}
-
-            self.children.push((offset, XorWriter::<N>::new(size - 1)));
-            self.children.last_mut().unwrap().1.write(&mut dest[offset..]);
-
-            offset += size;
-        }
+        self.children = Children::new_from_sizes(&self.partition.state);
+        self.children.do_first_write(dest);
 
         true
     }
