@@ -2,11 +2,12 @@
 mod partition;
 mod children;
 
+pub use partition::Partition; // temporary. todo: make not public
+pub use children::Children;
+
 use crate::search::pivot::Pivot::*;
 use crate::search::pivot::Op;
 use crate::Number;
-use partition::Partition;
-use children::Children;
 
 use std::marker::PhantomData;
 

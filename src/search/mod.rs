@@ -5,6 +5,8 @@ mod writer;
 mod pivot;
 mod number;
 
+pub use writer::*; // temporary for testing only. todo: make non-pub.
+
 pub use searcher::Searcher;
 pub use expression::Expression;
 pub use number::Number;
@@ -14,9 +16,6 @@ use std::sync::mpsc;
 use std::marker::PhantomData;
 use std::time::Duration;
 use std::thread::sleep;
-
-pub use writer::Writer; // temporary for testing only; todo: make non-pub.
-pub use writer::AddSubtractWriter;
 
 use pivot::Op::{self, *};
 use crate::ui::UI;
