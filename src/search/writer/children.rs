@@ -1,4 +1,7 @@
 
+use crate::search::pivot::Pivot::*;
+use crate::search::pivot::Op::*;
+
 // Now let's factor out a struct that manages an array of children of fixed
 // lengths (every time the lengths change, an fresh Children instance is
 // created to manage the new set of children).
@@ -17,7 +20,7 @@ impl Children {
 
         for size in sizes {
             ret.children.push((offset, FillerWriter::new(*size)));
-            offset += size + 1;
+            offset += size + if offset == 0 {0} else {1};
         }
 
         ret
@@ -29,7 +32,7 @@ impl Children {
 
     pub fn do_first_write(&mut self, dest: &mut [u8]) {
         for (offset, child) in &mut self.children {
-            if *offset > 0 {dest[*offset-1] = b'|';}
+            if *offset > 0 {dest[*offset + child.length] = OpPivot(ORR).encode()}
             child.write(&mut dest[*offset..]);
         }
     }
@@ -63,16 +66,26 @@ impl FillerWriter {
     }
 
     fn write(&mut self, field: &mut [u8]) -> bool {
-        if !self.already_wrote {
-            for i in 0..self.length {
-                field[i] = b'x';
-            }
+        if self.already_wrote {return false}
 
-            self.already_wrote = true;
-            return true;
+        // The dummy filler is just "0*0*0..." (with one of the 0's being 90
+        // instead if the total number of bytes to fill is even).
+
+        for i in 0..self.length {
+            field[i] = if i == 0 || i % 2 == 1 {
+                ConstPivot(0).encode()
+            } else {
+                OpPivot(MUL).encode()
+            };
         }
 
-        false
+        if self.length % 2 == 0 {
+            field[0] = ConstPivot(90).encode();
+            field[self.length-1] = Nop.encode();
+        }
+
+        self.already_wrote = true;
+        true
     }
 }
 

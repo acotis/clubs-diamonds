@@ -1,12 +1,16 @@
 
 use clubs_diamonds::*;
+use std::marker::PhantomData;
 
 fn main() {
-    let mut field = [0_u8; 11];
-    let mut writer = AddSubtractWriter::<i32>::new(0, 11, 0, None);
+    let mut expr = Expression::<i32,1> {
+        field: vec![0; 11],
+        nothing: PhantomData,
+    };
+    let mut writer = Writer::<i32>::new(0, 11, 0, None);
 
-    while writer.write(&mut field) {
-        println!("{}", str::from_utf8(&field).unwrap())
+    while writer.write(&mut expr.field) {
+        println!("{expr}");
     }
 
     println!();
