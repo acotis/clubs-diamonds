@@ -112,13 +112,13 @@ impl<N: Number> AddSubtractWriter<N> {
         let vlen = self.length + 1;
         let vadd = self.add_allocation;
 
-        println!("  going to try writing subtracted chilren");
+        //println!("  going to try writing subtracted chilren");
 
         if vadd < vlen && self.sub_children.write(dest) {
             return true;
         }
 
-        println!("  going to try writing added children");
+        //println!("  going to try writing added children");
 
         if self.add_children.write(dest) {
             if vadd < vlen {
@@ -141,7 +141,7 @@ impl<N: Number> AddSubtractWriter<N> {
         // that incrementation is the "solution" to this Writer's overall
         // incrementation, and we return.
 
-        println!("  going to try incrementing subtracted partition");
+        //println!("  going to try incrementing subtracted partition");
 
         if vadd < vlen && self.sub_partition.next() {
             self.sub_children = Children::new_from_sizes(&self.sub_partition.state());
@@ -157,7 +157,7 @@ impl<N: Number> AddSubtractWriter<N> {
         // added components' bytes. If this occurs, we also reset the
         // partitioning of the subtracted components.
 
-        println!("  going to try incrementing added partition");
+        //println!("  going to try incrementing added partition");
         
         if self.add_partition.next() {
             self.add_children = Children::new_from_sizes(&self.add_partition.state());
@@ -179,7 +179,7 @@ impl<N: Number> AddSubtractWriter<N> {
         // the subtracted components. If this occurs, we also reset the
         // partitioning of added and subtracted components.
 
-        println!("  going to try shifting allocation");
+        //println!("  going to try shifting allocation");
 
         if self.add_allocation > 2 {
             self.add_allocation -= if vadd == vlen {2} else {1};
