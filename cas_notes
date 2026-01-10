@@ -77,3 +77,13 @@ The pivot is either a single << or a single >>, the left child gets the
 context.
     
 
+
+
+// Rules to remember:
+//    — These op levels are fully commutative and associative: | ^ &
+//    — These op levels have commutativity/associativity rules: + -
+//    — These op levels have commutative and associative ops: * / %
+//    — These op levels have pretty much nothing: << >> ! -
+//    — These op levels probably never care about multiple constants: | ^ & + -
+//    — These op levels have ops that probably never care: * / %
+//    — % does care about multiple constants (a%50%7)

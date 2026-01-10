@@ -1,6 +1,5 @@
 
 use crate::search::pivot::Pivot::*;
-use crate::search::Op::*;
 
 // Now let's factor out a struct that manages an array of children of fixed
 // lengths (every time the lengths change, an fresh Children instance is
@@ -8,7 +7,6 @@ use crate::search::Op::*;
 
 pub struct Children {
     children: Vec<(usize, FillerWriter)>, // just FillerWriter for now
-    write_op_after_first_child: bool,
     op_byte: u8,
 }
 
@@ -16,7 +14,6 @@ impl Children {
     fn new(op_byte: u8, sizes: &[usize], standard: bool) -> Self {
         let mut ret = Self {
             op_byte,
-            write_op_after_first_child: false,
             children: vec![]
         };
 
