@@ -1,6 +1,6 @@
 
 use crate::search::pivot::Pivot::*;
-use crate::search::pivot::Op::*;
+use crate::search::Op::*;
 
 // Now let's factor out a struct that manages an array of children of fixed
 // lengths (every time the lengths change, an fresh Children instance is
@@ -9,11 +9,13 @@ use crate::search::pivot::Op::*;
 pub struct Children {
     children: Vec<(usize, FillerWriter)>, // just FillerWriter for now
     write_op_after_first_child: bool,
+    op_byte: u8,
 }
 
 impl Children {
-    fn new(sizes: &[usize], standard: bool) -> Self {
+    fn new(op_byte: u8, sizes: &[usize], standard: bool) -> Self {
         let mut ret = Self {
+            op_byte,
             write_op_after_first_child: false,
             children: vec![]
         };
@@ -28,12 +30,12 @@ impl Children {
         ret
     }
 
-    pub fn standard(sizes: &[usize]) -> Self {
-        Self::new(sizes, true)
+    pub fn standard(op_byte: u8, sizes: &[usize]) -> Self {
+        Self::new(op_byte, sizes, true)
     }
 
-    pub fn extender(sizes: &[usize]) -> Self {
-        Self::new(sizes, false)
+    pub fn extender(op_byte: u8, sizes: &[usize]) -> Self {
+        Self::new(op_byte, sizes, false)
     }
 
     // Todo: account for the fact that even a Writer's first write can return
@@ -42,7 +44,7 @@ impl Children {
 
     pub fn do_first_write(&mut self, dest: &mut [u8]) {
         for (offset, child) in &mut self.children {
-            dest[*offset + child.length] = OpPivot(ORR).encode(); // this gets overwritten in a standard Children and kept in an extender
+            dest[*offset + child.length] = self.op_byte; // this gets overwritten in a standard Children and kept in an extender
             child.write(&mut dest[*offset..]);
         }
     }

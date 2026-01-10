@@ -134,7 +134,7 @@ impl Pivot {
         }
     }
 
-    pub fn encode(self) -> u8 {
+    pub const fn encode(self) -> u8 {
         match self {
             Nop => 255,
             OpPivot(NEG) => 254,

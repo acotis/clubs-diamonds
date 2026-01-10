@@ -76,7 +76,9 @@ use std::marker::PhantomData;
 // subtracted-terms bucket. When all such bucket allocations have been
 // exhausted, we are done.
 
-
+static ADD: u8 = OpPivot(Op::ADD).encode();
+static SUB: u8 = OpPivot(Op::SUB).encode();
+static OR:  u8 = OpPivot(Op::ORR).encode();
 
 // Now let's write the AddSubtract writer.
 
@@ -101,8 +103,8 @@ impl<N: Number> AddSubtractWriter<N> {
             nothing: PhantomData,
 
             bytes_add: length,
-            add_children: Children::standard(&add_partition.state()),
-            sub_children: Children::extender(&sub_partition.state()),
+            add_children: Children::standard(ADD, &add_partition.state()),
+            sub_children: Children::extender(SUB, &sub_partition.state()),
             add_partition,
             sub_partition,
         }
@@ -120,7 +122,7 @@ impl<N: Number> AddSubtractWriter<N> {
 
         if self.add_children.write(dest) {
             if self.bytes_add < self.length {
-                self.sub_children = Children::extender(&self.sub_partition.state());
+                self.sub_children = Children::extender(SUB, &self.sub_partition.state());
                 self.sub_children.do_first_write(&mut dest[self.bytes_add..]);
             }
         
@@ -141,7 +143,7 @@ impl<N: Number> AddSubtractWriter<N> {
         //println!("  going to try incrementing subtracted partition");
 
         if self.bytes_add < self.length && self.sub_partition.next() {
-            self.sub_children = Children::extender(&self.sub_partition.state());
+            self.sub_children = Children::extender(SUB, &self.sub_partition.state());
             self.sub_children.do_first_write(&mut dest[self.bytes_add..]);
 
             return true;
@@ -156,12 +158,12 @@ impl<N: Number> AddSubtractWriter<N> {
         //println!("  going to try incrementing added partition");
         
         if self.add_partition.next() {
-            self.add_children = Children::standard(&self.add_partition.state());
+            self.add_children = Children::standard(ADD, &self.add_partition.state());
             self.add_children.do_first_write(dest);
 
             if self.bytes_add < self.length {
                 self.sub_partition = Partition::extender(self.length - self.bytes_add);
-                self.sub_children = Children::extender(&self.sub_partition.state());
+                self.sub_children = Children::extender(SUB, &self.sub_partition.state());
                 self.sub_children.do_first_write(&mut dest[self.bytes_add..]);
             };
 
@@ -180,11 +182,11 @@ impl<N: Number> AddSubtractWriter<N> {
             self.bytes_add -= if self.bytes_add == self.length {2} else {1};
 
             self.add_partition = Partition::standard(self.bytes_add);
-            self.add_children = Children::standard(&self.add_partition.state());
+            self.add_children = Children::standard(ADD, &self.add_partition.state());
             self.add_children.do_first_write(dest);
 
             self.sub_partition = Partition::extender(self.length - self.bytes_add);
-            self.sub_children = Children::extender(&self.sub_partition.state());
+            self.sub_children = Children::extender(SUB, &self.sub_partition.state());
             self.sub_children.do_first_write(&mut dest[self.bytes_add..]);
 
             return true;
@@ -224,7 +226,7 @@ impl<N: Number> Writer<N> {
         Self {
             length,
             nothing: PhantomData,
-            children: Children::standard(&initial_partition.state()),
+            children: Children::standard(OR, &initial_partition.state()),
             partition: initial_partition,
         }
     }
@@ -249,7 +251,7 @@ impl<N: Number> Writer<N> {
         // If we didn't exit, try to go to the next partition.
 
         if self.partition.next() {
-            self.children = Children::standard(&self.partition.state());
+            self.children = Children::standard(OR, &self.partition.state());
             self.children.do_first_write(dest);
             return true;
         }
