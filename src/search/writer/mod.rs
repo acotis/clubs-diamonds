@@ -85,7 +85,7 @@ pub struct AddSubtractWriter<N: Number> {
     length: usize,
     nothing: PhantomData<N>,
 
-    add_allocation: usize, // virtual bytes (includes the unwritten + sign at the start of the expression)
+    bytes_add: usize, // virtual bytes (includes the unwritten + sign at the start of the expression)
     add_partition: Partition,
     sub_partition: Partition,
     add_children: Children,
@@ -101,7 +101,7 @@ impl<N: Number> AddSubtractWriter<N> {
             length,
             nothing: PhantomData,
 
-            add_allocation: length + 1,
+            bytes_add: length,
             add_children: Children::new_from_sizes(&add_partition.state()),
             sub_children: Children::new_from_sizes(&sub_partition.state()),
             add_partition,
@@ -110,22 +110,20 @@ impl<N: Number> AddSubtractWriter<N> {
     }
 
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
-        let vlen = self.length + 1;
-        let vadd = self.add_allocation;
 
         //println!("  going to try writing subtracted chilren");
 
-        if vadd < vlen && self.sub_children.write(dest) {
+        if self.bytes_add < self.length && self.sub_children.write(dest) {
             return true;
         }
 
         //println!("  going to try writing added children");
 
         if self.add_children.write(dest) {
-            if vadd < vlen {
+            if self.bytes_add < self.length {
                 self.sub_children = Children::new_from_sizes(&self.sub_partition.state());
-                dest[vadd-1] = b'-';
-                self.sub_children.do_first_write(&mut dest[vadd..]);
+                dest[self.bytes_add] = b'-';
+                self.sub_children.do_first_write(&mut dest[self.bytes_add+1..]);
             }
         
             return true;
@@ -144,10 +142,10 @@ impl<N: Number> AddSubtractWriter<N> {
 
         //println!("  going to try incrementing subtracted partition");
 
-        if vadd < vlen && self.sub_partition.next() {
+        if self.bytes_add < self.length && self.sub_partition.next() {
             self.sub_children = Children::new_from_sizes(&self.sub_partition.state());
-            dest[vadd-1] = b'-';
-            self.sub_children.do_first_write(&mut dest[vadd..]);
+            dest[self.bytes_add] = b'-';
+            self.sub_children.do_first_write(&mut dest[self.bytes_add+1..]);
 
             return true;
         }
@@ -164,11 +162,11 @@ impl<N: Number> AddSubtractWriter<N> {
             self.add_children = Children::new_from_sizes(&self.add_partition.state());
             self.add_children.do_first_write(dest);
 
-            if vadd < vlen {
-                self.sub_partition = Partition::new(vlen - vadd - 1);
+            if self.bytes_add < self.length {
+                self.sub_partition = Partition::new(self.length - self.bytes_add - 1);
                 self.sub_children = Children::new_from_sizes(&self.sub_partition.state());
-                dest[vadd-1]= b'-';
-                self.sub_children.do_first_write(&mut dest[vadd..]);
+                dest[self.bytes_add]= b'-';
+                self.sub_children.do_first_write(&mut dest[self.bytes_add+1..]);
             };
 
             return true;
@@ -182,19 +180,17 @@ impl<N: Number> AddSubtractWriter<N> {
 
         //println!("  going to try shifting allocation");
 
-        if self.add_allocation > 2 {
-            self.add_allocation -= if vadd == vlen {2} else {1};
+        if self.bytes_add > 1 {
+            self.bytes_add -= if self.bytes_add == self.length {2} else {1};
 
-            let vadd = self.add_allocation;
-
-            self.add_partition = Partition::new(vadd - 1);
+            self.add_partition = Partition::new(self.bytes_add);
             self.add_children = Children::new_from_sizes(&self.add_partition.state());
             self.add_children.do_first_write(dest);
 
-            self.sub_partition = Partition::new(vlen - vadd - 1);
+            self.sub_partition = Partition::new(self.length - self.bytes_add - 1);
             self.sub_children = Children::new_from_sizes(&self.sub_partition.state());
-            dest[vadd-1]= b'-';
-            self.sub_children.do_first_write(&mut dest[vadd..]);
+            dest[self.bytes_add]= b'-';
+            self.sub_children.do_first_write(&mut dest[self.bytes_add+1..]);
 
             return true;
         }
