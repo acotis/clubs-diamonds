@@ -101,7 +101,7 @@ impl<N: Number> AddSubtractWriter<N> {
             nothing: PhantomData,
 
             bytes_add: length,
-            add_children: Children::new_from_sizes(&add_partition.state()),
+            add_children: Children::standard(&add_partition.state()),
             sub_children: Children::extender(&sub_partition.state()),
             add_partition,
             sub_partition,
@@ -156,7 +156,7 @@ impl<N: Number> AddSubtractWriter<N> {
         //println!("  going to try incrementing added partition");
         
         if self.add_partition.next() {
-            self.add_children = Children::new_from_sizes(&self.add_partition.state());
+            self.add_children = Children::standard(&self.add_partition.state());
             self.add_children.do_first_write(dest);
 
             if self.bytes_add < self.length {
@@ -180,7 +180,7 @@ impl<N: Number> AddSubtractWriter<N> {
             self.bytes_add -= if self.bytes_add == self.length {2} else {1};
 
             self.add_partition = Partition::new(self.bytes_add);
-            self.add_children = Children::new_from_sizes(&self.add_partition.state());
+            self.add_children = Children::standard(&self.add_partition.state());
             self.add_children.do_first_write(dest);
 
             self.sub_partition = Partition::new(self.length - self.bytes_add - 1);
@@ -224,7 +224,7 @@ impl<N: Number> Writer<N> {
         Self {
             length,
             nothing: PhantomData,
-            children: Children::new_from_sizes(&initial_partition.state()),
+            children: Children::standard(&initial_partition.state()),
             partition: initial_partition,
         }
     }
@@ -249,7 +249,7 @@ impl<N: Number> Writer<N> {
         // If we didn't exit, try to go to the next partition.
 
         if self.partition.next() {
-            self.children = Children::new_from_sizes(&self.partition.state());
+            self.children = Children::standard(&self.partition.state());
             self.children.do_first_write(dest);
             return true;
         }

@@ -28,7 +28,7 @@ impl Children {
         ret
     }
 
-    pub fn new_from_sizes(sizes: &[usize]) -> Self {
+    pub fn standard(sizes: &[usize]) -> Self {
         Self::new(sizes, true)
     }
 
