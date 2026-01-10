@@ -202,30 +202,19 @@ impl<N: Number> AddSubtractWriter<N> {
 
 // This is implicitly an OrWriter.
 
-pub struct Writer<N: Number> {
-    // assume one input for now
-    // assume no required vars for now
-    // minimum precedence is meaningless here
-    // assume constant_cap is 155 for now
-
-    // intrinsic properties
-
+pub struct Writer {
     length: usize,
-    nothing: PhantomData<N>,
-
-    // state
 
     partition: Partition,
     children: Children,
 }
 
-impl<N: Number> Writer<N> {
-    pub fn new(_: usize, length: usize, _: u8, _: Option<Option<Op>>) -> Self {
+impl Writer {
+    pub fn new(length: usize) -> Self {
         let initial_partition = Partition::standard(length);
 
         Self {
             length,
-            nothing: PhantomData,
             children: Children::standard(OR, &initial_partition.state()),
             partition: initial_partition,
         }
@@ -234,30 +223,13 @@ impl<N: Number> Writer<N> {
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
         if self.children.write(dest) {return true}
 
-        // If we fell through to here, we have exhausted all our writers
-        // and need to re-distribute bytes.
-
-        // Quick-exit conditions:
-        //     1. 2 and 3 cannot be written as sums at all.
-        //     2. 4 can only be split as 2+2.
-        //     3. 5 can only be split as 3+2.
-        // Todo: consider the condition "self.children.len() * 2 == vlen".
-        // Todo: or how about "self.children[0].length == 2".
-
-        // let vlen = self.length + 1;
-        // if vlen <= 3 {return false}
-        // if vlen <= 5 && self.children.children.len() == 2 {return false}
-
-        // If we didn't exit, try to go to the next partition.
+        // todo: re-instate quick-exit conditions.
 
         if self.partition.next() {
             self.children = Children::standard(OR, &self.partition.state());
             self.children.do_first_write(dest);
             return true;
         }
-
-        // If we got to this point, we have no more paritions to cycle
-        // through, so we are done.
 
         false
     }

@@ -272,7 +272,8 @@ fn find_with_length_and_op<N: Number, const C: usize, J: Fn(&Expression<N, C>) -
     rx: mpsc::Receiver<ThreadCommand>,
 ) {
     let mut count = 0u128;
-    let mut writer = Writer::<N>::new(C, length, constant_cap, op_requirement);
+    //let mut writer = Writer::<N>::new(C, length, constant_cap, op_requirement);
+    let mut writer = Writer::new(length);
     let mut expr = Expression {
         field: vec![255; length],
         nothing: PhantomData::default(),
