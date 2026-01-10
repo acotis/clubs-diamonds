@@ -7,9 +7,8 @@ use super::super::*;
 
 use std::marker::PhantomData;
 
-pub struct AddSubtractWriter<N: Number> {
+pub struct AddSubtractWriter {
     length: usize,
-    nothing: PhantomData<N>,
 
     bytes_add: usize, // virtual bytes (includes the unwritten + sign at the start of the expression)
     add_partition: Partition,
@@ -18,14 +17,13 @@ pub struct AddSubtractWriter<N: Number> {
     sub_children: Children,
 }
 
-impl<N: Number> AddSubtractWriter<N> {
-    pub fn new(_: usize, length: usize, _: u8, _: Option<Option<Op>>) -> Self {
+impl AddSubtractWriter {
+    pub fn new(length: usize) -> Self {
         let add_partition = Partition::standard(length);
         let sub_partition = Partition::extender(0);
 
         Self {
             length,
-            nothing: PhantomData,
 
             bytes_add: length,
             add_children: Children::standard(ADD, &add_partition.state()),
