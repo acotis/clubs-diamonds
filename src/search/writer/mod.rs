@@ -266,32 +266,3 @@ impl<N: Number> Writer<N> {
     }
 }
 
-struct XorWriter<N: Number> {
-    length: usize,
-    already_wrote: bool,
-    nothing: PhantomData<N>,
-}
-
-impl<N: Number> XorWriter<N> {
-    fn new(length: usize) -> Self {
-        Self {
-            length,
-            already_wrote: false,
-            nothing: PhantomData,
-        }
-    }
-
-    fn write(&mut self, field: &mut [u8]) -> bool {
-        if !self.already_wrote {
-            for i in 0..self.length {
-                field[i] = b'x';
-            }
-
-            self.already_wrote = true;
-            return true;
-        }
-
-        false
-    }
-}
-

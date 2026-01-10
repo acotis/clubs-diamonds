@@ -1,12 +1,10 @@
 
-use super::XorWriter;
-
 // Now let's factor out a struct that manages an array of children of fixed
 // lengths (every time the lengths change, an fresh Children instance is
 // created to manage the new set of children).
 
 pub struct Children {
-    children: Vec<(usize, XorWriter<i32>)>, // just XorWriter for now
+    children: Vec<(usize, XorWriter)>, // just XorWriter for now
 }
 
 impl Children {
@@ -18,7 +16,7 @@ impl Children {
         let mut offset = 0;
 
         for size in sizes {
-            ret.children.push((offset, XorWriter::<i32>::new(*size)));
+            ret.children.push((offset, XorWriter::new(*size)));
             offset += size + 1;
         }
 
@@ -48,6 +46,33 @@ impl Children {
             if next_to_write == 0 {return false}
             next_to_write -= 1;
         }
+    }
+}
+
+struct XorWriter {
+    length: usize,
+    already_wrote: bool,
+}
+
+impl XorWriter {
+    fn new(length: usize) -> Self {
+        Self {
+            length,
+            already_wrote: false,
+        }
+    }
+
+    fn write(&mut self, field: &mut [u8]) -> bool {
+        if !self.already_wrote {
+            for i in 0..self.length {
+                field[i] = b'x';
+            }
+
+            self.already_wrote = true;
+            return true;
+        }
+
+        false
     }
 }
 
