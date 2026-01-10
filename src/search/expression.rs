@@ -45,7 +45,7 @@ impl<N: Number, const C: usize> Expression<N, C> {
 
         for code in &self.field {
             match Pivot::decode(*code) {
-                Nop           => {},
+                Nop | Filler(_)  => {},
                 OpPivot(NEG)  => {stack[pointer-1] = N::from_u8(0) - stack[pointer-1]}
                 OpPivot(NOT)  => {stack[pointer-1] = !stack[pointer-1];}
                 OpPivot(MUL)  => {stack[pointer-2] = stack[pointer-2].wrapping_mul(&stack[pointer-1]);          pointer -= 1;}
@@ -90,7 +90,8 @@ impl<N: Number, const C: usize> Expression<N, C> {
 
         match Pivot::decode(self.field[start]) {
             Nop           => {let (a, b, c) = self.stringify(start-1, var_names); (a, b, c+1)},
-            ConstPivot(p) => (format!("{p}"),                  !0, 1),
+            Filler(f)     => {("_".repeat(f as usize), !0, f as usize)},
+            ConstPivot(p) => (format!("{p}"), !0, 1),
             VarPivot(v)   => (format!("{}", var_names[v as usize]), !0, 1),
             OpPivot(op)   => {
                 if op.arity() == 1 {

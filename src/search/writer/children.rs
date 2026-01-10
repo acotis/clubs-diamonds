@@ -79,23 +79,7 @@ impl FillerWriter {
 
     fn write(&mut self, field: &mut [u8]) -> bool {
         if self.already_wrote {return false}
-
-        // The dummy filler is just "0*0*0..." (with one of the 0's being 90
-        // instead if the total number of bytes to fill is even).
-
-        for i in 0..self.length {
-            field[i] = if i == 0 || i % 2 == 1 {
-                ConstPivot(0).encode()
-            } else {
-                OpPivot(MUL).encode()
-            };
-        }
-
-        if self.length % 2 == 0 {
-            field[0] = ConstPivot(90).encode();
-            field[self.length-1] = Nop.encode();
-        }
-
+        field[self.length-1] = Filler(self.length as u8).encode();
         self.already_wrote = true;
         true
     }
