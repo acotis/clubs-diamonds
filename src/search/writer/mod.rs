@@ -93,8 +93,8 @@ pub struct AddSubtractWriter<N: Number> {
 
 impl<N: Number> AddSubtractWriter<N> {
     pub fn new(_: usize, length: usize, _: u8, _: Option<Option<Op>>) -> Self {
-        let add_partition = Partition::new(length);
-        let sub_partition = Partition::new(0);
+        let add_partition = Partition::standard(length);
+        let sub_partition = Partition::extender(0);
 
         Self {
             length,
@@ -160,7 +160,7 @@ impl<N: Number> AddSubtractWriter<N> {
             self.add_children.do_first_write(dest);
 
             if self.bytes_add < self.length {
-                self.sub_partition = Partition::new(self.length - self.bytes_add - 1);
+                self.sub_partition = Partition::extender(self.length - self.bytes_add);
                 self.sub_children = Children::extender(&self.sub_partition.state());
                 self.sub_children.do_first_write(&mut dest[self.bytes_add..]);
             };
@@ -179,11 +179,11 @@ impl<N: Number> AddSubtractWriter<N> {
         if self.bytes_add > 1 {
             self.bytes_add -= if self.bytes_add == self.length {2} else {1};
 
-            self.add_partition = Partition::new(self.bytes_add);
+            self.add_partition = Partition::standard(self.bytes_add);
             self.add_children = Children::standard(&self.add_partition.state());
             self.add_children.do_first_write(dest);
 
-            self.sub_partition = Partition::new(self.length - self.bytes_add - 1);
+            self.sub_partition = Partition::extender(self.length - self.bytes_add);
             self.sub_children = Children::extender(&self.sub_partition.state());
             self.sub_children.do_first_write(&mut dest[self.bytes_add..]);
 
@@ -219,7 +219,7 @@ pub struct Writer<N: Number> {
 
 impl<N: Number> Writer<N> {
     pub fn new(_: usize, length: usize, _: u8, _: Option<Option<Op>>) -> Self {
-        let initial_partition = Partition::new(length);
+        let initial_partition = Partition::standard(length);
 
         Self {
             length,

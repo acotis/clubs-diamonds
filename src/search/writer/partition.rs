@@ -10,9 +10,15 @@ pub struct Partition {
 }
 
 impl Partition {
-    pub fn new(total_len: usize) -> Self {
+    pub fn standard(total_len: usize) -> Self {
         Self {
             state: if total_len > 0 {vec![total_len]} else {vec![]},
+        }
+    }
+
+    pub fn extender(total_len: usize) -> Self {
+        Self {
+            state: if total_len > 0 {vec![total_len - 1]} else {vec![]},
         }
     }
 
