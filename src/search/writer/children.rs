@@ -4,7 +4,7 @@
 // created to manage the new set of children).
 
 pub struct Children {
-    children: Vec<(usize, XorWriter)>, // just XorWriter for now
+    children: Vec<(usize, FillerWriter)>, // just FillerWriter for now
 }
 
 impl Children {
@@ -16,7 +16,7 @@ impl Children {
         let mut offset = 0;
 
         for size in sizes {
-            ret.children.push((offset, XorWriter::new(*size)));
+            ret.children.push((offset, FillerWriter::new(*size)));
             offset += size + 1;
         }
 
@@ -49,12 +49,12 @@ impl Children {
     }
 }
 
-struct XorWriter {
+struct FillerWriter {
     length: usize,
     already_wrote: bool,
 }
 
-impl XorWriter {
+impl FillerWriter {
     fn new(length: usize) -> Self {
         Self {
             length,
