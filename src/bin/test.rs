@@ -7,7 +7,7 @@ fn main() {
         field: vec![0; 11],
         nothing: PhantomData,
     };
-    let mut writer = Writer::<i32>::new(0, 11, 0, None);
+    let mut writer = AddSubtractWriter::<i32>::new(0, 11, 0, None);
 
     while writer.write(&mut expr.field) {
         println!("{expr}");

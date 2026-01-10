@@ -8,11 +8,13 @@ use crate::search::pivot::Op::*;
 
 pub struct Children {
     children: Vec<(usize, FillerWriter)>, // just FillerWriter for now
+    write_op_after_first_child: bool,
 }
 
 impl Children {
-    pub fn new_from_sizes(sizes: &[usize]) -> Self {
+    fn new(sizes: &[usize], standard: bool) -> Self {
         let mut ret = Self {
+            write_op_after_first_child: false,
             children: vec![]
         };
 
@@ -20,10 +22,18 @@ impl Children {
 
         for size in sizes {
             ret.children.push((offset, FillerWriter::new(*size)));
-            offset += size + if offset == 0 {0} else {1};
+            offset += size + if standard && offset == 0 {0} else {1};
         }
 
         ret
+    }
+
+    pub fn new_from_sizes(sizes: &[usize]) -> Self {
+        Self::new(sizes, true)
+    }
+
+    pub fn extender(sizes: &[usize]) -> Self {
+        Self::new(sizes, false)
     }
 
     // Todo: account for the fact that even a Writer's first write can return
@@ -32,7 +42,7 @@ impl Children {
 
     pub fn do_first_write(&mut self, dest: &mut [u8]) {
         for (offset, child) in &mut self.children {
-            if *offset > 0 {dest[*offset + child.length] = OpPivot(ORR).encode()}
+            dest[*offset + child.length] = OpPivot(ORR).encode(); // this gets overwritten in a standard Children and kept in an extender
             child.write(&mut dest[*offset..]);
         }
     }
