@@ -94,7 +94,7 @@ pub struct AddSubtractWriter<N: Number> {
 
 impl<N: Number> AddSubtractWriter<N> {
     pub fn new(_: usize, length: usize, _: u8, _: Option<Option<Op>>) -> Self {
-        let add_partition = Partition::new(length + 1);
+        let add_partition = Partition::new(length);
         let sub_partition = Partition::new(0);
 
         Self {
@@ -165,7 +165,7 @@ impl<N: Number> AddSubtractWriter<N> {
             self.add_children.do_first_write(dest);
 
             if vadd < vlen {
-                self.sub_partition = Partition::new(vlen - vadd);
+                self.sub_partition = Partition::new(vlen - vadd - 1);
                 self.sub_children = Children::new_from_sizes(&self.sub_partition.state());
                 dest[vadd-1]= b'-';
                 self.sub_children.do_first_write(&mut dest[vadd..]);
@@ -187,11 +187,11 @@ impl<N: Number> AddSubtractWriter<N> {
 
             let vadd = self.add_allocation;
 
-            self.add_partition = Partition::new(vadd);
+            self.add_partition = Partition::new(vadd - 1);
             self.add_children = Children::new_from_sizes(&self.add_partition.state());
             self.add_children.do_first_write(dest);
 
-            self.sub_partition = Partition::new(vlen - vadd);
+            self.sub_partition = Partition::new(vlen - vadd - 1);
             self.sub_children = Children::new_from_sizes(&self.sub_partition.state());
             dest[vadd-1]= b'-';
             self.sub_children.do_first_write(&mut dest[vadd..]);
@@ -228,7 +228,7 @@ pub struct Writer<N: Number> {
 
 impl<N: Number> Writer<N> {
     pub fn new(_: usize, length: usize, _: u8, _: Option<Option<Op>>) -> Self {
-        let initial_partition = Partition::new(length + 1);
+        let initial_partition = Partition::new(length);
 
         Self {
             length,

@@ -18,8 +18,8 @@ impl Children {
         let mut offset = 0;
 
         for size in sizes {
-            ret.children.push((offset, XorWriter::<i32>::new(size - 1)));
-            offset += size;
+            ret.children.push((offset, XorWriter::<i32>::new(*size)));
+            offset += size + 1;
         }
 
         ret
