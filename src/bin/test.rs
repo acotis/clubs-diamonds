@@ -7,7 +7,7 @@ fn main() {
         field: vec![0; 11],
         nothing: PhantomData,
     };
-    let mut writer = AndWriter::new(11);
+    let mut writer = OrWriter::new(11);
 
     while writer.write(&mut expr.field) {
         println!("{expr}");

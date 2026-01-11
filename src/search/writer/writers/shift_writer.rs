@@ -1,25 +1,23 @@
 
-use crate::search::writer::Partition;
 use crate::search::writer::Children;
 use super::super::*;
 
-pub struct OrWriter {
+pub struct ShiftWriter {
     length: usize,
-
-    partition: Partition,
-    children: Children,
+    next_op: u8,
+    bytes_for_left: usize,
+    left_child: FillerWriter,
+    right_child: FillerWriter,
 }
 
-impl OrWriter {
+impl ShiftWriter {
     pub fn new(length: usize) -> Self {
-        let mut initial_partition = Partition::standard(length);
-
-        //initial_partition.next();
-
         Self {
             length,
-            children: Children::standard(OR, &initial_partition.state()),
-            partition: initial_partition,
+            next_op: LSL,
+            bytes_for_left: length - 3,
+            left_child: FillerWriter::new(length - 3),
+            right_child: FillerWriter::new(1),
         }
     }
 

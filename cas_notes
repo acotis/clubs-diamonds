@@ -78,7 +78,6 @@ context.
     
 
 
-
 // Rules to remember:
 //    — These op levels are fully commutative and associative: | ^ &
 //    — These op levels have commutativity/associativity rules: + -
@@ -87,3 +86,32 @@ context.
 //    — These op levels probably never care about multiple constants: | ^ & + -
 //    — These op levels have ops that probably never care: * / %
 //    — % does care about multiple constants (a%50%7)
+
+
+
+Here are the things a Writer is expected to do on consecutive writes:
+
+    If the | operator is allowed:
+        Write first pair of expressions and scaffolding
+        Write second pair of expressions
+        Write third pair ofexpressions
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
