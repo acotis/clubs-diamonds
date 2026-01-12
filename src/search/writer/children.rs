@@ -46,18 +46,29 @@ impl Children {
         }
     }
 
-    pub fn write(&mut self, dest: &mut [u8]) -> bool {
-        let mut next_to_write = self.children.len()-1;
+    // The .write() method 
 
-        loop {
-            let (offset, child) = &mut self.children[next_to_write];
-            if child.write(&mut dest[*offset..]) {
-                // todo: must also reset all children following this one
-                return true;
-            }
-            if next_to_write == 0 {return false}
-            next_to_write -= 1;
+    pub fn write(&mut self, dest: &mut [u8]) -> bool {
+        self.write_helper(dest, self.children.len()-1)
+    }
+
+    fn write_helper(&mut self, dest: &mut [u8], index: usize) -> bool {
+        let (offset, child) = &mut self.children[index];
+
+        if child.write(&mut dest[*offset..]) {
+            return true;
         }
+
+        if index == 0 {
+            return false;
+        }
+
+        if self.write_helper(dest, index-1) {
+            self.children[index].1.reset();
+            return self.write_helper(dest, index);
+        }
+
+        return false;
     }
 }
 
@@ -79,6 +90,10 @@ impl FillerWriter {
         field[self.length-1] = Filler(self.next_num, self.length as u8).encode();
         self.next_num += 1;
         true
+    }
+
+    fn reset(&mut self) {
+        self.next_num = 1;
     }
 }
 
