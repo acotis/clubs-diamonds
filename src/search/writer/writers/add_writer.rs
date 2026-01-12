@@ -7,7 +7,7 @@ use super::super::*;
 
 use std::marker::PhantomData;
 
-pub struct AddSubtractWriter {
+pub struct AddWriter {
     length: usize,
 
     bytes_add: usize, // virtual bytes (includes the unwritten + sign at the start of the expression)
@@ -16,7 +16,7 @@ pub struct AddSubtractWriter {
     children: Children,
 }
 
-impl AddSubtractWriter {
+impl AddWriter {
     pub fn new(length: usize) -> Self {
         let add_partition = Partition::standard(length);
         let sub_partition = Partition::extender(0);
@@ -63,7 +63,7 @@ impl AddSubtractWriter {
             }
 
             if self.bytes_add > 1 {
-                self.bytes_add -= 1;
+                self.bytes_add -= if self.bytes_add == self.length {2} else {1};
                 self.add_partition = Partition::standard(self.bytes_add);
                 self.sub_partition = Partition::extender(self.length - self.bytes_add);
                 self.children = Children::dual(
