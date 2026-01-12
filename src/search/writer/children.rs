@@ -27,9 +27,9 @@ impl Children {
 
         let mut offset = 0;
 
-        for &size in sizes.iter().chain(sizes_2.iter()) {
+        for &size in sizes_1.iter().chain(sizes_2.iter()) {
             ret.children.push((offset, FillerWriter::new(size)));
-            offset += size + if standard && offset == 0 {0} else {1};
+            offset += if offset == 0 {size} else {size + 1};
         }
 
         ret
@@ -44,13 +44,16 @@ impl Children {
     fn write_helper(&mut self, dest: &mut [u8], index: usize) -> bool {
         let (offset, child) = &mut self.children[index];
 
+        //println!("writing child at offset {offset} with length {}", child.length);
+
         if child.write(&mut dest[*offset..]) {
-            // the unnecessary first op gets overwritten by the following child
-            dest[*offset + child.length] = if index < self.children_in_group_1 {
-                self.op_byte_1
-            } else {
-                self.op_byte_2
-            };
+            if index > 0 {
+                dest[*offset + child.length] = if index < self.children_in_group_1 {
+                    self.op_byte_1
+                } else {
+                    self.op_byte_2
+                };
+            }
             return true;
         }
 

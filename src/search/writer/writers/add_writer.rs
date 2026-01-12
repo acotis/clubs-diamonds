@@ -45,8 +45,8 @@ impl AddSubtractWriter {
 
             if self.sub_partition.next() {
                 self.children = Children::dual(
-                    ADD, &add_partition.state(),
-                    SUB, &sub_partition.state(),
+                    ADD, &self.add_partition.state(),
+                    SUB, &self.sub_partition.state(),
                 );
 
                 continue;
@@ -55,8 +55,8 @@ impl AddSubtractWriter {
             if self.add_partition.next() {
                 self.sub_partition = Partition::extender(self.length - self.bytes_add);
                 self.children = Children::dual(
-                    ADD, &add_partition.state(),
-                    SUB, &sub_partition.state(),
+                    ADD, &self.add_partition.state(),
+                    SUB, &self.sub_partition.state(),
                 );
 
                 continue;
@@ -67,8 +67,8 @@ impl AddSubtractWriter {
                 self.add_partition = Partition::standard(self.bytes_add);
                 self.sub_partition = Partition::extender(self.length - self.bytes_add);
                 self.children = Children::dual(
-                    ADD, &add_partition.state(),
-                    SUB, &sub_partition.state(),
+                    ADD, &self.add_partition.state(),
+                    SUB, &self.sub_partition.state(),
                 );
 
                 continue;
