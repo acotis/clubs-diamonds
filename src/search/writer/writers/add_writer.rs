@@ -34,7 +34,6 @@ impl AddWriter {
     }
 
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
-
         loop {
             if self.children.write(dest) {
                 return true;
