@@ -7,43 +7,32 @@ use crate::search::pivot::Pivot::*;
 
 pub struct Children {
     children: Vec<(usize, FillerWriter)>, // just FillerWriter for now
-    op_byte: u8,
+    children_in_group_1: usize,
+    op_byte_1: u8,
+    op_byte_2: u8,
 }
 
 impl Children {
-    fn new(op_byte: u8, sizes: &[usize], standard: bool) -> Self {
+    pub fn standard(op_byte: u8, sizes: &[usize]) -> Self {
+        Self::dual(op_byte, sizes, 0, &[])
+    }
+
+    pub fn dual(op_byte_1: u8, sizes_1: &[usize], op_byte_2: u8, sizes_2: &[usize]) -> Self {
         let mut ret = Self {
-            op_byte,
-            children: vec![]
+            children: vec![],
+            children_in_group_1: sizes_1.len(),
+            op_byte_1,
+            op_byte_2,
         };
 
         let mut offset = 0;
 
-        for size in sizes {
-            ret.children.push((offset, FillerWriter::new(*size)));
+        for &size in sizes.iter().chain(sizes_2.iter()) {
+            ret.children.push((offset, FillerWriter::new(size)));
             offset += size + if standard && offset == 0 {0} else {1};
         }
 
         ret
-    }
-
-    pub fn standard(op_byte: u8, sizes: &[usize]) -> Self {
-        Self::new(op_byte, sizes, true)
-    }
-
-    pub fn extender(op_byte: u8, sizes: &[usize]) -> Self {
-        Self::new(op_byte, sizes, false)
-    }
-
-    // Todo: account for the fact that even a Writer's first write can return
-    // false (that is, it is already exhausted when it gets created because
-    // there are no valid things it can write).
-
-    pub fn do_first_write(&mut self, dest: &mut [u8]) {
-        for (offset, child) in &mut self.children {
-            dest[*offset + child.length] = self.op_byte; // this gets overwritten in a standard Children and kept in an extender
-            child.write(&mut dest[*offset..]);
-        }
     }
 
     // The .write() method 
@@ -56,6 +45,12 @@ impl Children {
         let (offset, child) = &mut self.children[index];
 
         if child.write(&mut dest[*offset..]) {
+            // the unnecessary first op gets overwritten by the following child
+            dest[*offset + child.length] = if index < self.children_in_group_1 {
+                self.op_byte_1
+            } else {
+                self.op_byte_2
+            };
             return true;
         }
 

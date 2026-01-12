@@ -24,17 +24,20 @@ impl OrWriter {
     }
 
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
-        if self.children.write(dest) {return true}
+        loop {
+            if self.children.write(dest) {
+                return true;
+            }
 
-        // todo: re-instate quick-exit conditions.
+            // todo: re-instate quick-exit conditions for partitions.
 
-        if self.partition.next() {
-            self.children = Children::standard(OR, &self.partition.state());
-            self.children.do_first_write(dest);
-            return true;
+            if self.partition.next() {
+                self.children = Children::standard(OR, &self.partition.state());
+                continue;
+            }
+
+            return false;
         }
-
-        false
     }
 }
 
