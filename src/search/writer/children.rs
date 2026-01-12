@@ -10,6 +10,7 @@ pub struct Children {
     children_in_group_1: usize,
     op_byte_1: u8,
     op_byte_2: u8,
+    first_write: bool,
 }
 
 impl Children {
@@ -23,6 +24,7 @@ impl Children {
             children_in_group_1: sizes_1.len(),
             op_byte_1,
             op_byte_2,
+            first_write: true,
         };
 
         let mut offset = 0;
@@ -38,7 +40,32 @@ impl Children {
     // The .write() method 
 
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
-        self.write_helper(dest, self.children.len()-1)
+        if self.first_write {
+            self.first_write = false;
+            self.first_write(dest)
+        } else {
+            self.write_helper(dest, self.children.len()-1)
+        }
+    }
+
+    fn first_write(&mut self, dest: &mut [u8]) -> bool {
+        for index in 0..self.children.len() {
+            let (offset, child) = &mut self.children[index];
+
+            if !child.write(&mut dest[*offset..]) {
+                return false;
+            }
+
+            if index > 0 {
+                dest[*offset + child.length] = if index < self.children_in_group_1 {
+                    self.op_byte_1
+                } else {
+                    self.op_byte_2
+                };
+            }
+        }
+
+        true
     }
 
     fn write_helper(&mut self, dest: &mut [u8], index: usize) -> bool {
@@ -47,13 +74,6 @@ impl Children {
         //println!("writing child at offset {offset} with length {}", child.length);
 
         if child.write(&mut dest[*offset..]) {
-            if index > 0 {
-                dest[*offset + child.length] = if index < self.children_in_group_1 {
-                    self.op_byte_1
-                } else {
-                    self.op_byte_2
-                };
-            }
             return true;
         }
 
