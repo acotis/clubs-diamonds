@@ -63,21 +63,21 @@ impl Children {
 
 struct FillerWriter {
     length: usize,
-    already_wrote: bool,
+    next_num: u8,
 }
 
 impl FillerWriter {
     fn new(length: usize) -> Self {
         Self {
             length,
-            already_wrote: false,
+            next_num: 1,
         }
     }
 
     fn write(&mut self, field: &mut [u8]) -> bool {
-        if self.already_wrote {return false}
-        field[self.length-1] = Filler(self.length as u8).encode();
-        self.already_wrote = true;
+        if self.next_num > 3 {return false}
+        field[self.length-1] = Filler(self.next_num, self.length as u8).encode();
+        self.next_num += 1;
         true
     }
 }
