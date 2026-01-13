@@ -6,4 +6,5 @@ pub mod or_writer;      pub use or_writer::*;
 pub mod add_writer;     pub use add_writer::*;
 //pub mod mul_writer;     pub use mul_writer::*;
 //pub mod neg_writer;     pub use neg_writer::*;
+pub mod atom_writer;    pub use atom_writer::*;
 

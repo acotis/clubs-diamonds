@@ -47,6 +47,7 @@ enum WriterState {
     Init,
     Or(OrWriter),
     Add(AddWriter),
+    Atom(AtomWriter),
     Done,
 }
 
@@ -83,6 +84,12 @@ impl Writer {
 
                 Add(ref mut writer) => {
                     if writer.write(dest) {return true;}
+                    self.init_atom_state();
+                    continue;
+                }
+
+                Atom(ref mut writer) => {
+                    if writer.write(dest) {return true;}
                     self.state = Done;
                     continue;
                 }
@@ -95,13 +102,18 @@ impl Writer {
     }
 
     fn init_or_state(&mut self) {
-        if self.length < 3 {self.init_done_state(); return;}
+        if self.length < 3 {self.init_atom_state(); return;}
         self.state = Or(OrWriter::new(self.length));
     }
 
     fn init_add_state(&mut self) {
-        if self.length < 3 {self.init_done_state(); return;}
+        if self.length < 3 {self.init_atom_state(); return;}
         self.state = Add(AddWriter::new(self.length));
+    }
+
+    fn init_atom_state(&mut self) {
+        if self.length > 2 {self.init_done_state(); return;}
+        self.state = Atom(AtomWriter::new(self.length));
     }
 
     fn init_done_state(&mut self) {
