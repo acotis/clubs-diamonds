@@ -18,8 +18,9 @@ pub struct AddWriter {
 
 impl AddWriter {
     pub fn new(length: usize) -> Self {
-        let add_partition = Partition::standard(length);
+        let mut add_partition = Partition::standard(length);
         let sub_partition = Partition::extender(0);
+        add_partition.next();
 
         Self {
             length,

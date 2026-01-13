@@ -1,12 +1,13 @@
 
 use crate::search::pivot::Pivot::*;
+use super::Writer;
 
 // Now let's factor out a struct that manages an array of children of fixed
 // lengths (every time the lengths change, an fresh Children instance is
 // created to manage the new set of children).
 
 pub struct Children {
-    children: Vec<(usize, FillerWriter)>, // just FillerWriter for now
+    children: Vec<(usize, Writer)>, // just FillerWriter for now
     children_in_group_1: usize,
     op_byte_1: u8,
     op_byte_2: u8,
@@ -30,7 +31,7 @@ impl Children {
         let mut offset = 0;
 
         for &size in sizes_1.iter().chain(sizes_2.iter()) {
-            ret.children.push((offset, FillerWriter::new(size)));
+            ret.children.push((offset, Writer::new(size)));
             offset += if offset == 0 {size} else {size + 1};
         }
 

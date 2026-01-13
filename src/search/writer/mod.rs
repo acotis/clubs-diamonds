@@ -68,6 +68,10 @@ impl Writer {
         }
     }
 
+    pub fn reset(&mut self) {
+        self.state = Init;
+    }
+
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
         loop {
             match self.state {

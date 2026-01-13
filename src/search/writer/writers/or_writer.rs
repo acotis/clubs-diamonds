@@ -13,8 +13,7 @@ pub struct OrWriter {
 impl OrWriter {
     pub fn new(length: usize) -> Self {
         let mut initial_partition = Partition::standard(length);
-
-        //initial_partition.next();
+        initial_partition.next();
 
         Self {
             length,

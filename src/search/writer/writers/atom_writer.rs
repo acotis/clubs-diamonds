@@ -21,14 +21,14 @@ impl AtomWriter {
     }
 
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
-        if self.next_write == 5 || self.next_write == 40 {
+        if self.next_write == 4 || self.next_write == 40 {
             return false;
         }
 
         match self.next_write {
-            1..=3   => {dest[0] = ConstPivot(self.next_write).encode();                         self.next_write += 1;}
+            1..=2   => {dest[0] = ConstPivot(self.next_write).encode();                         self.next_write += 1;}
             10..=40 => {dest[0] = ConstPivot(self.next_write).encode(); dest[1] = Nop.encode(); self.next_write += 10;}
-            4       => {dest[0] = VarPivot(0).encode(); self.next_write += 1;}
+            3       => {dest[0] = VarPivot(0).encode(); self.next_write += 1;}
             _ => panic!()
         }
 
