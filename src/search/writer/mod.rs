@@ -10,6 +10,9 @@ pub use writers::*;
 use crate::search::pivot::Pivot::*;
 use crate::search::pivot::Op;
 
+use WriterState::*;
+use Location::*;
+
 static OR:  u8 = OpPivot(Op::ORR).encode();
 static XOR: u8 = OpPivot(Op::XOR).encode();
 static AND: u8 = OpPivot(Op::AND).encode();
@@ -47,14 +50,24 @@ enum WriterState {
     Done,
 }
 
-struct Writer {
+pub struct Writer {
     length: usize,
     state: WriterState,
     context: WriterContext,
 }
 
 impl Writer {
-    fn write(&mut self, dest: &mut [u8]) {
+    pub fn new(length: usize) -> Self {
+        Self {
+            length,
+            state: Init,
+            context: WriterContext {
+                location: TOP
+            }
+        }
+    }
+
+    pub fn write(&mut self, dest: &mut [u8]) -> bool {
         loop {
             match self.state {
                 Init => {
@@ -79,6 +92,20 @@ impl Writer {
                 }
             }
         }
+    }
+
+    fn init_or_state(&mut self) {
+        if self.length < 3 {self.init_done_state(); return;}
+        self.state = Or(OrWriter::new(self.length));
+    }
+
+    fn init_add_state(&mut self) {
+        if self.length < 3 {self.init_done_state(); return;}
+        self.state = Add(AddWriter::new(self.length));
+    }
+
+    fn init_done_state(&mut self) {
+        self.state = Done;
     }
 }
 

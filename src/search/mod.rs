@@ -272,7 +272,7 @@ fn find_with_length_and_op<N: Number, const C: usize, J: Fn(&Expression<N, C>) -
     rx: mpsc::Receiver<ThreadCommand>,
 ) {
     let mut count = 0u128;
-    let mut writer = Writer::<N>::new(C, length, constant_cap, op_requirement);
+    let mut writer = TempWriter::<N>::new(C, length, constant_cap, op_requirement);
     let mut expr = Expression {
         field: vec![255; length],
         nothing: PhantomData::default(),
@@ -329,11 +329,11 @@ fn find_with_length_and_op<N: Number, const C: usize, J: Fn(&Expression<N, C>) -
 // Putting this here just so this module compiles while I work on rewriting
 // the real Writer type. Todo: remove this.
 
-struct Writer<N: Number> {
+struct TempWriter<N: Number> {
     nothing: PhantomData<N>,
 }
 
-impl<N: Number> Writer<N> {
+impl<N: Number> TempWriter<N> {
     fn new(_: usize, _: usize, _: u8, _: Option<Option<Op>>) -> Self {
         Self {
             nothing: PhantomData,
