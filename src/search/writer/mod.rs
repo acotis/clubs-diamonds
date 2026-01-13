@@ -23,3 +23,62 @@ static MOD: u8 = OpPivot(Op::MOD).encode();
 static NEG: u8 = OpPivot(Op::NEG).encode();
 static NOT: u8 = OpPivot(Op::NOT).encode();
 
+enum Location {
+    TOP,
+    OR,
+    XOR,
+    AND,
+    LEFT_OF_SHIFT,
+    RIGHT_OF_SHIFT,
+    ADD,
+    LEFT_OF_MUL,
+    RIGHT_OF_MUL,
+    NEG,
+}
+
+struct WriterContext {
+    location: Location,
+}
+
+enum WriterState {
+    Init,
+    Or(OrWriter),
+    Add(AddWriter),
+    Done,
+}
+
+struct Writer {
+    length: usize,
+    state: WriterState,
+    context: WriterContext,
+}
+
+impl Writer {
+    fn write(&mut self, dest: &mut [u8]) {
+        loop {
+            match self.state {
+                Init => {
+                    self.init_or_state();
+                    continue;
+                }
+
+                Or(ref mut writer) => {
+                    if writer.write(dest) {return true;}
+                    self.init_add_state();
+                    continue;
+                }
+
+                Add(ref mut writer) => {
+                    if writer.write(dest) {return true;}
+                    self.state = Done;
+                    continue;
+                }
+
+                Done => {
+                    return false;
+                }
+            }
+        }
+    }
+}
+
