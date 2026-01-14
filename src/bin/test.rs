@@ -7,10 +7,13 @@ fn main() {
         field: vec![0; 6],
         nothing: PhantomData,
     };
-    let mut writer = Writer::new(6);
+
+    let mut writer = Writer::new(6, WriterContext {location: Location::TOP});
+    let mut count = 0;
 
     while writer.write(&mut expr.field) {
-        println!("{expr}");
+        count += 1;
+        println!("{count:6}.  {expr}");
     }
 
     println!();

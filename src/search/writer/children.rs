@@ -1,6 +1,6 @@
 
 use crate::search::pivot::Pivot::*;
-use super::Writer;
+use super::{Writer, WriterContext, Location};
 
 // Now let's factor out a struct that manages an array of children of fixed
 // lengths (every time the lengths change, an fresh Children instance is
@@ -15,11 +15,11 @@ pub struct Children {
 }
 
 impl Children {
-    pub fn standard(op_byte: u8, sizes: &[usize]) -> Self {
-        Self::dual(op_byte, sizes, 0, &[])
+    pub fn standard(location: Location, op_byte: u8, sizes: &[usize]) -> Self {
+        Self::dual(location, op_byte, sizes, 0, &[])
     }
 
-    pub fn dual(op_byte_1: u8, sizes_1: &[usize], op_byte_2: u8, sizes_2: &[usize]) -> Self {
+    pub fn dual(location: Location, op_byte_1: u8, sizes_1: &[usize], op_byte_2: u8, sizes_2: &[usize]) -> Self {
         let mut ret = Self {
             children: vec![],
             children_in_group_1: sizes_1.len(),
@@ -31,7 +31,7 @@ impl Children {
         let mut offset = 0;
 
         for &size in sizes_1.iter().chain(sizes_2.iter()) {
-            ret.children.push((offset, Writer::new(size)));
+            ret.children.push((offset, Writer::new(size, WriterContext {location})));
             offset += if offset == 0 {size} else {size + 1};
         }
 

@@ -17,7 +17,7 @@ impl OrWriter {
 
         Self {
             length,
-            children: Children::standard(OR, &initial_partition.state()),
+            children: Children::standard(CHILD_OF_OR, OR, &initial_partition.state()),
             partition: initial_partition,
         }
     }
@@ -31,7 +31,7 @@ impl OrWriter {
             // todo: re-instate quick-exit conditions for partitions.
 
             if self.partition.next() {
-                self.children = Children::standard(OR, &self.partition.state());
+                self.children = Children::standard(CHILD_OF_OR, OR, &self.partition.state());
                 continue;
             }
 

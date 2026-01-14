@@ -26,8 +26,9 @@ impl AddWriter {
             length,
             bytes_add: length,
             children: Children::dual(
+                CHILD_OF_ADD,
                 ADD, &add_partition.state(),
-                SUB, &sub_partition.state()
+                SUB, &sub_partition.state(),
             ),
             add_partition,
             sub_partition,
@@ -45,6 +46,7 @@ impl AddWriter {
 
             if self.sub_partition.next() {
                 self.children = Children::dual(
+                    CHILD_OF_ADD,
                     ADD, &self.add_partition.state(),
                     SUB, &self.sub_partition.state(),
                 );
@@ -55,6 +57,7 @@ impl AddWriter {
             if self.add_partition.next() {
                 self.sub_partition = Partition::extender(self.length - self.bytes_add);
                 self.children = Children::dual(
+                    CHILD_OF_ADD,
                     ADD, &self.add_partition.state(),
                     SUB, &self.sub_partition.state(),
                 );
@@ -67,6 +70,7 @@ impl AddWriter {
                 self.add_partition = Partition::standard(self.bytes_add);
                 self.sub_partition = Partition::extender(self.length - self.bytes_add);
                 self.children = Children::dual(
+                    CHILD_OF_ADD,
                     ADD, &self.add_partition.state(),
                     SUB, &self.sub_partition.state(),
                 );

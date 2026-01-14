@@ -26,21 +26,22 @@ static MOD: u8 = OpPivot(Op::MOD).encode();
 static NEG: u8 = OpPivot(Op::NEG).encode();
 static NOT: u8 = OpPivot(Op::NOT).encode();
 
-enum Location {
+#[derive(Copy, Clone)]
+pub enum Location {
     TOP,
-    OR,
-    XOR,
-    AND,
-    LEFT_OF_SHIFT,
-    RIGHT_OF_SHIFT,
-    ADD,
-    LEFT_OF_MUL,
-    RIGHT_OF_MUL,
-    NEG,
+    CHILD_OF_OR,
+    CHILD_OF_XOR,
+    CHILD_OF_AND,
+    LEFT_CHILD_OF_SHIFT,
+    RIGHT_CHILD_OF_SHIFT,
+    CHILD_OF_ADD,
+    LEFT_CHILD_OF_MUL,
+    RIGHT_CHILD_OF_MUL,
+    CHILD_OF_NEG,
 }
 
-struct WriterContext {
-    location: Location,
+pub struct WriterContext {
+    pub location: Location,
 }
 
 enum WriterState {
@@ -58,7 +59,7 @@ pub struct Writer {
 }
 
 impl Writer {
-    pub fn new(length: usize) -> Self {
+    pub fn new(length: usize, context: WriterContext) -> Self {
         Self {
             length,
             state: Init,
