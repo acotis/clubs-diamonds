@@ -1,10 +1,10 @@
 
 mod partition;
-mod children;
+mod calset;
 mod writers;
 
 pub use partition::Partition; // temporary. todo: make not public
-pub use children::Children;
+pub use calset::CalSet;
 pub use writers::*;
 
 use crate::search::pivot::Pivot::*;

@@ -1,13 +1,13 @@
 
 use crate::search::writer::Partition;
-use crate::search::writer::Children;
+use crate::search::writer::CalSet;
 use super::super::*;
 
 pub struct OrWriter {
     length: usize,
 
     partition: Partition,
-    children: Children,
+    children: CalSet,
 }
 
 impl OrWriter {
@@ -17,7 +17,7 @@ impl OrWriter {
 
         Self {
             length,
-            children: Children::standard(CHILD_OF_OR, OR, &initial_partition.state()),
+            children: CalSet::standard(CHILD_OF_OR, OR, &initial_partition.state()),
             partition: initial_partition,
         }
     }
@@ -31,7 +31,7 @@ impl OrWriter {
             // todo: re-instate quick-exit conditions for partitions.
 
             if self.partition.next() {
-                self.children = Children::standard(CHILD_OF_OR, OR, &self.partition.state());
+                self.children = CalSet::standard(CHILD_OF_OR, OR, &self.partition.state());
                 continue;
             }
 

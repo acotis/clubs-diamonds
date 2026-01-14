@@ -1,7 +1,7 @@
 
 use crate::Number;
 use crate::search::writer::Partition;
-use crate::search::writer::Children;
+use crate::search::writer::CalSet;
 
 use super::super::*;
 
@@ -13,7 +13,7 @@ pub struct AddWriter {
     bytes_add: usize, // virtual bytes (includes the unwritten + sign at the start of the expression)
     add_partition: Partition,
     sub_partition: Partition,
-    children: Children,
+    children: CalSet,
 }
 
 impl AddWriter {
@@ -25,7 +25,7 @@ impl AddWriter {
         Self {
             length,
             bytes_add: length,
-            children: Children::dual(
+            children: CalSet::dual(
                 CHILD_OF_ADD,
                 ADD, &add_partition.state(),
                 SUB, &sub_partition.state(),
@@ -45,7 +45,7 @@ impl AddWriter {
             // it is a dual parititon, this is slightly involved.
 
             if self.sub_partition.next() {
-                self.children = Children::dual(
+                self.children = CalSet::dual(
                     CHILD_OF_ADD,
                     ADD, &self.add_partition.state(),
                     SUB, &self.sub_partition.state(),
@@ -56,7 +56,7 @@ impl AddWriter {
 
             if self.add_partition.next() {
                 self.sub_partition = Partition::extender(self.length - self.bytes_add);
-                self.children = Children::dual(
+                self.children = CalSet::dual(
                     CHILD_OF_ADD,
                     ADD, &self.add_partition.state(),
                     SUB, &self.sub_partition.state(),
@@ -69,7 +69,7 @@ impl AddWriter {
                 self.bytes_add -= if self.bytes_add == self.length {2} else {1};
                 self.add_partition = Partition::standard(self.bytes_add);
                 self.sub_partition = Partition::extender(self.length - self.bytes_add);
-                self.children = Children::dual(
+                self.children = CalSet::dual(
                     CHILD_OF_ADD,
                     ADD, &self.add_partition.state(),
                     SUB, &self.sub_partition.state(),

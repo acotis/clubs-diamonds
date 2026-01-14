@@ -1,8 +1,5 @@
 
-use crate::search::writer::Partition;
-use crate::search::writer::Children;
 use super::super::*;
-use crate::search::pivot::Op;
 
 pub struct ConstWriter {
     length: usize,

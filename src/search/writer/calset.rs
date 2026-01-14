@@ -3,10 +3,16 @@ use crate::search::pivot::Pivot::*;
 use super::{Writer, WriterContext, Location};
 
 // Now let's factor out a struct that manages an array of children of fixed
-// lengths (every time the lengths change, an fresh Children instance is
+// lengths (every time the lengths change, an fresh CalSet instance is
 // created to manage the new set of children).
 
-pub struct Children {
+// The CalSet struct manages the children of any operator which is
+// Commutative, Associative, and Liquifying (merges constants). It can
+// also handle the addition/subtraction layer (a pair of operators which
+// honorarily have these three properties when considered in tandem)
+// via its CalSet::dual() method.
+
+pub struct CalSet {
     children: Vec<(usize, Writer)>, // just FillerWriter for now
     children_in_group_1: usize,
     op_byte_1: u8,
@@ -14,7 +20,7 @@ pub struct Children {
     first_write: bool,
 }
 
-impl Children {
+impl CalSet {
     pub fn standard(location: Location, op_byte: u8, sizes: &[usize]) -> Self {
         Self::dual(location, op_byte, sizes, 0, &[])
     }
