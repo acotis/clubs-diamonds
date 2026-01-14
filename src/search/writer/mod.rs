@@ -60,7 +60,6 @@ pub struct Writer {
 
 impl Writer {
     pub fn new(length: usize, context: WriterContext) -> Self {
-        println!("creating writer with location {:?}", context.location);
         Self {
             length,
             state: Init,
@@ -81,11 +80,6 @@ impl Writer {
                 }
 
                 Or(ref mut writer) => {
-                    if self.context.location == CHILD_OF_OR {
-                        //println!("writing or in an or child? [{}]", self.length);
-                    } else {
-                        //println!("writing or because location is {:?} [{}]", self.context.location, self.length);
-                    }
                     if writer.write(dest) {return true;}
                     self.init_add_state();
                     continue;
