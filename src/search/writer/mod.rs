@@ -48,7 +48,8 @@ enum WriterState {
     Init,
     Or(OrWriter),
     Add(AddWriter),
-    Atom(AtomWriter),
+    Const(ConstWriter),
+    Var(VarWriter),
     Done,
 }
 
@@ -87,13 +88,19 @@ impl Writer {
 
                 Add(ref mut writer) => {
                     if writer.write(dest) {return true;}
-                    self.init_atom_state();
+                    self.init_const_state();
                     continue;
                 }
 
-                Atom(ref mut writer) => {
+                Const(ref mut writer) => {
                     if writer.write(dest) {return true;}
-                    self.state = Done;
+                    self.init_var_state();
+                    continue;
+                }
+
+                Var(ref mut writer) => {
+                    if writer.write(dest) {return true;}
+                    self.init_done_state();
                     continue;
                 }
 
@@ -105,20 +112,25 @@ impl Writer {
     }
 
     fn init_or_state(&mut self) {
-        if self.length < 3 {self.init_atom_state(); return;}
+        if self.length < 3 {self.init_const_state(); return;}
         if self.context.location == CHILD_OF_OR {self.init_add_state(); return;}
         self.state = Or(OrWriter::new(self.length));
     }
 
     fn init_add_state(&mut self) {
-        if self.length < 3 {self.init_atom_state(); return;}
-        if self.context.location == CHILD_OF_ADD {self.init_atom_state(); return;}
+        if self.length < 3 {self.init_const_state(); return;}
+        if self.context.location == CHILD_OF_ADD {self.init_const_state(); return;}
         self.state = Add(AddWriter::new(self.length));
     }
 
-    fn init_atom_state(&mut self) {
-        if self.length > 2 {self.init_done_state(); return;}
-        self.state = Atom(AtomWriter::new(self.length));
+    fn init_const_state(&mut self) {
+        if self.length > 2 {self.init_var_state(); return;}
+        self.state = Const(ConstWriter::new(self.length));
+    }
+
+    fn init_var_state(&mut self) {
+        if self.length > 1 {self.init_done_state(); return;}
+        self.state = Var(VarWriter::new(self.length));
     }
 
     fn init_done_state(&mut self) {
