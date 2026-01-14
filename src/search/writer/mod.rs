@@ -26,7 +26,7 @@ static MOD: u8 = OpPivot(Op::MOD).encode();
 static NEG: u8 = OpPivot(Op::NEG).encode();
 static NOT: u8 = OpPivot(Op::NOT).encode();
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Location {
     TOP,
     CHILD_OF_OR,
@@ -60,12 +60,11 @@ pub struct Writer {
 
 impl Writer {
     pub fn new(length: usize, context: WriterContext) -> Self {
+        println!("creating writer with location {:?}", context.location);
         Self {
             length,
             state: Init,
-            context: WriterContext {
-                location: TOP
-            }
+            context,
         }
     }
 
@@ -82,6 +81,11 @@ impl Writer {
                 }
 
                 Or(ref mut writer) => {
+                    if self.context.location == CHILD_OF_OR {
+                        //println!("writing or in an or child? [{}]", self.length);
+                    } else {
+                        //println!("writing or because location is {:?} [{}]", self.context.location, self.length);
+                    }
                     if writer.write(dest) {return true;}
                     self.init_add_state();
                     continue;
@@ -108,11 +112,13 @@ impl Writer {
 
     fn init_or_state(&mut self) {
         if self.length < 3 {self.init_atom_state(); return;}
+        if self.context.location == CHILD_OF_OR {self.init_add_state(); return;}
         self.state = Or(OrWriter::new(self.length));
     }
 
     fn init_add_state(&mut self) {
         if self.length < 3 {self.init_atom_state(); return;}
+        if self.context.location == CHILD_OF_ADD {self.init_atom_state(); return;}
         self.state = Add(AddWriter::new(self.length));
     }
 
