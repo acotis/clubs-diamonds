@@ -37,7 +37,7 @@ impl CalSet {
         let mut offset = 0;
 
         for &size in sizes_1.iter().chain(sizes_2.iter()) {
-            ret.children.push((offset, Writer::new(size, WriterContext {location})));
+            ret.children.push((offset, Writer::new(size, WriterContext {location, const_allowed: true})));
             offset += if offset == 0 {size} else {size + 1};
         }
 
@@ -57,6 +57,12 @@ impl CalSet {
 
     fn first_write(&mut self, dest: &mut [u8]) -> bool {
         for index in 0..self.children.len() {
+            if index > 0 {
+                self.children[index].1.context.const_allowed =
+                    self.children[index-1].1.context.const_allowed &&
+                   !self.children[index-1].1.is_const();
+            }
+
             let (offset, child) = &mut self.children[index];
 
             if !child.write(&mut dest[*offset..]) {
@@ -76,6 +82,12 @@ impl CalSet {
     }
 
     fn write_helper(&mut self, dest: &mut [u8], index: usize) -> bool {
+        if index > 0 {
+            self.children[index].1.context.const_allowed =
+                self.children[index-1].1.context.const_allowed &&
+               !self.children[index-1].1.is_const();
+        }
+
         let (offset, child) = &mut self.children[index];
 
         //println!("writing child at offset {offset} with length {}", child.length);

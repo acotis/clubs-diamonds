@@ -8,7 +8,7 @@ fn main() {
         nothing: PhantomData,
     };
 
-    let mut writer = Writer::new(6, WriterContext {location: Location::TOP});
+    let mut writer = Writer::new(6, WriterContext {location: Location::TOP, const_allowed: true});
     let mut count = 0;
 
     while writer.write(&mut expr.field) {

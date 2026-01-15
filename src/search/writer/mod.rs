@@ -42,6 +42,7 @@ pub enum Location {
 
 pub struct WriterContext {
     pub location: Location,
+    pub const_allowed: bool,
 }
 
 enum WriterState {
@@ -56,7 +57,7 @@ enum WriterState {
 pub struct Writer {
     length: usize,
     state: WriterState,
-    context: WriterContext,
+    pub context: WriterContext,
 }
 
 impl Writer {
@@ -70,6 +71,10 @@ impl Writer {
 
     pub fn reset(&mut self) {
         self.state = Init;
+    }
+
+    pub fn is_const(&self) -> bool {
+        matches!(self.state, Const(_))
     }
 
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
@@ -124,6 +129,7 @@ impl Writer {
     }
 
     fn init_const_state(&mut self) {
+        if !self.context.const_allowed {self.init_var_state(); return;}
         if self.length > 2 {self.init_var_state(); return;}
         self.state = Const(ConstWriter::new(self.length));
     }
