@@ -53,6 +53,7 @@ enum WriterState {
     Shift(ShiftWriter),
     Add(AddWriter),
     Mul(MulWriter),
+    Neg(NegWriter),
     Const(ConstWriter),
     Var(VarWriter),
     Done,
@@ -112,6 +113,12 @@ impl Writer {
 
                 Mul(ref mut writer) => {
                     if writer.write(dest) {return true;}
+                    self.init_neg_state(dest);
+                    continue;
+                }
+
+                Neg(ref mut writer) => {
+                    if writer.write(dest) {return true;}
                     self.init_const_state(dest);
                     continue;
                 }
@@ -169,12 +176,18 @@ impl Writer {
 
     fn init_mul_state(&mut self, dest: &mut [u8]) {
         let wasted_space = if self.context.location > LEFT_CHILD_OF_MUL {2} else {0};
-        if self.length < wasted_space + 3 {self.init_const_state(dest); return;}
+        if self.length < wasted_space + 3 {self.init_neg_state(dest); return;}
 
         dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();
 
         self.state = Mul(MulWriter::new(self.length - wasted_space));
+    }
+
+    fn init_neg_state(&mut self, dest: &mut [u8]) {
+        if self.length < 2 {self.init_const_state(dest); return;}
+
+        self.state = Neg(NegWriter::new(self.length));
     }
 
     fn init_const_state(&mut self, dest: &mut [u8]) {
