@@ -4,8 +4,9 @@ use clubs_diamonds::{Searcher, Expression};
 fn main() {
     let (count, solutions) =
         Searcher::<i32, 1>::new(|expr: &Expression::<i32, 1>| {
-            (0..95).all(|a|
-                expr.apply(&[a]) == Some(32|5<<a+3)
+            (-1000..=1000).all(|a|
+                //expr.apply(&[a]) == if a == 0 {None} else {Some(2^1/a/8-3)}
+                expr.apply(&[a]) == Some(a/24^26-a)
             )
         })
         .threads(3)
