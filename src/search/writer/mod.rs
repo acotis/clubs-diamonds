@@ -1,10 +1,10 @@
 
 mod partition;
-mod calset;
+mod children;
 mod writers;
 
 pub use partition::Partition; // temporary. todo: make not public
-pub use calset::CalSet;
+pub use children::Children;
 pub use writers::*;
 
 use crate::search::pivot::Pivot::*;
@@ -48,6 +48,7 @@ pub struct WriterContext {
 enum WriterState {
     Init,
     Or(OrWriter),
+    Shift(ShiftWriter),
     Add(AddWriter),
     Const(ConstWriter),
     Var(VarWriter),
@@ -87,6 +88,12 @@ impl Writer {
 
                 Or(ref mut writer) => {
                     if writer.write(dest) {return true;}
+                    self.init_shift_state(dest);
+                    continue;
+                }
+
+                Shift(ref mut writer) => {
+                    if writer.write(dest) {return true;}
                     self.init_add_state(dest);
                     continue;
                 }
@@ -119,12 +126,22 @@ impl Writer {
     fn init_or_state(&mut self, dest: &mut [u8]) {
         let wasted_space = if self.context.location > CHILD_OF_OR {2} else {0};
         if self.length < wasted_space + 3 {self.init_const_state(dest); return;}
-        if self.context.location == CHILD_OF_OR {self.init_add_state(dest); return;}
+        if self.context.location == CHILD_OF_OR {self.init_shift_state(dest); return;}
 
-        dest[self.length-1] = Nop.encode(); // in case there are parense
+        dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();
 
         self.state = Or(OrWriter::new(self.length - wasted_space));
+    }
+
+    fn init_shift_state(&mut self, dest: &mut [u8]) {
+        let wasted_space = 1 + if self.context.location > LEFT_CHILD_OF_SHIFT {2} else {0};
+        if self.length < wasted_space + 3 {self.init_add_state(dest); return;}
+
+        dest[self.length-1] = Nop.encode(); // in case there are parens
+        dest[self.length-2] = Nop.encode();
+
+        self.state = Shift(ShiftWriter::new(self.length - wasted_space + 1));
     }
 
     fn init_add_state(&mut self, dest: &mut [u8]) {
@@ -132,7 +149,7 @@ impl Writer {
         if self.length < wasted_space + 3 {self.init_const_state(dest); return;}
         if self.context.location == CHILD_OF_ADD {self.init_const_state(dest); return;}
 
-        dest[self.length-1] = Nop.encode(); // in case there are parense
+        dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();
 
         self.state = Add(AddWriter::new(self.length));
