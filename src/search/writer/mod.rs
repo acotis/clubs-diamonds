@@ -50,6 +50,8 @@ pub struct WriterContext {
 enum WriterState {
     Init,
     Or(OrWriter),
+    Xor(XorWriter),
+    And(AndWriter),
     Shift(ShiftWriter),
     Add(AddWriter),
     Mul(MulWriter),
@@ -94,6 +96,18 @@ impl Writer {
                 }
 
                 Or(ref mut writer) => {
+                    if writer.write(dest) {return true;}
+                    self.init_xor_state(dest);
+                    continue;
+                }
+
+                Xor(ref mut writer) => {
+                    if writer.write(dest) {return true;}
+                    self.init_and_state(dest);
+                    continue;
+                }
+
+                And(ref mut writer) => {
                     if writer.write(dest) {return true;}
                     self.init_shift_state(dest);
                     continue;
@@ -144,13 +158,35 @@ impl Writer {
 
     fn init_or_state(&mut self, dest: &mut [u8]) {
         let wasted_space = if self.context.location > CHILD_OF_OR {2} else {0};
+        if self.length < wasted_space + 3 {self.init_xor_state(dest); return;}
+        if self.context.location == CHILD_OF_OR {self.init_xor_state(dest); return;}
+
+        dest[self.length-1] = Nop.encode(); // in case there are parens
+        dest[self.length-2] = Nop.encode();
+
+        self.state = Or(OrWriter::new(self.length - wasted_space));
+    }
+
+    fn init_xor_state(&mut self, dest: &mut [u8]) {
+        let wasted_space = if self.context.location > CHILD_OF_XOR {2} else {0};
+        if self.length < wasted_space + 3 {self.init_and_state(dest); return;}
+        if self.context.location == CHILD_OF_OR {self.init_and_state(dest); return;}
+
+        dest[self.length-1] = Nop.encode(); // in case there are parens
+        dest[self.length-2] = Nop.encode();
+
+        self.state = Xor(XorWriter::new(self.length - wasted_space));
+    }
+
+    fn init_and_state(&mut self, dest: &mut [u8]) {
+        let wasted_space = if self.context.location > CHILD_OF_AND {2} else {0};
         if self.length < wasted_space + 3 {self.init_shift_state(dest); return;}
         if self.context.location == CHILD_OF_OR {self.init_shift_state(dest); return;}
 
         dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();
 
-        self.state = Or(OrWriter::new(self.length - wasted_space));
+        self.state = And(AndWriter::new(self.length - wasted_space));
     }
 
     fn init_shift_state(&mut self, dest: &mut [u8]) {
