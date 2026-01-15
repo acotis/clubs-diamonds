@@ -1,24 +1,22 @@
 
-use clubs_diamonds::*;
-use std::marker::PhantomData;
+use clubs_diamonds::{Searcher, Expression};
 
 fn main() {
-    let len = 9;
+    let (count, solutions) =
+        Searcher::<i32, 1>::new(|expr: &Expression::<i32, 1>| {
+            (0..95).all(|a|
+                expr.apply(&[a]) == Some(32|5<<a+3)
+            )
+        })
+        .threads(3)
+        .run_with_ui();
 
-    let mut expr = Expression::<i32,1> {
-        field: vec![0; len],
-        nothing: PhantomData,
-    };
+    println!("Searched {} expressions total", count);
+    println!("The first three solutions we found were:");
+    println!("    — {}", solutions[0]);
+    println!("    — {}", solutions[1]);
+    println!("    — {}", solutions[2]);
 
-    let mut writer = Writer::new(len, WriterContext {location: Location::TOP, const_allowed: true});
-    let mut count = 0;
-
-    while writer.write(&mut expr.field) {
-        count += 1;
-        println!("{count:6}.  {expr}");
-    }
-
-    println!();
-    println!("done");
+    // solutions is a Vec<Expression::<i32, 1>>
 }
 
