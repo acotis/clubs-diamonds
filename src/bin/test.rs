@@ -3,7 +3,7 @@ use clubs_diamonds::*;
 use std::marker::PhantomData;
 
 fn main() {
-    let len = 6;
+    let len = 9;
 
     let mut expr = Expression::<i32,1> {
         field: vec![0; len],

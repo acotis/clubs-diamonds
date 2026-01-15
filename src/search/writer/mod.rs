@@ -170,7 +170,7 @@ impl Writer {
     fn init_xor_state(&mut self, dest: &mut [u8]) {
         let wasted_space = if self.context.location > CHILD_OF_XOR {2} else {0};
         if self.length < wasted_space + 3 {self.init_and_state(dest); return;}
-        if self.context.location == CHILD_OF_OR {self.init_and_state(dest); return;}
+        if self.context.location == CHILD_OF_XOR {self.init_and_state(dest); return;}
 
         dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();
@@ -181,7 +181,7 @@ impl Writer {
     fn init_and_state(&mut self, dest: &mut [u8]) {
         let wasted_space = if self.context.location > CHILD_OF_AND {2} else {0};
         if self.length < wasted_space + 3 {self.init_shift_state(dest); return;}
-        if self.context.location == CHILD_OF_OR {self.init_shift_state(dest); return;}
+        if self.context.location == CHILD_OF_AND {self.init_shift_state(dest); return;}
 
         dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();

@@ -90,9 +90,9 @@ fn run<
 
     let op_requirements = [
         None,
-        Some(NOT), Some(MUL), Some(DIV), Some(MOD),
-        Some(ADD), Some(SUB), Some(LSL), Some(LSR),
-        Some(AND), Some(XOR), Some(ORR)
+        //Some(NOT), Some(MUL), Some(DIV), Some(MOD),
+        //Some(ADD), Some(SUB), Some(LSL), Some(LSR),
+        //Some(AND), Some(XOR), Some(ORR)
     ];
 
     let mut task_iterator =
@@ -272,7 +272,8 @@ fn find_with_length_and_op<N: Number, const C: usize, J: Fn(&Expression<N, C>) -
     rx: mpsc::Receiver<ThreadCommand>,
 ) {
     let mut count = 0u128;
-    let mut writer = TempWriter::<N>::new(C, length, constant_cap, op_requirement);
+    //let mut writer = TempWriter::<N>::new(C, length, constant_cap, op_requirement);
+    let mut writer = Writer::new(length, WriterContext {location: Location::TOP, const_allowed: true});
     let mut expr = Expression {
         field: vec![255; length],
         nothing: PhantomData::default(),
@@ -323,25 +324,6 @@ fn find_with_length_and_op<N: Number, const C: usize, J: Fn(&Expression<N, C>) -
                 }
             }
         }
-    }
-}
-
-// Putting this here just so this module compiles while I work on rewriting
-// the real Writer type. Todo: remove this.
-
-struct TempWriter<N: Number> {
-    nothing: PhantomData<N>,
-}
-
-impl<N: Number> TempWriter<N> {
-    fn new(_: usize, _: usize, _: u8, _: Option<Option<Op>>) -> Self {
-        Self {
-            nothing: PhantomData,
-        }
-    }
-
-    fn write(&mut self, _: &mut [u8]) -> bool {
-        false
     }
 }
 
