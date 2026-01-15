@@ -1,6 +1,7 @@
 
 use super::super::*;
 
+#[derive(Debug)]
 pub struct VarWriter {
     length: usize,
     next_write: u8,

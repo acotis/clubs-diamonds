@@ -40,11 +40,13 @@ pub enum Location {
     CHILD_OF_NEG,
 }
 
+#[derive(Debug)]
 pub struct WriterContext {
     pub location: Location,
     pub const_allowed: bool,
 }
 
+#[derive(Debug)]
 enum WriterState {
     Init,
     Or(OrWriter),
@@ -56,6 +58,7 @@ enum WriterState {
     Done,
 }
 
+#[derive(Debug)]
 pub struct Writer {
     length: usize,
     state: WriterState,
@@ -132,7 +135,7 @@ impl Writer {
 
     fn init_or_state(&mut self, dest: &mut [u8]) {
         let wasted_space = if self.context.location > CHILD_OF_OR {2} else {0};
-        if self.length < wasted_space + 3 {self.init_const_state(dest); return;}
+        if self.length < wasted_space + 3 {self.init_shift_state(dest); return;}
         if self.context.location == CHILD_OF_OR {self.init_shift_state(dest); return;}
 
         dest[self.length-1] = Nop.encode(); // in case there are parens
@@ -153,7 +156,7 @@ impl Writer {
 
     fn init_add_state(&mut self, dest: &mut [u8]) {
         let wasted_space = if self.context.location > CHILD_OF_ADD {2} else {0};
-        if self.length < wasted_space + 3 {self.init_const_state(dest); return;}
+        if self.length < wasted_space + 3 {self.init_mul_state(dest); return;}
         if self.context.location == CHILD_OF_ADD {self.init_mul_state(dest); return;}
 
         dest[self.length-1] = Nop.encode(); // in case there are parens

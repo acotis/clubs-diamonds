@@ -5,6 +5,7 @@
 // so the sum of all terms, plus the number of terms minus one, is
 // the actual length of the overall expression.
 
+#[derive(Debug)]
 pub struct Partition {
     state: Vec<usize>,
 }

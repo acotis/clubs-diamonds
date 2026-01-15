@@ -3,6 +3,7 @@ use crate::search::writer::Partition;
 use crate::search::writer::Children;
 use super::super::*;
 
+#[derive(Debug)]
 pub struct OrWriter {
     length: usize,
 

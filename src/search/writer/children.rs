@@ -22,6 +22,7 @@ use super::{Writer, WriterContext, Location};
 //     -!       (not implemented yet)
 //     const    (not implemented yet)
 
+#[derive(Debug)]
 pub struct Children {
     children: Vec<(usize, Writer)>, // just FillerWriter for now
     children_in_group_1: usize,

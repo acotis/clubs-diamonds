@@ -1,6 +1,7 @@
 
 use super::super::*;
 
+#[derive(Debug)]
 pub struct ConstWriter {
     length: usize,
     next_write: u8,
