@@ -4,11 +4,11 @@ use std::marker::PhantomData;
 
 fn main() {
     let mut expr = Expression::<i32,1> {
-        field: vec![0; 6],
+        field: vec![0; 5],
         nothing: PhantomData,
     };
 
-    let mut writer = Writer::new(6, WriterContext {location: Location::TOP, const_allowed: true});
+    let mut writer = Writer::new(5, WriterContext {location: Location::TOP, const_allowed: true});
     let mut count = 0;
 
     while writer.write(&mut expr.field) {

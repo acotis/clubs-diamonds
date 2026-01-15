@@ -13,18 +13,18 @@ use crate::search::pivot::Op;
 use WriterState::*;
 use Location::*;
 
-static OR:  u8 = OpPivot(Op::ORR).encode();
-static XOR: u8 = OpPivot(Op::XOR).encode();
-static AND: u8 = OpPivot(Op::AND).encode();
-static LSL: u8 = OpPivot(Op::LSL).encode();
-static LSR: u8 = OpPivot(Op::LSR).encode();
-static ADD: u8 = OpPivot(Op::ADD).encode();
-static SUB: u8 = OpPivot(Op::SUB).encode();
-static MUL: u8 = OpPivot(Op::MUL).encode();
-static DIV: u8 = OpPivot(Op::DIV).encode();
-static MOD: u8 = OpPivot(Op::MOD).encode();
-static NEG: u8 = OpPivot(Op::NEG).encode();
-static NOT: u8 = OpPivot(Op::NOT).encode();
+const OR:  u8 = OpPivot(Op::ORR).encode();
+const XOR: u8 = OpPivot(Op::XOR).encode();
+const AND: u8 = OpPivot(Op::AND).encode();
+const LSL: u8 = OpPivot(Op::LSL).encode();
+const LSR: u8 = OpPivot(Op::LSR).encode();
+const ADD: u8 = OpPivot(Op::ADD).encode();
+const SUB: u8 = OpPivot(Op::SUB).encode();
+const MUL: u8 = OpPivot(Op::MUL).encode();
+const DIV: u8 = OpPivot(Op::DIV).encode();
+const MOD: u8 = OpPivot(Op::MOD).encode();
+const NEG: u8 = OpPivot(Op::NEG).encode();
+const NOT: u8 = OpPivot(Op::NOT).encode();
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, PartialOrd, Ord)]
 pub enum Location {
@@ -50,6 +50,7 @@ enum WriterState {
     Or(OrWriter),
     Shift(ShiftWriter),
     Add(AddWriter),
+    Mul(MulWriter),
     Const(ConstWriter),
     Var(VarWriter),
     Done,
@@ -100,6 +101,12 @@ impl Writer {
 
                 Add(ref mut writer) => {
                     if writer.write(dest) {return true;}
+                    self.init_mul_state(dest);
+                    continue;
+                }
+
+                Mul(ref mut writer) => {
+                    if writer.write(dest) {return true;}
                     self.init_const_state(dest);
                     continue;
                 }
@@ -147,12 +154,22 @@ impl Writer {
     fn init_add_state(&mut self, dest: &mut [u8]) {
         let wasted_space = if self.context.location > CHILD_OF_ADD {2} else {0};
         if self.length < wasted_space + 3 {self.init_const_state(dest); return;}
-        if self.context.location == CHILD_OF_ADD {self.init_const_state(dest); return;}
+        if self.context.location == CHILD_OF_ADD {self.init_mul_state(dest); return;}
 
         dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();
 
-        self.state = Add(AddWriter::new(self.length));
+        self.state = Add(AddWriter::new(self.length - wasted_space));
+    }
+
+    fn init_mul_state(&mut self, dest: &mut [u8]) {
+        let wasted_space = if self.context.location > LEFT_CHILD_OF_MUL {2} else {0};
+        if self.length < wasted_space + 3 {self.init_const_state(dest); return;}
+
+        dest[self.length-1] = Nop.encode(); // in case there are parens
+        dest[self.length-2] = Nop.encode();
+
+        self.state = Mul(MulWriter::new(self.length - wasted_space));
     }
 
     fn init_const_state(&mut self, dest: &mut [u8]) {
