@@ -26,7 +26,7 @@ static MOD: u8 = OpPivot(Op::MOD).encode();
 static NEG: u8 = OpPivot(Op::NEG).encode();
 static NOT: u8 = OpPivot(Op::NOT).encode();
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, PartialOrd, Ord)]
 pub enum Location {
     TOP,
     CHILD_OF_OR,
@@ -81,31 +81,31 @@ impl Writer {
         loop {
             match self.state {
                 Init => {
-                    self.init_or_state();
+                    self.init_or_state(dest);
                     continue;
                 }
 
                 Or(ref mut writer) => {
                     if writer.write(dest) {return true;}
-                    self.init_add_state();
+                    self.init_add_state(dest);
                     continue;
                 }
 
                 Add(ref mut writer) => {
                     if writer.write(dest) {return true;}
-                    self.init_const_state();
+                    self.init_const_state(dest);
                     continue;
                 }
 
                 Const(ref mut writer) => {
                     if writer.write(dest) {return true;}
-                    self.init_var_state();
+                    self.init_var_state(dest);
                     continue;
                 }
 
                 Var(ref mut writer) => {
                     if writer.write(dest) {return true;}
-                    self.init_done_state();
+                    self.init_done_state(dest);
                     continue;
                 }
 
@@ -116,30 +116,40 @@ impl Writer {
         }
     }
 
-    fn init_or_state(&mut self) {
-        if self.length < 3 {self.init_const_state(); return;}
-        if self.context.location == CHILD_OF_OR {self.init_add_state(); return;}
-        self.state = Or(OrWriter::new(self.length));
+    fn init_or_state(&mut self, dest: &mut [u8]) {
+        let wasted_space = if self.context.location > CHILD_OF_OR {2} else {0};
+        if self.length < wasted_space + 3 {self.init_const_state(dest); return;}
+        if self.context.location == CHILD_OF_OR {self.init_add_state(dest); return;}
+
+        dest[self.length-1] = Nop.encode(); // in case there are parense
+        dest[self.length-2] = Nop.encode();
+
+        self.state = Or(OrWriter::new(self.length - wasted_space));
     }
 
-    fn init_add_state(&mut self) {
-        if self.length < 3 {self.init_const_state(); return;}
-        if self.context.location == CHILD_OF_ADD {self.init_const_state(); return;}
+    fn init_add_state(&mut self, dest: &mut [u8]) {
+        let wasted_space = if self.context.location > CHILD_OF_ADD {2} else {0};
+        if self.length < wasted_space + 3 {self.init_const_state(dest); return;}
+        if self.context.location == CHILD_OF_ADD {self.init_const_state(dest); return;}
+
+        dest[self.length-1] = Nop.encode(); // in case there are parense
+        dest[self.length-2] = Nop.encode();
+
         self.state = Add(AddWriter::new(self.length));
     }
 
-    fn init_const_state(&mut self) {
-        if !self.context.const_allowed {self.init_var_state(); return;}
-        if self.length > 2 {self.init_var_state(); return;}
+    fn init_const_state(&mut self, dest: &mut [u8]) {
+        if !self.context.const_allowed {self.init_var_state(dest); return;}
+        if self.length > 2 {self.init_var_state(dest); return;}
         self.state = Const(ConstWriter::new(self.length));
     }
 
-    fn init_var_state(&mut self) {
-        if self.length > 1 {self.init_done_state(); return;}
+    fn init_var_state(&mut self, dest: &mut [u8]) {
+        if self.length > 1 {self.init_done_state(dest); return;}
         self.state = Var(VarWriter::new(self.length));
     }
 
-    fn init_done_state(&mut self) {
+    fn init_done_state(&mut self, dest: &mut [u8]) {
         self.state = Done;
     }
 }
