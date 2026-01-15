@@ -16,7 +16,7 @@ impl ConstWriter {
     }
 
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
-        if self.next_write == 4 || self.length == 1 && self.next_write == 3 {
+        if self.next_write > 9 {
             return false;
         }
 
