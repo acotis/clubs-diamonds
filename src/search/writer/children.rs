@@ -82,68 +82,48 @@ impl Children {
         ret
     }
 
-
-    // The .write() method 
+    // The .write() method.
 
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
-        if self.first_write {
-            self.first_write = false;
-            self.first_write(dest)
-        } else {
-            self.write_helper(dest, self.children.len()-1)
-        }
+        let ret = self.write_helper(dest, self.children.len()-1, self.first_write, 0);
+        self.first_write = false;
+        ret
     }
 
-    fn first_write(&mut self, dest: &mut [u8]) -> bool {
-        for index in 0..self.children.len() {
+    fn write_helper(&mut self, dest: &mut [u8], index: usize, first_write: bool, depth: usize) -> bool {
+
+        //let indent =  "  ".repeat(depth);
+        //println!("{indent}[{index}] writing child at offset {} with length {}", self.children[index].0, self.children[index].1.length);
+
+        let offset = self.children[index].0;
+        let skip = first_write && index != 0;
+
+        if !skip && self.children[index].1.write(&mut dest[offset..]) {
             if index > 0 {
-                self.children[index].1.context.const_allowed =
-                    self.allow_multi_constants ||
-                    self.children[index-1].1.context.const_allowed &&
-                   !self.children[index-1].1.is_const();
-            }
-
-            let (offset, child) = &mut self.children[index];
-
-            if !child.write(&mut dest[*offset..]) {
-                return false;
-            }
-
-            if index > 0 {
-                dest[*offset + child.length] = if index < self.children_in_group_1 {
+                dest[self.children[index].0 + self.children[index].1.length] = if index < self.children_in_group_1 {
                     self.op_byte_1
                 } else {
                     self.op_byte_2
                 };
             }
-        }
 
-        true
-    }
-
-    fn write_helper(&mut self, dest: &mut [u8], index: usize) -> bool {
-        if index > 0 {
-            self.children[index].1.context.const_allowed =
-                self.allow_multi_constants ||
-                self.children[index-1].1.context.const_allowed &&
-               !self.children[index-1].1.is_const();
-        }
-
-        let (offset, child) = &mut self.children[index];
-
-        //println!("writing child at offset {offset} with length {}", child.length);
-
-        if child.write(&mut dest[*offset..]) {
             return true;
         }
+
+        //println!("{indent}writing this child was disallowed or failed (skip = {skip})");
 
         if index == 0 {
             return false;
         }
 
-        if self.write_helper(dest, index-1) {
+        if self.write_helper(dest, index-1, first_write, depth + 1) {
+            //println!("{indent}recursion succeeded...");
             self.children[index].1.reset();
-            return self.write_helper(dest, index);
+            self.children[index].1.context.const_allowed =
+                self.allow_multi_constants ||
+                self.children[index-1].1.context.const_allowed &&
+               !self.children[index-1].1.is_const();
+            return self.write_helper(dest, index, false, depth + 1);
         }
 
         return false;

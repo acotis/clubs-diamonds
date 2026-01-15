@@ -37,9 +37,15 @@ impl AddWriter {
 
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
         loop {
+            if self.sub_partition.state() == &[2, 1] {
+                println!("2 1 state encountered...");
+            }
+
             if self.children.write(dest) {
                 return true;
             }
+
+            println!("could not write to this state");
 
             // If that failed, we need to increment the partitioning. Since
             // it is a dual parititon, this is slightly involved.

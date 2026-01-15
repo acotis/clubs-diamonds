@@ -83,6 +83,8 @@ impl Writer {
     }
 
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
+        //println!("state is {:?}", self.state);
+
         loop {
             match self.state {
                 Init => {
