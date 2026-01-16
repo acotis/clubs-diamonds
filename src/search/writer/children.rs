@@ -94,16 +94,12 @@ impl Children {
     // The .write() method.
 
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
-        let ret = self.write_helper(dest, self.children.len()-1, self.first_write, 0);
+        let ret = self.write_helper(dest, self.children.len()-1, self.first_write);
         self.first_write = false;
         ret
     }
 
-    fn write_helper(&mut self, dest: &mut [u8], index: usize, first_write: bool, depth: usize) -> bool {
-
-        //let indent =  "  ".repeat(depth);
-        //println!("{indent}[{index}] writing child at offset {} with length {}", self.children[index].0, self.children[index].1.length);
-
+    fn write_helper(&mut self, dest: &mut [u8], index: usize, first_write: bool) -> bool {
         let offset = self.children[index].0;
         let skip = first_write && index != 0;
 
@@ -125,14 +121,14 @@ impl Children {
             return false;
         }
 
-        if self.write_helper(dest, index-1, first_write, depth + 1) {
+        if self.write_helper(dest, index-1, first_write) {
             //println!("{indent}recursion succeeded...");
             self.children[index].1.reset();
             self.children[index].1.context.const_allowed =
                 !self.forbid_multi_constants ||
                 self.children[index-1].1.context.const_allowed &&
                !self.children[index-1].1.is_const();
-            return self.write_helper(dest, index, false, depth + 1);
+            return self.write_helper(dest, index, false);
         }
 
         return false;

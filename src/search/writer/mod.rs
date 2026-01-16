@@ -85,6 +85,12 @@ impl Writer {
         matches!(self.state, Const(_))
     }
 
+    pub fn check_const_state(&mut self, dest: &mut [u8]) {
+        if self.is_const() && !self.context.const_allowed {
+            self.init_var_state(dest);
+        }
+    }
+
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
         //println!("state is {:?}", self.state);
 
