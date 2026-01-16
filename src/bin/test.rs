@@ -6,7 +6,8 @@ fn main() {
         Searcher::<i32, 1>::new(|expr: &Expression::<i32, 1>| {
             (-1000..=1000).all(|a|
                 //expr.apply(&[a]) == if a == 0 {None} else {Some(2^1/a/8-3)}
-                expr.apply(&[a]) == Some(a/24^26-a)
+                //expr.apply(&[a]) == Some(a/24^26-a)
+                format!("{expr}").contains("!155")
             )
         })
         .threads(3)

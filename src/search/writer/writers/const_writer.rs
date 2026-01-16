@@ -36,6 +36,15 @@ impl ConstWriter {
                     stop_at: 156,
                 }
             }
+            4 => {
+                Self {
+                    length,
+                    next_write: 100,
+                    remove_neg_at: 156,
+                    stop_at: 156,
+                }
+
+            }
             _ => panic!(),
         }
     }
