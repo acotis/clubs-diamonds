@@ -40,13 +40,13 @@ pub enum Location {
     CHILD_OF_NEG,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct WriterContext {
     pub location: Location,
     pub const_allowed: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum WriterState {
     Init,
     Or(OrWriter),
@@ -61,7 +61,7 @@ enum WriterState {
     Done,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Writer {
     length: usize,
     state: WriterState,
@@ -85,9 +85,12 @@ impl Writer {
         matches!(self.state, Const(_))
     }
 
-    pub fn check_const_state(&mut self, dest: &mut [u8]) {
+    pub fn check_const_state(&mut self, dest: &mut [u8]) -> bool {
         if self.is_const() && !self.context.const_allowed {
             self.init_var_state(dest);
+            true
+        } else {
+            false
         }
     }
 

@@ -22,7 +22,7 @@ use super::{Writer, WriterContext, Location};
 //     -!       (not implemented yet)
 //     const    (not implemented yet)
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Children {
     children: Vec<(usize, Writer)>, // just FillerWriter for now
     children_in_group_1: usize,
@@ -124,14 +124,32 @@ impl Children {
 
             if self.write_helper(dest, index-1, first_write) {
                 //println!("{indent}recursion succeeded...");
-                self.children[index].1.reset();
+
                 self.children[index].1.context.const_allowed =
                     !self.forbid_multi_constants ||
                     self.children[index-1].1.context.const_allowed &&
                    !self.children[index-1].1.is_const();
 
-                first_write = false;
-                continue;
+                if self.commutative 
+                && self.children[index].1.length == self.children[index-1].1.length
+                && index != self.children_in_group_1
+                {
+                    self.children[index].1.state = self.children[index-1].1.state.clone();
+
+                    if self.children[index].1.check_const_state(dest) {
+                        first_write = false;
+                        continue;
+                    } else {
+                        for i in 0..self.children[index].1.length {
+                            dest[self.children[index].0 + i] = dest[self.children[index-1].0 + i];
+                        }
+                        return true;
+                    }
+                } else {
+                    self.children[index].1.reset();
+                    first_write = false;
+                    continue;
+                }
             }
 
             return false;

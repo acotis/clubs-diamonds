@@ -2,7 +2,7 @@
 use crate::search::writer::Children;
 use super::super::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ShiftWriter {
     length: usize,
     next_op: u8,

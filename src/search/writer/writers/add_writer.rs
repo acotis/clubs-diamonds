@@ -7,7 +7,7 @@ use super::super::*;
 
 use std::marker::PhantomData;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AddWriter {
     length: usize,
     bytes_add: usize, // virtual bytes (includes the unwritten + sign at the start of the expression)
