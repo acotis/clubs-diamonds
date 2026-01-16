@@ -21,7 +21,7 @@ impl MulWriter {
                 RIGHT_CHILD_OF_MUL,
                 Nop.encode(), // we write our op manually
                 &[length - 2, 1],
-            ),
+            ).non_commutative(),
         }
     }
 
@@ -55,7 +55,7 @@ impl MulWriter {
                     RIGHT_CHILD_OF_MUL,
                     Nop.encode(), // we write our op manually
                     &[self.bytes_for_left, self.length - self.bytes_for_left - 1],
-                );
+                ).non_commutative();
 
                 continue;
             }

@@ -29,7 +29,8 @@ pub struct Children {
     op_byte_1: u8,
     op_byte_2: u8,
     first_write: bool,
-    allow_multi_constants: bool
+    forbid_multi_constants: bool,
+    commutative: bool,
 }
 
 impl Children {
@@ -47,7 +48,14 @@ impl Children {
 
     pub fn allow_multi_constants(self) -> Self {
         Self {
-            allow_multi_constants: true,
+            forbid_multi_constants: false,
+            ..self
+        }
+    }
+
+    pub fn non_commutative(self) -> Self {
+        Self {
+            commutative: false,
             ..self
         }
     }
@@ -69,7 +77,8 @@ impl Children {
             op_byte_1,
             op_byte_2,
             first_write: true,
-            allow_multi_constants: false,
+            forbid_multi_constants: true,
+            commutative: true,
         };
 
         let mut offset = 0;
@@ -120,7 +129,7 @@ impl Children {
             //println!("{indent}recursion succeeded...");
             self.children[index].1.reset();
             self.children[index].1.context.const_allowed =
-                self.allow_multi_constants ||
+                !self.forbid_multi_constants ||
                 self.children[index-1].1.context.const_allowed &&
                !self.children[index-1].1.is_const();
             return self.write_helper(dest, index, false, depth + 1);

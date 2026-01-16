@@ -21,7 +21,7 @@ impl ShiftWriter {
                 RIGHT_CHILD_OF_SHIFT,
                 Nop.encode(), // we write our op manually
                 &[length - 3, 1],
-            ).allow_multi_constants(),
+            ).allow_multi_constants().non_commutative(),
         }
     }
 
@@ -47,7 +47,7 @@ impl ShiftWriter {
                     RIGHT_CHILD_OF_SHIFT,
                     Nop.encode(), // we write our op manually
                     &[self.bytes_for_left, self.length - self.bytes_for_left - 2],
-                ).allow_multi_constants();
+                ).allow_multi_constants().non_commutative();
 
                 continue;
             }
