@@ -78,7 +78,8 @@ impl Children {
             op_byte_2,
             first_write: true,
             forbid_multi_constants: true,
-            commutative: true,
+            //commutative: true,
+            commutative: false, // always non-commutative so I don't have to worry about it for now
         };
 
         let mut offset = 0;
@@ -129,6 +130,8 @@ impl Children {
                     !self.forbid_multi_constants ||
                     self.children[index-1].1.context.const_allowed &&
                    !self.children[index-1].1.is_const();
+
+                // commutativity is disabled for now
 
                 if self.commutative 
                 && self.children[index].1.length == self.children[index-1].1.length
