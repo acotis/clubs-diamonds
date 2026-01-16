@@ -98,6 +98,17 @@ Here are the things a Writer is expected to do on consecutive writes:
 
 
 
+        Commutative Associative Liquifying  Forbid multi-constant in two-shot setting
+!-      —           —           —           —
+*       yes         yes         yes         yes
+/       no          no          semi?       yes
+%       no          no          semi?       yes
++-      dual        dual        dual        yes
+<<      no          no          no          no
+>>      no          no          no          no
+&       yes         yes         yes         yes
+^       yes         yes         yes         yes
+|       yes         yes         yes         yes
 
 
 
