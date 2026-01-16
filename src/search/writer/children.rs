@@ -99,39 +99,43 @@ impl Children {
         ret
     }
 
-    fn write_helper(&mut self, dest: &mut [u8], index: usize, first_write: bool) -> bool {
-        let offset = self.children[index].0;
-        let skip = first_write && index != 0;
+    fn write_helper(&mut self, dest: &mut [u8], index: usize, mut first_write: bool) -> bool {
+        loop {
+            let offset = self.children[index].0;
+            let skip = first_write && index != 0;
 
-        if !skip && self.children[index].1.write(&mut dest[offset..]) {
-            if index > 0 {
-                dest[self.children[index].0 + self.children[index].1.length] = if index < self.children_in_group_1 {
-                    self.op_byte_1
-                } else {
-                    self.op_byte_2
-                };
+            if !skip && self.children[index].1.write(&mut dest[offset..]) {
+                if index > 0 {
+                    dest[self.children[index].0 + self.children[index].1.length] = if index < self.children_in_group_1 {
+                        self.op_byte_1
+                    } else {
+                        self.op_byte_2
+                    };
+                }
+
+                return true;
             }
 
-            return true;
-        }
+            //println!("{indent}writing this child was disallowed or failed (skip = {skip})");
 
-        //println!("{indent}writing this child was disallowed or failed (skip = {skip})");
+            if index == 0 {
+                return false;
+            }
 
-        if index == 0 {
+            if self.write_helper(dest, index-1, first_write) {
+                //println!("{indent}recursion succeeded...");
+                self.children[index].1.reset();
+                self.children[index].1.context.const_allowed =
+                    !self.forbid_multi_constants ||
+                    self.children[index-1].1.context.const_allowed &&
+                   !self.children[index-1].1.is_const();
+
+                first_write = false;
+                continue;
+            }
+
             return false;
         }
-
-        if self.write_helper(dest, index-1, first_write) {
-            //println!("{indent}recursion succeeded...");
-            self.children[index].1.reset();
-            self.children[index].1.context.const_allowed =
-                !self.forbid_multi_constants ||
-                self.children[index-1].1.context.const_allowed &&
-               !self.children[index-1].1.is_const();
-            return self.write_helper(dest, index, false);
-        }
-
-        return false;
     }
 }
 
