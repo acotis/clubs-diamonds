@@ -15,8 +15,8 @@ impl ConstWriter {
             1 => {
                 Self {
                     length,
-                    next_write: 1, // todo: should this be 0?
-                    remove_neg_at: 1,
+                    next_write: 0, // todo: should this be 0?
+                    remove_neg_at: 0,
                     stop_at: 10,
                 }
             },
