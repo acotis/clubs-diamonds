@@ -151,8 +151,7 @@ Todo
 ——————————
 
 — Rewrite attempt:
-    3. Write the new architecture.
-    4. Test it.
+    4. Test the new architecture.
 
 — Testing:
     — Guiding thought: you do want a separate test program; it allows you to
