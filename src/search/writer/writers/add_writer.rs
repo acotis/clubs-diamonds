@@ -1,11 +1,8 @@
 
-use crate::Number;
 use crate::search::writer::Partition;
 use crate::search::writer::Children;
 
 use super::super::*;
-
-use std::marker::PhantomData;
 
 #[derive(Debug, Clone)]
 pub struct AddWriter {

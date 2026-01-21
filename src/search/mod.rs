@@ -17,7 +17,7 @@ use std::marker::PhantomData;
 use std::time::Duration;
 use std::thread::sleep;
 
-use pivot::Op::{self, *};
+use pivot::Op;
 use crate::ui::UI;
 use crate::ui::DefaultUI;
 use crate::ui::NullUI;
@@ -264,9 +264,9 @@ fn find_with_length_and_op<N: Number, const C: usize, J: Fn(&Expression<N, C>) -
     thread_id: usize,
     notification_spacing: u128,
     judge: J,
-    constant_cap: u8,
+    _constant_cap: u8,
     length: usize,
-    op_requirement: Option<Option<Op>>,
+    _op_requirement: Option<Option<Op>>,
     var_names: Option<[char; C]>,
     tx: mpsc::Sender<ThreadReport<N, C>>,
     rx: mpsc::Receiver<ThreadCommand>,

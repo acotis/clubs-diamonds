@@ -5,8 +5,6 @@ use super::super::*;
 
 #[derive(Debug, Clone)]
 pub struct OrWriter {
-    length: usize,
-
     partition: Partition,
     children: Children,
 }
@@ -17,7 +15,6 @@ impl OrWriter {
         initial_partition.next();
 
         Self {
-            length,
             children: Children::standard(CHILD_OF_OR, OR, &initial_partition.state()),
             partition: initial_partition,
         }

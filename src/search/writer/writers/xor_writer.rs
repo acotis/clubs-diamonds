@@ -5,8 +5,6 @@ use super::super::*;
 
 #[derive(Debug, Clone)]
 pub struct XorWriter {
-    length: usize,
-
     partition: Partition,
     children: Children,
 }
@@ -17,7 +15,6 @@ impl XorWriter {
         initial_partition.next();
 
         Self {
-            length,
             children: Children::standard(CHILD_OF_XOR, XOR, &initial_partition.state()),
             partition: initial_partition,
         }

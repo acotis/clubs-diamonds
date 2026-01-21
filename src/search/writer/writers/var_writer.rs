@@ -3,14 +3,12 @@ use super::super::*;
 
 #[derive(Debug, Clone)]
 pub struct VarWriter {
-    length: usize,
     next_write: u8,
 }
 
 impl VarWriter {
-    pub fn new(length: usize) -> Self {
+    pub fn new(_length: usize) -> Self {
         Self {
-            length,
             next_write: 1,
         }
     }

@@ -5,8 +5,6 @@ use super::super::*;
 
 #[derive(Debug, Clone)]
 pub struct AndWriter {
-    length: usize,
-
     partition: Partition,
     children: Children,
 }
@@ -17,7 +15,6 @@ impl AndWriter {
         initial_partition.next();
 
         Self {
-            length,
             children: Children::standard(CHILD_OF_AND, AND, &initial_partition.state()),
             partition: initial_partition,
         }

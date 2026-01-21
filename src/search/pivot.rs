@@ -23,44 +23,6 @@ pub enum Op {
 }
 
 impl Op {
-    pub fn first(signed: bool) -> Op {
-        if signed {NEG} else {NOT}
-    }
-
-    pub fn next(self) -> Option<Op> {
-        match self {
-            NEG => Some(NOT),
-            NOT => Some(MUL),
-            MUL => Some(DIV),
-            DIV => Some(MOD),
-            MOD => Some(ADD),
-            ADD => Some(SUB),
-            SUB => Some(LSL),
-            LSL => Some(LSR),
-            LSR => Some(AND),
-            AND => Some(XOR),
-            XOR => Some(ORR),
-            ORR => None,
-        }
-    }
-
-    pub fn len(self) -> usize {
-        match self {
-            NEG => 1,
-            NOT => 1,
-            MUL => 1,
-            DIV => 1,
-            MOD => 1,
-            ADD => 1,
-            SUB => 1,
-            LSL => 2,
-            LSR => 2,
-            AND => 1,
-            XOR => 1,
-            ORR => 1,
-        }
-    }
-
     pub fn arity(self) -> usize {
         match self {
             NEG => 1,

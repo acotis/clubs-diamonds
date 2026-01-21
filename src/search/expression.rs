@@ -130,12 +130,6 @@ impl<N: Number, const C: usize> std::fmt::Display for Expression<N, C> {
 
 // Parsing expressions from strings.
 
-use PartialParse::*;
-
-enum PartialParse {
-    Token(String),
-    PartialExpression(Vec<Pivot>),
-}
 
 impl <N: Number, const C: usize> FromStr for Expression<N, C> {
     type Err = ();
@@ -166,12 +160,20 @@ impl <N: Number, const C: usize> FromStr for Expression<N, C> {
     /// details about what failed because in 99% of cases it's completely
     /// obvious if you just look at the expression that didn't parse.
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(_s: &str) -> Result<Self, Self::Err> {
         Err(())
     }
 }
 
 /*
+
+use PartialParse::*;
+
+enum PartialParse {
+    Token(String),
+    PartialExpression(Vec<Pivot>),
+}
+
 impl <N: Number, const C: usize> Expression<N, C> {
 
     pub fn from_str_and_var_names(s: &str, var_names: [char; C]) -> Result<Self, ()> {

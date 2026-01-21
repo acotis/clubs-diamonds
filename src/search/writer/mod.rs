@@ -27,6 +27,7 @@ const NEG: u8 = OpPivot(Op::NEG).encode();
 const NOT: u8 = OpPivot(Op::NOT).encode();
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, PartialOrd, Ord)]
+#[allow(non_camel_case_types)]
 pub enum Location {
     TOP,
     CHILD_OF_OR,
@@ -246,7 +247,7 @@ impl Writer {
         self.state = Var(VarWriter::new(self.length));
     }
 
-    fn init_done_state(&mut self, dest: &mut [u8]) {
+    fn init_done_state(&mut self, _dest: &mut [u8]) {
         self.state = Done;
     }
 }
