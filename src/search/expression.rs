@@ -26,7 +26,7 @@ use crate::search::pivot::Op::*;
 pub struct Expression<N: Number, const C: usize> {
     pub /*(super)*/ field: Vec<u8>,
     pub /*(super)*/ nothing: PhantomData<N>,
-    // todo: make these not public to the world anymore
+    // TODO: make these not public to the world anymore
 }
 
 impl<N: Number, const C: usize> Expression<N, C> {

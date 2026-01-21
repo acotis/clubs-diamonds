@@ -150,8 +150,18 @@ and innermost operator.
 Todo
 ——————————
 
+— String reform:
+    — Implement Expression::from_str().
+    — Remove Expression::render().
+    — Remove Expression::render_with_var_names().
+    — Implement revar() and unvar(), functions used to rename the default
+      "a", "b", "c" names of an expression into custom names, or un-name
+      custom names into default ones.
+
 — Rewrite attempt:
-    4. Test the new architecture.
+    — Implement the string reform.
+    — Test the new architecture.
+    — Implement multi-variable expressions.
 
 — Testing:
     — Guiding thought: you do want a separate test program; it allows you to
