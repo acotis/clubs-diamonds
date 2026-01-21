@@ -109,7 +109,7 @@ impl Partition {
 
 #[test]
 fn test_partition() {
-    let mut partition = Partition::new(10);
+    let mut partition = Partition::standard(10);
     let mut printout = format!("");
 
     loop {
