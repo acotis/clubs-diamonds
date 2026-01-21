@@ -7,6 +7,21 @@ use crate::search::number::Number;
 use crate::search::pivot::Pivot::*;
 use crate::search::pivot::Op::*;
 
+pub trait Revar {
+    fn revar(self, _: &[char]) -> String;
+}
+
+impl Revar for &str {
+    fn revar(self, new_names: &[char]) -> String {
+        self.chars()
+            .map(|c| match "abcdefghijklmnopqrstuvwxyz".find(c) {
+                Some(index) => new_names[index],
+                None => c,
+            })
+            .collect()
+    }
+}
+
 /// Represents a syntactically-valid mathematical Rust expression. Can be applied to a set of input values to yield a result value. Can also be rendered as text using the `format!` macro or `.to_string()` method.
 ///
 /// Currently, the only way to get your hands on an `Expression` is to be given it by a `Searcher`.
@@ -66,22 +81,10 @@ impl<N: Number, const C: usize> Expression<N, C> {
 
         Some(stack[0])
     }
-
-    /// Render this expression as text. Same as calling `format!("{expr}")`.
-
-    pub fn render(&self) -> String {
-        self.stringify(self.field.len()-1, &['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', ]).0
-    }
-
-    /// Render this expression as text, using the provided array of characters as the variable names.
-
-    pub fn render_with_var_names(&self, var_names: [char; C]) -> String {
-        self.stringify(self.field.len()-1, &var_names).0
-    }
 }
 
 impl<N: Number, const C: usize> Expression<N, C> {
-    fn stringify(&self, start: usize, var_names: &[char]) -> (String, usize, usize) {
+    fn stringify(&self, start: usize) -> (String, usize, usize) {
         if start >= self.field.len() {
             for i in 0..self.field.len() {
                 print!("{:?} ", Pivot::decode(self.field[i]));
@@ -90,19 +93,19 @@ impl<N: Number, const C: usize> Expression<N, C> {
         }
 
         match Pivot::decode(self.field[start]) {
-            Nop           => {let (a, b, c) = self.stringify(start-1, var_names); (a, b, c+1)},
+            Nop           => {let (a, b, c) = self.stringify(start-1); (a, b, c+1)},
             Filler(c, l)  => (["_", "x", "█"][c as usize - 1].repeat(l as usize), !0, l as usize),
             ConstPivot(p) => (format!("{p}"), !0, 1),
-            VarPivot(v)   => (format!("{}", var_names[v as usize]), !0, 1),
+            VarPivot(v)   => (format!("{}", (v + b'a') as char), !0, 1),
             OpPivot(op)   => {
                 if op.arity() == 1 {
-                    let (right, right_prec, right_len) = self.stringify(start - 1, var_names);
+                    let (right, right_prec, right_len) = self.stringify(start - 1);
                     let right_render = if right_prec >= op.prec() {right} else {format!("({right})")};
 
                     (format!("{}{}", op.render_face(), right_render), op.prec(), 1 + right_len)
                 } else {
-                    let (right, right_prec, right_len) = self.stringify(start - 1, var_names);
-                    let (left,  left_prec,  left_len ) = self.stringify(start - 1 - right_len, var_names);
+                    let (right, right_prec, right_len) = self.stringify(start - 1);
+                    let (left,  left_prec,  left_len ) = self.stringify(start - 1 - right_len);
 
                     let left_render  = if left_prec  >= op.prec() {left } else {format!("({left})")};
                     let right_render = if right_prec >  op.prec() {right} else {format!("({right})")};
@@ -112,19 +115,11 @@ impl<N: Number, const C: usize> Expression<N, C> {
             }
         }
     }
-
-    pub(super) fn render_with_optional_var_names(&self, var_names_option: Option<[char; C]>) -> String {
-        if let Some(var_names) = var_names_option {
-            self.render_with_var_names(var_names)
-        } else {
-            self.render()
-        }
-    }
 }
 
 impl<N: Number, const C: usize> std::fmt::Display for Expression<N, C> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.render())
+        write!(f, "{}", self.stringify(self.field.len()-1).0)
     }
 }
 

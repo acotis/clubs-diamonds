@@ -8,7 +8,7 @@ mod number;
 pub use writer::*; // temporary for testing only. todo: make non-pub.
 
 pub use searcher::Searcher;
-pub use expression::Expression;
+pub use expression::{Expression, Revar};
 pub use number::Number;
 
 use std::thread;
@@ -109,7 +109,7 @@ fn run<
         while let Ok(msg) = rx.try_recv() {
             match msg {
                 FoundSolution {expr} => {
-                    let string = expr.render_with_optional_var_names(config.var_names);
+                    let string = optional_revar(&format!("{expr}"), config.var_names);
                     let inspection = config.inspector.as_ref().map(|insp| insp(&expr));
                     let score = string.len() + config.penalizer.as_ref().map(|scorer| scorer(&expr)).unwrap_or(0);
 
@@ -260,6 +260,14 @@ fn run<
     (total_count, solutions)
 }
 
+fn optional_revar<const C: usize>(string: &str, custom_names: Option<[char; C]>) -> String {
+    if let Some(names) = custom_names {
+        string.revar(&names)
+    } else {
+        string.to_owned()
+    }
+}
+
 fn find_with_length_and_op<N: Number, const C: usize, J: Fn(&Expression<N, C>) -> bool>(
     thread_id: usize,
     notification_spacing: u128,
@@ -289,7 +297,7 @@ fn find_with_length_and_op<N: Number, const C: usize, J: Fn(&Expression<N, C>) -
             match msg {
                 Pause => {
                     paused = true;
-                    tx.send(UpdateStatus {thread_id, status: Paused(expr.render_with_optional_var_names(var_names))}).unwrap();
+                    tx.send(UpdateStatus {thread_id, status: Paused(optional_revar(&format!("{expr}"), var_names))}).unwrap();
                 }
                 Unpause => {
                     paused = false;
@@ -313,7 +321,7 @@ fn find_with_length_and_op<N: Number, const C: usize, J: Fn(&Expression<N, C>) -
 
                     if count == notification_spacing {
                         tx.send(TriedN {thread_id, count}).unwrap();
-                        tx.send(UpdateStatus {thread_id, status: Searching(expr.render_with_optional_var_names(var_names))}).unwrap();
+                        tx.send(UpdateStatus {thread_id, status: Searching(optional_revar(&format!("{expr}"), var_names))}).unwrap();
                         count = 0;
                         break;
                     }
