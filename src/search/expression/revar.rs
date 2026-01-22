@@ -1,6 +1,36 @@
 
+/// Trait implemented on the `&str` type to imbue it with the `.revar()`
+/// and `.unvar()` methods.
+
 pub trait Revar {
+
+    /// Rename the variables in a string from their default names ('a', 'b',
+    /// 'c', etc) to any custom set of names.
+    ///
+    /// ```
+    /// use clubs_diamonds::Revar;
+    ///
+    /// assert_eq!("(i+j)/k*j", "(b+a)/c*a".revar(&['j', 'i', 'k']));
+    /// ```
+    ///
+    /// Useful to apply in sequence after formatting an `Expression`, since
+    /// an `Expression` always renders itself with default variable names.
+
     fn revar(self, _: &[char]) -> String;
+
+    /// Un-name the variables in a string from a provided custom set of names
+    /// back to their default names ('a', 'b', 'c', etc).
+    ///
+    /// ```
+    /// use clubs_diamonds::Revar;
+    ///
+    /// assert_eq!("(b+a)/c*a", "(i+j)/k*j".unvar(&['j', 'i', 'k']));
+    /// ```
+    ///
+    /// Useful to apply in sequence before parsing an `Expression`, since
+    /// an `Expression` always parses itself from a string assuming
+    /// default variable names.
+
     fn unvar(self, _: &[char]) -> String;
 }
 
@@ -22,11 +52,5 @@ impl Revar for &str {
             })
             .collect()
     }
-}
-
-#[test]
-fn unvar_revar() {
-    assert_eq!("(i+j)/k*j", "(b+a)/c*a".revar(&['j', 'i', 'k']));
-    assert_eq!("(b+a)/c*a", "(i+j)/k*j".unvar(&['j', 'i', 'k']));
 }
 
