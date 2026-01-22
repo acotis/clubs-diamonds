@@ -186,8 +186,8 @@ impl <N: Number, const C: usize> FromStr for Expression<N, C> {
                 if index == 0                {return Err(format!("invalid syntax"));}
 
                 let _ = tokens.remove(index);
-                let PartialExpression(mut field_left)  = tokens.remove(index-1) else {return Err(format!("invalid syntax"))};
-                let PartialExpression(mut field_right) = tokens.remove(index-1) else {return Err(format!("invalid syntax"))};
+                let PartialExpression(mut field_left) = tokens.remove(index-1) else {return Err(format!("invalid syntax"))};
+                let PartialExpression(field_right)    = tokens.remove(index-1) else {return Err(format!("invalid syntax"))};
 
                 field_left.extend(field_right);
                 field_left.push(OpPivot(op).encode());
