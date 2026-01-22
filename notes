@@ -151,9 +151,7 @@ Todo
 ——————————
 
 — String reform:
-    — Implement Expression::from_str().
-    — Remove Expression::render().
-    — Remove Expression::render_with_var_names().
+    — Create tests for revar() and unvar().
     — Implement revar() and unvar(), functions used to rename the default
       "a", "b", "c" names of an expression into custom names, or un-name
       custom names into default ones.
