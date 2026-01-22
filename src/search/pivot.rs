@@ -22,6 +22,10 @@ pub enum Op {
     ORR,
 }
 
+pub const ALL_OPS: &[Op] = &[
+    NEG, NOT, MUL, DIV, MOD, ADD, SUB, LSL, LSR, AND, XOR, ORR
+];
+
 impl Op {
     pub fn arity(self) -> usize {
         match self {

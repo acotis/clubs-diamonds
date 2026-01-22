@@ -1,11 +1,24 @@
 
 use std::str::FromStr;
+use std::cmp::Ordering;
+use std::marker::PhantomData;
 
 use crate::Expression;
 use crate::Number;
+use crate::search::pivot::ALL_OPS;
+use crate::search::pivot::Pivot::*;
+use crate::search::Op;
+
+use PartialParse::*;
+
+#[derive(Clone)]
+enum PartialParse {
+    Op(Op),
+    PartialExpression(Vec<u8>),
+}
 
 impl <N: Number, const C: usize> FromStr for Expression<N, C> {
-    type Err = ();
+    type Err = String;
 
     /// Parse an expression from a string.
     ///
@@ -22,78 +35,102 @@ impl <N: Number, const C: usize> FromStr for Expression<N, C> {
     /// use clubs_diamonds::Expression;
     ///
     /// "a*a-32".parse::<Expression<i32, 1>>().unwrap(); // works
-    /// "a*a-32".parse::<Expression<i32, 2>>().unwrap(); // works (the second input variable is unused)
+    /// "a*a-32".parse::<Expression<i32, 2>>().unwrap(); // works (the Expression's second input variable is unused)
     /// "a<<b-1".parse::<Expression<i32, 2>>().unwrap(); // works
-    /// "a<<b-1".parse::<Expression<i32, 1>>().unwrap(); // bad — the returned expression crashes whenever `.apply()` is called
+    /// "a<<b-1".parse::<Expression<i32, 1>>().unwrap(); // bad — the returned Expression crashes whenever `.apply()` is called
     ///
     /// ```
     ///
-    /// In this version of the crate, the error type returned if an expression
-    /// fails to parse is just `()`, the unit type. The method doesn't give any
-    /// details about what failed because in 99% of cases it's completely
-    /// obvious if you just look at the expression that didn't parse.
+    /// The error type for a failed parse is a String explaining in words
+    /// what went wrong.
 
-    fn from_str(_s: &str) -> Result<Self, Self::Err> {
-        Err(())
-    }
-}
-
-/*
-
-use PartialParse::*;
-
-enum PartialParse {
-    Token(String),
-    PartialExpression(Vec<Pivot>),
-}
-
-impl <N: Number, const C: usize> Expression<N, C> {
-
-    pub fn from_str_and_var_names(s: &str, var_names: [char; C]) -> Result<Self, ()> {
-        static SYMBOLS: &[&str] = &[
-            "(", ")", "!", "*", "/", "%", "+", "-", "<<", ">>", "&", "^", "|",
-        ];
-
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut tokens = vec![];
         let mut remaining_to_tokenize = s;
 
         'tokenize: while remaining_to_tokenize != "" {
 
-            // If there is a parenthesis or operator at the start, add that
-            // token into the token list.
+            // If there is a variable at the start, create a PartialExpression
+            // for it directly.
 
-            for symbol in SYMBOLS {
-                if remaining_to_tokenize.starts_with(symbol) {
-                    tokens.push(Token(format!("{symbol}")));
-                    remaining_to_tokenize = &remaining_to_tokenize[symbol.len()..];
-                    continue 'tokenize;
-                }
-            }
-
-            // If there is a variable at the start, add that token into the
-            // token list.
-
-            for var in var_names {
-                if remaining_to_tokenize.starts_with(*var) {
-                    tokens.push(Token(format!("{var}")));
+            for v in 0..26 {
+                if remaining_to_tokenize.starts_with(&"abcdefghijklmnopqrstuvwxyz"[v..=v]) {
+                    tokens.push(PartialExpression(vec![VarPivot(v as u8).encode()]));
                     remaining_to_tokenize = &remaining_to_tokenize[1..];
                     continue 'tokenize;
                 }
             }
 
-            // If there is a number at the start, add an expression that builds
-            // that number into the token list.
+            // If there is a number at the start, create a PartialExpression
+            // for it directly.
 
-            let number_digits = remaining_to_tokenize
+            let number_len = remaining_to_tokenize
                 .chars()
                 .take_while(char::is_ascii_digit)
-                .map(|d| ConstPivot(d.to_digit(10).unwrap() as u8))
-                .collect::<Vec<_>>();
+                .count();
             
-            if !number_digits.is_empty() {
-                remaining_to_tokenize = &remaining_to_tokenize[number_digits.len()..];
-                tokens.push(PartialExpression(number_digits));
+            if number_len > 0 {
+                let number_value = remaining_to_tokenize
+                    .chars()
+                    .take_while(char::is_ascii_digit)
+                    .map(|d| d.to_digit(10).unwrap() as u128)
+                    .fold(0, |n, d| n*10 + d);
+                
+                if number_value > 155 {
+                    return Err(format!("constants above 155 are not supported in Expressions"));
+                }
+
+                remaining_to_tokenize = &remaining_to_tokenize[number_len..];
+                tokens.push(PartialExpression(vec![ConstPivot(number_value as u8).encode()]));
                 continue 'tokenize;
+            }
+
+            // If there is a symbol at the start, create an Op for it to
+            // be dealt with later.
+
+            for op in ALL_OPS {
+                if remaining_to_tokenize.starts_with(op.render_face()) {
+                    tokens.push(Op(*op));
+                    remaining_to_tokenize = &remaining_to_tokenize[op.render_face().len()..];
+                    continue 'tokenize;
+                }
+            }
+            
+            // If there is an open parenthesis at the start, read forward
+            // tothe matching parenthesis, recurse, and create a
+            // PartialExpression containing the result.
+
+            if remaining_to_tokenize.starts_with("(") {
+                let mut depth = 1;
+                let mut finger = 1;
+                
+                while finger < remaining_to_tokenize.len() {
+                    match &remaining_to_tokenize[finger..=finger] {
+                        "(" => {depth += 1;}
+                        ")" => {depth -= 1;}
+                        _ => {/* do nothing */}
+                    }
+
+                    if depth == 0 {
+                        break;
+                    }
+
+                    finger += 1;
+                }
+
+                if depth != 0 {
+                    return Err(format!("mismatched parentheses"));
+                }
+
+                match remaining_to_tokenize[1..finger].parse::<Self>() {
+                    Err(err) => {
+                        return Err(err);
+                    }
+                    Ok(expr) => {
+                        tokens.push(PartialExpression(expr.field));
+                        remaining_to_tokenize = &remaining_to_tokenize[finger+1..];
+                    }
+                }
             }
 
             // If none of these things were found at the start, tokenization
@@ -102,12 +139,63 @@ impl <N: Number, const C: usize> Expression<N, C> {
             return Err(format!("can't parse a valid token from the start of this string: {remaining_to_tokenize}"));
         }
 
-        Err(format!("not implemented"))
-        //Self::from_tokens(
-    }
+        // Now we must take the operators and partial expressions we have
+        // just parsed and assemble them into a full expression. In each
+        // iteration, we single out either the final unary operator, or the
+        // first binary operator of highest precedence, to be next up for
+        // processing.
 
+        while let Some((index, Op(op))) =
+            tokens.clone().into_iter()
+                .enumerate()
+                .filter(|(_index, token)| matches!(token, Op(_)))
+                .max_by(|(_index_1, token_1), (_index_2, token_2)| {
+                    let Op(op_1) = token_1 else {panic!()};
+                    let Op(op_2) = token_2 else {panic!()};
+
+                    if op_1.prec() > op_2.prec() {return Ordering::Greater;}
+                    if op_1.prec() < op_2.prec() {return Ordering::Less;}
+                    if op_1.arity() == 1 {return Ordering::Greater;}
+                    Ordering::Less
+                })
+        {
+            if op.arity() == 1 {
+                if index == tokens.len() - 1 {return Err(format!("invalid syntax"));}
+
+                let _ = tokens.remove(index);
+                let PartialExpression(mut field) = tokens.remove(index) else {return Err(format!("invalid syntax"))};
+
+                field.push(OpPivot(op).encode());
+                tokens.insert(index, PartialExpression(field));
+            } else {
+                if index == tokens.len() - 1 {return Err(format!("invalid syntax"));}
+                if index == 0                {return Err(format!("invalid syntax"));}
+
+                let _ = tokens.remove(index);
+                let PartialExpression(mut field_left)  = tokens.remove(index-1) else {return Err(format!("invalid syntax"))};
+                let PartialExpression(mut field_right) = tokens.remove(index-1) else {return Err(format!("invalid syntax"))};
+
+                field_left.extend(field_right);
+                field_left.push(OpPivot(op).encode());
+                tokens.insert(index-1, PartialExpression(field_left));
+            }
+        }
+        
+        // If all those operations brought us down to a single PartialExpression
+        // unit, we're done.
+
+        if let [PartialExpression(field)] = &tokens[..] {
+            return Ok(Self {
+                field: field.clone(),
+                nothing: PhantomData,
+            })
+        }
+
+        // Otherwise, there was invalid syntax somewhere.
+
+        return Err(format!("invalid syntax"));
+    }
 }
-*/
 
 // Expression-parsing tests: basic operators.
 
@@ -203,40 +291,3 @@ fn roundtrip_parse_test<N: Number, const C: usize>(input: &str) {
     parse_test::<N, C>(input, input);
 }
 
-
-
-
-/* TODO: implement this later
- *
- *
- *
-    /// Parse an expression from a string, inferring and returning the names
-    /// of the variables which appear in it. Note that Clubs still needs to be
-    /// told the arity and variable type of the expression it is parsing. 
-    ///
-    /// This method returns both the parsed expression and a Vec listing the
-    /// variable names that Clubs found in the expression. The number of
-    /// variable names may be less, but can't be more, than the declared arity
-    /// of the expression. (If it finds more variables than the declared arity,
-    /// this method errors.)
-    ///
-    /// The variable names will appear in the order in which inputs are accepted
-    /// by the resulting expression, i.e., if the returned Vec is
-    /// `['a', 'x', 'y']`, then the returned Expression's first input will be
-    /// used as the variable 'a', its second input will be used as the variable
-    /// 'x', and its third input will be used as the variable 'y'. The order
-    /// that Clubs chooses here will always be alphabetical order.
-
-    pub fn from_str(s: &str) -> Result<(Self, Vec<char>), String> {
-
-        // This method simply extracts the actual variable names appearing
-        // in the string and passes them on to .parse_with_var_names().
-
-        let mut var_names = s.chars().filter(char::is_ascii_lowercase).collect::<Vec<_>>();
-
-        var_names.sort();
-        var_names.dedup();
-        
-        Self::parse_with_var_names(s, &var_names).map(|expr| (expr, var_names))
-    }
-*/
