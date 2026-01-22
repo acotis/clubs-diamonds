@@ -85,6 +85,8 @@
 //! Here is how the steps are followed by the example code above:
 //!
 //! ```
+//! use clubs_diamonds::{Searcher, Expression};
+//!
 //! // step 1: type and number of variables as type parameters
 //! //        ┌──────┐                          ┌──────┐
 //! Searcher::<i32, 1>::new(|expr: &Expression::<i32, 1>| {
