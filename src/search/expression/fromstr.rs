@@ -89,6 +89,16 @@ impl <N: Number, const C: usize> FromStr for Expression<N, C> {
             // be dealt with later.
 
             for op in ALL_OPS {
+
+                // Unary ops can't come directly after variables, numbers, or
+                // parenthesized sub-expressions, and we need to acknowledge
+                // that now because otherwise we could confuse unary "-" for
+                // binary "-".
+
+                if matches!(tokens.last(), Some(PartialExpression(_))) && op.arity() == 1 {
+                    continue;
+                }
+
                 if remaining_to_tokenize.starts_with(op.render_face()) {
                     tokens.push(Op(*op));
                     remaining_to_tokenize = &remaining_to_tokenize[op.render_face().len()..];
