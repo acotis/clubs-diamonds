@@ -45,6 +45,8 @@ impl <N: Number, const C: usize> FromStr for Expression<N, C> {
     /// what went wrong.
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        println!(".from_str({s:?})");
+
         let mut tokens = vec![];
         let mut remaining_to_tokenize = s;
 
@@ -141,6 +143,8 @@ impl <N: Number, const C: usize> FromStr for Expression<N, C> {
                         remaining_to_tokenize = &remaining_to_tokenize[finger+1..];
                     }
                 }
+
+                continue 'tokenize;
             }
 
             // If none of these things were found at the start, tokenization
