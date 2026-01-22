@@ -150,12 +150,6 @@ and innermost operator.
 Todo
 ——————————
 
-— String reform:
-    — Create tests for revar() and unvar().
-    — Implement revar() and unvar(), functions used to rename the default
-      "a", "b", "c" names of an expression into custom names, or un-name
-      custom names into default ones.
-
 — Rewrite attempt:
     — Implement the string reform.
     — Test the new architecture.
