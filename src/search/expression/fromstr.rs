@@ -22,14 +22,19 @@ impl <N: Number, const C: usize> FromStr for Expression<N, C> {
 
     /// Parse an expression from a string.
     ///
-    /// In the string, the variable `a` will taken to mean the resulting
-    /// Expression's first input variable, `b` the second, and so on. If
-    /// the arity you specify isn't enough to cover all input varaibles that
-    /// actually appear (like if you do `s.parse::<Expression<i32, 2>>()`
+    /// In the string, you must use variable names "a", "b", "c", and so on
+    /// to refer to the first, second, third etc variables of the resulting
+    /// Expression. If you want your variables to be named something else
+    /// (like you want to parse the string "i*3+j" as an expression with
+    /// variables named "i" and "j") call [`.unvar()`] first.
+    ///
+    /// If the arity you specify isn't enough to cover all input varaibles
+    /// that actually appear (like if you do `s.parse::<Expression<i32, 2>>()`
     /// on a string that contains a `c`) then the resulting expression will
     /// be unusable. The reverse is fine; calling
-    /// `s.parse::<Expression<i32, 2>>()` just yields an Expression that
-    /// doesn't use its second input variable.
+    /// `s.parse::<Expression<i32, 2>>()` on a string that only mentions the
+    /// variable "a" just yields an Expression that doesn't use its second
+    /// input variable.
     ///
     /// ```
     /// use clubs_diamonds::Expression;
