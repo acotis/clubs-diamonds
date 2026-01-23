@@ -152,6 +152,7 @@ Todo
 
 — Rewrite attempt:
     — Implement the string reform.
+    — Write basic IO tests for parsed expressions.
     — Test the new architecture.
     — Implement multi-variable expressions.
 
