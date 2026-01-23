@@ -23,7 +23,7 @@ impl ConstWriter {
             2 => {
                 Self {
                     length,
-                    next_write: 1,
+                    next_write: 0,
                     remove_neg_at: 10,
                     stop_at: 100,
                 }
