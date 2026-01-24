@@ -5,12 +5,12 @@ use crate::Number;
 use super::super::*;
 
 #[derive(Debug, Clone)]
-pub struct XorWriter<N: Number> {
+pub struct XorWriter<N: Number, const C: usize> {
     partition: Partition,
-    children: Children<N>,
+    children: Children<N, C>,
 }
 
-impl<N: Number> XorWriter<N> {
+impl<N: Number, const C: usize> XorWriter<N, C> {
     pub fn new(length: usize) -> Self {
         let mut initial_partition = Partition::standard(length);
         initial_partition.next();

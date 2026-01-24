@@ -3,13 +3,13 @@ use crate::Number;
 use super::super::*;
 
 #[derive(Debug, Clone)]
-pub struct NegWriter<N: Number> {
+pub struct NegWriter<N: Number, const C: usize> {
     length: usize,
     next_op: u8,
-    child: Box<Writer<N>>,
+    child: Box<Writer<N, C>>,
 }
 
-impl<N: Number> NegWriter<N> {
+impl<N: Number, const C: usize> NegWriter<N, C> {
     pub fn new(length: usize) -> Self {
         Self {
             length,

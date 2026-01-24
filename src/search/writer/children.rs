@@ -23,8 +23,8 @@ use super::{Writer, WriterContext, Location};
 //     const    (not implemented yet)
 
 #[derive(Debug, Clone)]
-pub struct Children<N: Number> {
-    children: Vec<(usize, Writer<N>)>, // just FillerWriter for now
+pub struct Children<N: Number, const C: usize> {
+    children: Vec<(usize, Writer<N, C>)>, // just FillerWriter for now
     children_in_group_1: usize,
     op_byte_1: u8,
     op_byte_2: u8,
@@ -33,7 +33,7 @@ pub struct Children<N: Number> {
     commutative: bool,
 }
 
-impl<N: Number> Children<N> {
+impl<N: Number, const C: usize> Children<N, C> {
     pub fn standard(location: Location, op_byte: u8, sizes: &[usize]) -> Self {
         Self::new(location, location, op_byte, 0, sizes, &[])
     }

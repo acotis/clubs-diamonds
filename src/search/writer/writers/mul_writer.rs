@@ -4,14 +4,14 @@ use crate::Number;
 use super::super::*;
 
 #[derive(Debug, Clone)]
-pub struct MulWriter<N: Number> {
+pub struct MulWriter<N: Number, const C: usize> {
     length: usize,
     next_op: u8,
     bytes_for_left: usize,
-    children: Children<N>,
+    children: Children<N, C>,
 }
 
-impl<N: Number> MulWriter<N> {
+impl<N: Number, const C: usize> MulWriter<N, C> {
     pub fn new(length: usize) -> Self {
         Self {
             length,

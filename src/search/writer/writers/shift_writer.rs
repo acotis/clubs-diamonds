@@ -4,14 +4,14 @@ use crate::Number;
 use super::super::*;
 
 #[derive(Debug, Clone)]
-pub struct ShiftWriter<N: Number> {
+pub struct ShiftWriter<N: Number, const C: usize> {
     length: usize,
     next_op: u8,
     bytes_for_left: usize,
-    children: Children<N>,
+    children: Children<N, C>,
 }
 
-impl<N: Number> ShiftWriter<N> {
+impl<N: Number, const C: usize> ShiftWriter<N, C> {
     pub fn new(length: usize) -> Self {
         Self {
             length,

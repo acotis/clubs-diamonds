@@ -51,29 +51,29 @@ pub struct WriterContext {
 }
 
 #[derive(Debug, Clone)]
-enum WriterState<N: Number> {
+enum WriterState<N: Number, const C: usize> {
     Init,
-    Or(OrWriter<N>),
-    Xor(XorWriter<N>),
-    And(AndWriter<N>),
-    Shift(ShiftWriter<N>),
-    Add(AddWriter<N>),
-    Mul(MulWriter<N>),
-    Neg(NegWriter<N>),
+    Or(OrWriter<N, C>),
+    Xor(XorWriter<N, C>),
+    And(AndWriter<N, C>),
+    Shift(ShiftWriter<N, C>),
+    Add(AddWriter<N, C>),
+    Mul(MulWriter<N, C>),
+    Neg(NegWriter<N, C>),
     Const(ConstWriter),
-    Var(VarWriter),
+    Var(VarWriter<C>),
     Done,
 }
 
 #[derive(Debug, Clone)]
-pub struct Writer<N: Number> {
+pub struct Writer<N: Number, const C: usize> {
     length: usize,
-    state: WriterState<N>,
+    state: WriterState<N, C>,
     pub context: WriterContext,
     nothing: PhantomData<N>,
 }
 
-impl<N: Number> Writer<N> {
+impl<N: Number, const C: usize> Writer<N, C> {
     pub fn new(length: usize, context: WriterContext) -> Self {
         Self {
             length,

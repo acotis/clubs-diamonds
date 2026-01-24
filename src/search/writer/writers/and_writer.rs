@@ -5,12 +5,12 @@ use crate::Number;
 use super::super::*;
 
 #[derive(Debug, Clone)]
-pub struct AndWriter<N: Number> {
+pub struct AndWriter<N: Number, const C: usize> {
     partition: Partition,
-    children: Children<N>,
+    children: Children<N, C>,
 }
 
-impl<N: Number> AndWriter<N> {
+impl<N: Number, const C: usize> AndWriter<N, C> {
     pub fn new(length: usize) -> Self {
         let mut initial_partition = Partition::standard(length);
         initial_partition.next();

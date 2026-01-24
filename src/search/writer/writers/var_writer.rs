@@ -2,23 +2,23 @@
 use super::super::*;
 
 #[derive(Debug, Clone)]
-pub struct VarWriter {
+pub struct VarWriter<const C: usize> {
     next_write: u8,
 }
 
-impl VarWriter {
+impl<const C: usize> VarWriter<C> {
     pub fn new(_length: usize) -> Self {
         Self {
-            next_write: 1,
+            next_write: 0,
         }
     }
 
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
-        if self.next_write > 1 {
+        if self.next_write == C as u8 {
             return false;
         }
 
-        dest[0] = VarPivot(0).encode();
+        dest[0] = VarPivot(self.next_write).encode();
         self.next_write += 1;
         true
     }
