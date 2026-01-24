@@ -1,15 +1,16 @@
 
 use crate::search::writer::Partition;
 use crate::search::writer::Children;
+use crate::Number;
 use super::super::*;
 
 #[derive(Debug, Clone)]
-pub struct AndWriter {
+pub struct AndWriter<N: Number> {
     partition: Partition,
-    children: Children,
+    children: Children<N>,
 }
 
-impl AndWriter {
+impl<N: Number> AndWriter<N> {
     pub fn new(length: usize) -> Self {
         let mut initial_partition = Partition::standard(length);
         initial_partition.next();

@@ -1,19 +1,20 @@
 
 use crate::search::writer::Partition;
 use crate::search::writer::Children;
+use crate::Number;
 
 use super::super::*;
 
 #[derive(Debug, Clone)]
-pub struct AddWriter {
+pub struct AddWriter<N: Number> {
     length: usize,
     bytes_add: usize, // virtual bytes (includes the unwritten + sign at the start of the expression)
     add_partition: Partition,
     sub_partition: Partition,
-    children: Children,
+    children: Children<N>,
 }
 
-impl AddWriter {
+impl<N: Number> AddWriter<N> {
     pub fn new(length: usize) -> Self {
         let mut add_partition = Partition::standard(length);
         let sub_partition = Partition::extender(0);

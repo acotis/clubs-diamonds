@@ -281,7 +281,7 @@ fn find_with_length_and_op<N: Number, const C: usize, J: Fn(&Expression<N, C>) -
 ) {
     let mut count = 0u128;
     //let mut writer = TempWriter::<N>::new(C, length, constant_cap, op_requirement);
-    let mut writer = Writer::new(length, WriterContext {location: Location::TOP, const_allowed: true});
+    let mut writer = Writer::<N>::new(length, WriterContext {location: Location::TOP, const_allowed: true});
     let mut expr = Expression {
         field: vec![255; length],
         nothing: PhantomData::default(),

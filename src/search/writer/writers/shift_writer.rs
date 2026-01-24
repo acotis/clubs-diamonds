@@ -1,16 +1,17 @@
 
 use crate::search::writer::Children;
+use crate::Number;
 use super::super::*;
 
 #[derive(Debug, Clone)]
-pub struct ShiftWriter {
+pub struct ShiftWriter<N: Number> {
     length: usize,
     next_op: u8,
     bytes_for_left: usize,
-    children: Children,
+    children: Children<N>,
 }
 
-impl ShiftWriter {
+impl<N: Number> ShiftWriter<N> {
     pub fn new(length: usize) -> Self {
         Self {
             length,

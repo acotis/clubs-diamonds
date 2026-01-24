@@ -7,8 +7,11 @@ pub use partition::Partition; // temporary. todo: make not public
 pub use children::Children;
 pub use writers::*;
 
+use std::marker::PhantomData;
+
 use crate::search::pivot::Pivot::*;
 use crate::search::pivot::Op;
+use crate::Number;
 
 use WriterState::*;
 use Location::*;
@@ -48,33 +51,35 @@ pub struct WriterContext {
 }
 
 #[derive(Debug, Clone)]
-enum WriterState {
+enum WriterState<N: Number> {
     Init,
-    Or(OrWriter),
-    Xor(XorWriter),
-    And(AndWriter),
-    Shift(ShiftWriter),
-    Add(AddWriter),
-    Mul(MulWriter),
-    Neg(NegWriter),
+    Or(OrWriter<N>),
+    Xor(XorWriter<N>),
+    And(AndWriter<N>),
+    Shift(ShiftWriter<N>),
+    Add(AddWriter<N>),
+    Mul(MulWriter<N>),
+    Neg(NegWriter<N>),
     Const(ConstWriter),
     Var(VarWriter),
     Done,
 }
 
 #[derive(Debug, Clone)]
-pub struct Writer {
+pub struct Writer<N: Number> {
     length: usize,
-    state: WriterState,
+    state: WriterState<N>,
     pub context: WriterContext,
+    nothing: PhantomData<N>,
 }
 
-impl Writer {
+impl<N: Number> Writer<N> {
     pub fn new(length: usize, context: WriterContext) -> Self {
         Self {
             length,
             state: Init,
             context,
+            nothing: PhantomData,
         }
     }
 

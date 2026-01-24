@@ -1,4 +1,5 @@
 
+use crate::Number;
 use super::{Writer, WriterContext, Location};
 
 // The Children struct manages a set of children expressions of given fixed
@@ -22,8 +23,8 @@ use super::{Writer, WriterContext, Location};
 //     const    (not implemented yet)
 
 #[derive(Debug, Clone)]
-pub struct Children {
-    children: Vec<(usize, Writer)>, // just FillerWriter for now
+pub struct Children<N: Number> {
+    children: Vec<(usize, Writer<N>)>, // just FillerWriter for now
     children_in_group_1: usize,
     op_byte_1: u8,
     op_byte_2: u8,
@@ -32,7 +33,7 @@ pub struct Children {
     commutative: bool,
 }
 
-impl Children {
+impl<N: Number> Children<N> {
     pub fn standard(location: Location, op_byte: u8, sizes: &[usize]) -> Self {
         Self::new(location, location, op_byte, 0, sizes, &[])
     }

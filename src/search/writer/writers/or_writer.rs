@@ -1,15 +1,16 @@
 
 use crate::search::writer::Partition;
 use crate::search::writer::Children;
+use crate::Number;
 use super::super::*;
 
 #[derive(Debug, Clone)]
-pub struct OrWriter {
+pub struct OrWriter<N: Number> {
     partition: Partition,
-    children: Children,
+    children: Children<N>,
 }
 
-impl OrWriter {
+impl<N: Number> OrWriter<N> {
     pub fn new(length: usize) -> Self {
         let mut initial_partition = Partition::standard(length);
         initial_partition.next();
