@@ -156,6 +156,7 @@ Todo
     — Test the new architecture.
     — Implement multi-variable expressions.
     — Remove search-count from return type.
+    — Try iterating through children backwards.
 
 — Testing:
     — Guiding thought: you do want a separate test program; it allows you to
