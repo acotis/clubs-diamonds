@@ -155,6 +155,7 @@ Todo
     — Write basic IO tests for parsed expressions.
     — Test the new architecture.
     — Implement multi-variable expressions.
+    — Remove search-count from return type.
 
 — Testing:
     — Guiding thought: you do want a separate test program; it allows you to
