@@ -151,18 +151,16 @@ Todo
 ——————————
 
 — Rewrite attempt:
-    — Implement the string reform.
-    — Write basic IO tests for parsed expressions.
-    — Test the new architecture.
-    — Implement multi-variable expressions.
-    — Remove search-count from return type.
-    — Try iterating through children backwards.
-    — Implement max-constants.
-    — Try dyn judges/inspectors/penalizers.
-    — Finish setting up tests:
+    — Finish setting up new tests:
         — Make sure multivariate tests are reasonably accurate.
         — Add a few more made-up expressions, trying to target edge cases.
+    — Write basic IO tests for parsed expressions.
     — Implement top-level-pivot threading.
+    — Implement max constants.
+    — Remove search-count from return type.
+    — Try dyn judges/inspectors/penalizers.
+    — Try iterating through Children sets backwards.
+    — Prove that "liquifying" operators really are liquifying.
 
 — Testing:
     — Guiding thought: you do want a separate test program; it allows you to
