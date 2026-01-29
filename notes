@@ -153,14 +153,14 @@ Todo
 — Rewrite attempt:
     — Finish setting up new tests:
         — Make sure multivariate tests are reasonably accurate.
-        — Add a few more made-up expressions, trying to target edge cases.
-    — Write basic IO tests for parsed expressions.
     — Implement top-level-pivot threading.
     — Implement max constants.
     — Remove search-count from return type.
     — Try dyn judges/inspectors/penalizers.
     — Try iterating through Children sets backwards.
+    — Try splitting out a MulWriter that uses a Children.
     — Prove that "liquifying" operators really are liquifying.
+    — Write basic IO tests for parsed expressions.
 
 — Testing:
     — Guiding thought: you do want a separate test program; it allows you to
