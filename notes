@@ -151,8 +151,6 @@ Todo
 ——————————
 
 — Rewrite attempt:
-    — Try dyn judges/inspectors/penalizers.
-        — Do rough benchmark.
     — INTERMISSION: do full AB test vs previous arch.
     — Update all documentation.
     — Change demo-2 example to not be solveable with one variable.
