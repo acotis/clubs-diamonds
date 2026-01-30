@@ -151,8 +151,6 @@ Todo
 ——————————
 
 — Rewrite attempt:
-    — Implement top-level-pivot threading.
-        — Do rough benchmark.
     — Implement max constants.
         — Do rough benchmark.
     — Remove search-count from return type.
@@ -160,6 +158,7 @@ Todo
     — Try dyn judges/inspectors/penalizers.
         — Do rough benchmark.
     — INTERMISSION: do full AB test vs previous arch.
+    — Change demo-2 example to not be solveable with one variable.
     — Try iterating through Children sets backwards.
     — Try splitting out a MulWriter that uses a Children.
     — Prove that "liquifying" operators really are liquifying.

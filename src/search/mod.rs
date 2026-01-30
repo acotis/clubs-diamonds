@@ -88,16 +88,11 @@ fn run<
     let mut solutions = vec![];
     let mut counts = [(0, 0); 99];
 
-    let op_requirements = [
-        None,
-        //Some(NOT), Some(MUL), Some(DIV), Some(MOD),
-        //Some(ADD), Some(SUB), Some(LSL), Some(LSR),
-        //Some(AND), Some(XOR), Some(ORR)
-    ];
+    let writer_types = WriterType::all();
 
     let mut task_iterator =
         (config.min_length..=config.max_length)
-            .flat_map(|l| op_requirements.clone().into_iter().map(move |or| (l, or)))
+            .flat_map(|l| writer_types.clone().into_iter().map(move |or| (l, or)))
             .peekable();
 
     let (tx, rx) = mpsc::channel();
@@ -134,7 +129,7 @@ fn run<
                     thread.reported_status = None;
                     counts[thread.length].1 += 1;
 
-                    if counts[thread.length].1 == op_requirements.len() {
+                    if counts[thread.length].1 == writer_types.len() {
                         ui.finished_expression_length(thread.length, counts[thread.length].0);
                     }
 
@@ -170,7 +165,7 @@ fn run<
             // allocate).
 
             else {
-                let Some((length, op_requirement)) = task_iterator.next() else {break};
+                let Some((length, writer_type)) = task_iterator.next() else {break};
                 let (thread_tx, thread_rx) = mpsc::channel();
 
                 threads.push(Thread {
@@ -196,7 +191,7 @@ fn run<
                         judge_clone,
                         constant_cap,
                         length,
-                        Some(op_requirement),
+                        writer_type,
                         var_names,
                         tx_clone,
                         thread_rx,
@@ -274,14 +269,14 @@ fn find_with_length_and_op<N: Number, const C: usize, J: Fn(&Expression<N, C>) -
     judge: J,
     _constant_cap: u8,
     length: usize,
-    _op_requirement: Option<Option<Op>>,
+    writer_type: WriterType,
     var_names: Option<[char; C]>,
     tx: mpsc::Sender<ThreadReport<N, C>>,
     rx: mpsc::Receiver<ThreadCommand>,
 ) {
     let mut count = 0u128;
-    //let mut writer = TempWriter::<N>::new(C, length, constant_cap, op_requirement);
-    let mut writer = Writer::<N, C>::new(length, WriterContext {location: Location::TOP, const_allowed: true});
+    //let mut writer = TempWriter::<N>::new(C, length, constant_cap, writer_type);
+    let mut writer = Writer::<N, C>::new(length, WriterContext {location: Location::TOP, const_allowed: true}, Some(writer_type));
     let mut expr = Expression {
         field: vec![255; length],
         nothing: PhantomData::default(),

@@ -13,7 +13,7 @@ impl<N: Number, const C: usize> NegWriter<N, C> {
     pub fn new(length: usize) -> Self {
         Self {
             length,
-            child: Box::new(Writer::new(length - 1, WriterContext {location: CHILD_OF_NEG, const_allowed: false})),
+            child: Box::new(Writer::new(length - 1, WriterContext {location: CHILD_OF_NEG, const_allowed: false}, None)),
             next_op: NOT,
         }
     }

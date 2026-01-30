@@ -85,7 +85,7 @@ impl<N: Number, const C: usize> Children<N, C> {
         let mut offset = 0;
 
         for &size in sizes_1.iter().chain(sizes_2.iter()) {
-            ret.children.push((offset, Writer::new(size, WriterContext {location: if offset == 0 {location_head} else {location_tail}, const_allowed: true})));
+            ret.children.push((offset, Writer::new(size, WriterContext {location: if offset == 0 {location_head} else {location_tail}, const_allowed: true}, None)));
             offset += if offset == 0 {size} else {size + 1};
         }
 

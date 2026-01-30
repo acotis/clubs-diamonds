@@ -50,6 +50,17 @@ pub struct WriterContext {
     pub const_allowed: bool,
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum WriterType {
+    Or, Xor, And, Shift, Add, Mul, Neg, ConstVar
+}
+
+impl WriterType {
+    pub fn all() -> Vec<WriterType> {
+        [WriterType::Or, WriterType::Xor, WriterType::And, WriterType::Shift, WriterType::Add, WriterType::Mul, WriterType::Neg, WriterType::ConstVar].into()
+    }
+}
+
 #[derive(Debug, Clone)]
 enum WriterState<N: Number, const C: usize> {
     Init,
@@ -70,15 +81,17 @@ pub struct Writer<N: Number, const C: usize> {
     length: usize,
     state: WriterState<N, C>,
     pub context: WriterContext,
+    writer_type: Option<WriterType>,
     nothing: PhantomData<N>,
 }
 
 impl<N: Number, const C: usize> Writer<N, C> {
-    pub fn new(length: usize, context: WriterContext) -> Self {
+    pub fn new(length: usize, context: WriterContext, writer_type: Option<WriterType>) -> Self {
         Self {
             length,
             state: Init,
             context,
+            writer_type,
             nothing: PhantomData,
         }
     }
@@ -106,65 +119,83 @@ impl<N: Number, const C: usize> Writer<N, C> {
         loop {
             match self.state {
                 Init => {
-                    self.init_or_state(dest);
+                    match self.writer_type {
+                        None                        => {self.init_or_state(dest)}
+                        Some(WriterType::Or)        => {self.init_or_state(dest);    if !matches!(self.state, WriterState::Or(_))    {return false}}
+                        Some(WriterType::Xor)       => {self.init_xor_state(dest);   if !matches!(self.state, WriterState::Xor(_))   {return false}}
+                        Some(WriterType::And)       => {self.init_and_state(dest);   if !matches!(self.state, WriterState::And(_))   {return false}}
+                        Some(WriterType::Shift)     => {self.init_shift_state(dest); if !matches!(self.state, WriterState::Shift(_)) {return false}}
+                        Some(WriterType::Add)       => {self.init_add_state(dest);   if !matches!(self.state, WriterState::Add(_))   {return false}}
+                        Some(WriterType::Mul)       => {self.init_mul_state(dest);   if !matches!(self.state, WriterState::Mul(_))   {return false}}
+                        Some(WriterType::Neg)       => {self.init_neg_state(dest);   if !matches!(self.state, WriterState::Neg(_))   {return false}}
+                        Some(WriterType::ConstVar)  => {self.init_const_state(dest)}
+                    }
                     continue;
                 }
 
-                Or(ref mut writer) => {
+                WriterState::Or(ref mut writer) => {
                     if writer.write(dest) {return true;}
+                    if self.writer_type != None {return false;}
                     self.init_xor_state(dest);
                     continue;
                 }
 
-                Xor(ref mut writer) => {
+                WriterState::Xor(ref mut writer) => {
                     if writer.write(dest) {return true;}
+                    if self.writer_type != None {return false;}
                     self.init_and_state(dest);
                     continue;
                 }
 
-                And(ref mut writer) => {
+                WriterState::And(ref mut writer) => {
                     if writer.write(dest) {return true;}
+                    if self.writer_type != None {return false;}
                     self.init_shift_state(dest);
                     continue;
                 }
 
-                Shift(ref mut writer) => {
+                WriterState::Shift(ref mut writer) => {
                     if writer.write(dest) {return true;}
+                    if self.writer_type != None {return false;}
                     self.init_add_state(dest);
                     continue;
                 }
 
-                Add(ref mut writer) => {
+                WriterState::Add(ref mut writer) => {
                     if writer.write(dest) {return true;}
+                    if self.writer_type != None {return false;}
                     self.init_mul_state(dest);
                     continue;
                 }
 
-                Mul(ref mut writer) => {
+                WriterState::Mul(ref mut writer) => {
                     if writer.write(dest) {return true;}
+                    if self.writer_type != None {return false;}
                     self.init_neg_state(dest);
                     continue;
                 }
 
-                Neg(ref mut writer) => {
+                WriterState::Neg(ref mut writer) => {
                     if writer.write(dest) {return true;}
+                    if self.writer_type != None {return false;}
                     self.init_const_state(dest);
                     continue;
                 }
 
-                Const(ref mut writer) => {
+                WriterState::Const(ref mut writer) => {
                     if writer.write(dest) {return true;}
                     self.init_var_state(dest);
                     continue;
                 }
 
-                Var(ref mut writer) => {
+                WriterState::Var(ref mut writer) => {
                     if writer.write(dest) {return true;}
+                    if self.writer_type != None {return false;}
                     self.init_done_state(dest);
                     continue;
                 }
 
-                Done => {
+                WriterState::Done => {
                     return false;
                 }
             }
@@ -179,7 +210,7 @@ impl<N: Number, const C: usize> Writer<N, C> {
         dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();
 
-        self.state = Or(OrWriter::new(self.length - wasted_space));
+        self.state = WriterState::Or(OrWriter::new(self.length - wasted_space));
     }
 
     fn init_xor_state(&mut self, dest: &mut [u8]) {
@@ -190,7 +221,7 @@ impl<N: Number, const C: usize> Writer<N, C> {
         dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();
 
-        self.state = Xor(XorWriter::new(self.length - wasted_space));
+        self.state = WriterState::Xor(XorWriter::new(self.length - wasted_space));
     }
 
     fn init_and_state(&mut self, dest: &mut [u8]) {
@@ -201,7 +232,7 @@ impl<N: Number, const C: usize> Writer<N, C> {
         dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();
 
-        self.state = And(AndWriter::new(self.length - wasted_space));
+        self.state = WriterState::And(AndWriter::new(self.length - wasted_space));
     }
 
     fn init_shift_state(&mut self, dest: &mut [u8]) {
@@ -211,7 +242,7 @@ impl<N: Number, const C: usize> Writer<N, C> {
         dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();
 
-        self.state = Shift(ShiftWriter::new(self.length - wasted_space + 1));
+        self.state = WriterState::Shift(ShiftWriter::new(self.length - wasted_space + 1));
     }
 
     fn init_add_state(&mut self, dest: &mut [u8]) {
@@ -222,7 +253,7 @@ impl<N: Number, const C: usize> Writer<N, C> {
         dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();
 
-        self.state = Add(AddWriter::new(self.length - wasted_space));
+        self.state = WriterState::Add(AddWriter::new(self.length - wasted_space));
     }
 
     fn init_mul_state(&mut self, dest: &mut [u8]) {
@@ -232,24 +263,24 @@ impl<N: Number, const C: usize> Writer<N, C> {
         dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();
 
-        self.state = Mul(MulWriter::new(self.length - wasted_space));
+        self.state = WriterState::Mul(MulWriter::new(self.length - wasted_space));
     }
 
     fn init_neg_state(&mut self, dest: &mut [u8]) {
         if self.length < 2 {self.init_const_state(dest); return;}
 
-        self.state = Neg(NegWriter::new(self.length));
+        self.state = WriterState::Neg(NegWriter::new(self.length));
     }
 
     fn init_const_state(&mut self, dest: &mut [u8]) {
         if !self.context.const_allowed {self.init_var_state(dest); return;}
         if self.length > 4 {self.init_var_state(dest); return;}
-        self.state = Const(ConstWriter::new(self.length));
+        self.state = WriterState::Const(ConstWriter::new(self.length));
     }
 
     fn init_var_state(&mut self, dest: &mut [u8]) {
         if self.length > 1 {self.init_done_state(dest); return;}
-        self.state = Var(VarWriter::new(self.length));
+        self.state = WriterState::Var(VarWriter::new(self.length));
     }
 
     fn init_done_state(&mut self, _dest: &mut [u8]) {
