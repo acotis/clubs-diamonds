@@ -61,7 +61,7 @@ fn run<
 >(
     config: &Searcher<N, C, J, I, P>
 )
-    -> (u128, Vec<Expression<N, C>>)
+    -> Vec<Expression<N, C>>
 {
 
     // Set up the TUI.
@@ -252,7 +252,7 @@ fn run<
 
     // Todo: tear down the threads.
 
-    (total_count, solutions)
+    solutions
 }
 
 fn optional_revar<const C: usize>(string: &str, custom_names: Option<[char; C]>) -> String {

@@ -2,7 +2,7 @@
 use clubs_diamonds::{Searcher, Expression};
 
 fn main() {
-    let (count, solutions) =
+    let solutions =
         Searcher::<i32, 1>::new(|expr: &Expression::<i32, 1>| {
             expr.apply(&[1]) == Some(2) &&
             expr.apply(&[2]) == Some(3) &&
@@ -14,7 +14,6 @@ fn main() {
         .threads(3)
         .run_with_ui();
 
-    println!("Searched {} expressions total", count);
     println!("The first three solutions we found were:");
     println!("    — {}", solutions[0]);
     println!("    — {}", solutions[1]);

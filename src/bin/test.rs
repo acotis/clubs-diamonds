@@ -2,7 +2,7 @@
 use clubs_diamonds::{Searcher, Expression};
 
 fn main() {
-    let (count, solutions) =
+    let solutions =
         Searcher::<i32, 1>::new(|expr: &Expression::<i32, 1>| {
             (-1000..=1000).all(|a|
                 //expr.apply(&[a]) == if a == 0 {None} else {Some(2^1/a/8-3)}
@@ -12,7 +12,6 @@ fn main() {
         .threads(3)
         .run_with_ui();
 
-    println!("Searched {} expressions total", count);
     println!("The first three solutions we found were:");
     println!("    — {}", solutions[0]);
     println!("    — {}", solutions[1]);

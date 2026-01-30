@@ -280,7 +280,7 @@ impl<
 
     /// Execute the configured search process in a text-based UI.
 
-    pub fn run_with_ui(&self) -> (u128, Vec<Expression<N, C>>) {
+    pub fn run_with_ui(&self) -> Vec<Expression<N, C>> {
         run::<N, C, J, I, P, DefaultUI>(&self)
     }
 
@@ -288,7 +288,7 @@ impl<
     ///
     /// **Note:** When you use this method, there is no way to quit the search process before Clubs decides it's done. So, if you plan to use it, you probably want to specify a combination of search parameters that make the search task finite.
 
-    pub fn run_silently(&self) -> (u128, Vec<Expression<N, C>>) {
+    pub fn run_silently(&self) -> Vec<Expression<N, C>> {
         run::<N, C, J, I, P, NullUI>(&self)
     }
 }

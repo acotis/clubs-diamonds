@@ -151,11 +151,10 @@ Todo
 ——————————
 
 — Rewrite attempt:
-    — Remove search-count from return type.
-        — Do rough benchmark.
     — Try dyn judges/inspectors/penalizers.
         — Do rough benchmark.
     — INTERMISSION: do full AB test vs previous arch.
+    — Update all documentation.
     — Change demo-2 example to not be solveable with one variable.
     — Try iterating through Children sets backwards.
     — Try splitting out a MulWriter that uses a Children.
