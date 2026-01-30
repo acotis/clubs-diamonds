@@ -10,7 +10,6 @@ fn main() {
                 expr.apply(&[a]) == Some(reference_data[a as usize - 1])
             )
         })
-        .max_constant(9)
         .threads(3)
         .run_with_ui();
 

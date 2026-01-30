@@ -21,8 +21,10 @@ use crate::Expression;
 
 // Note about type parameters: The following bits of Rust syntax are distinct
 // in meaning (note the capitalization):
+//
 //     — Fn(u32) -> bool
 //     — fn(u32) -> bool
+//
 // The first bit of syntax names a trait; it is the trait of closures, i.e.,
 // function-like objects which can be "called" with arguments to produce a
 // return value, whose arguments are a u32 and whose return type is bool.
@@ -83,11 +85,10 @@ use crate::Expression;
 pub struct Searcher<
     N: Number,
     const C: usize,
-    P: Fn(&Expression<N, C>) -> usize                         = fn(&Expression<N, C>) -> usize,
 > {
     pub(super) judge: Box<dyn Fn(&Expression<N, C>) -> bool + Sync + 'static>,
     pub(super) inspector: Option<Box<dyn Fn(&Expression<N, C>) -> String>>,
-    pub(super) penalizer: Option<P>,
+    pub(super) penalizer: Option<Box<dyn Fn(&Expression<N, C>) -> usize>>,
     pub(super) description: Option<String>,
     pub(super) threads: usize,
     pub(super) report_every: u128,
@@ -103,15 +104,15 @@ impl<
     N: Number,
     const C: usize,
 >
-    Searcher<N, C, fn(&Expression<N, C>) -> usize>
+    Searcher<N, C>
 {
 
     /// Construct a new `Searcher`. The provided closure is used as a judge to determine which expressions to accept as solutions and which to reject.
 
-    pub fn new<J>(judge: J) -> Searcher::<N, C, fn(&Expression<N, C>) -> usize>
+    pub fn new<J>(judge: J) -> Searcher::<N, C>
         where J: Fn(&Expression<N, C>) -> bool + Sync + 'static,
     {
-        Searcher::<N, C, fn(&Expression<N, C>) -> usize> {
+        Searcher::<N, C> {
             judge: Box::new(judge),
             inspector: None,
             penalizer: None,
@@ -131,14 +132,13 @@ impl<
 impl<
     N: Number,
     const C: usize,
-    P: Fn(&Expression<N, C>) -> usize,
 >
-    Searcher <N, C, P>
+    Searcher <N, C>
 {
 
     /// Provide an "inspector" for the UI. The inspector is a closure that accepts an `&Expression` and returns a `String`. If provided, this closure is called on each solution the `Searcher` finds, and the returned String is displayed in the Solution Inspector panel of the UI when the solution is selected. The closure is called only once per solution, when the solution is first discovered.
 
-    pub fn inspector<I>(self, inspector: I) -> Searcher<N, C, P>
+    pub fn inspector<I>(self, inspector: I) -> Searcher<N, C>
         where I: Fn(&Expression<N, C>) -> String + 'static,
     {
         Searcher {
@@ -161,13 +161,13 @@ impl<
     ///
     /// By default, the score of a solution is its length in bytes (solutions are sorted with lower scores towards the top). A penalizer is a closure that accepts an `&Expression` and returns a `usize`. If provided, this closure is called on each solution the `Searcher` finds, and the returned value is **added to** the length of the solution to calculate the score. (If you don't want this behavior, simply subtract the length of the solution from the value you return. You can obtain the length of the solution by `format!()`ing it.) The closure is called only once per solution, when the solution is first discovered. 
 
-    pub fn penalizer<P2>(self, penalizer: P2) -> Searcher<N, C, P2>
-        where P2: Fn(&Expression<N, C>) -> usize,
+    pub fn penalizer<P>(self, penalizer: P) -> Searcher<N, C>
+        where P: Fn(&Expression<N, C>) -> usize + 'static,
     {
         Searcher {
             judge: self.judge,
             inspector: self.inspector,
-            penalizer: Some(penalizer),
+            penalizer: Some(Box::new(penalizer)),
             description: self.description,
             threads: self.threads,
             report_every: self.report_every,
@@ -276,7 +276,7 @@ impl<
     /// Execute the configured search process in a text-based UI.
 
     pub fn run_with_ui(&self) -> Vec<Expression<N, C>> {
-        run::<N, C, P, DefaultUI>(&self)
+        run::<N, C, DefaultUI>(&self)
     }
 
     /// Execute the configured search process silently.
@@ -284,6 +284,6 @@ impl<
     /// **Note:** When you use this method, there is no way to quit the search process before Clubs decides it's done. So, if you plan to use it, you probably want to specify a combination of search parameters that make the search task finite.
 
     pub fn run_silently(&self) -> Vec<Expression<N, C>> {
-        run::<N, C, P, NullUI>(&self)
+        run::<N, C, NullUI>(&self)
     }
 }
