@@ -167,6 +167,9 @@ Todo
       Also, #[test] code is a little bit slower (like 2x) even when you use
       `cargo test --release`.
     — Write correctness tests for the max-constant feature specifically.
+    — Write correctness tests for finnicky usability features, like the
+      ability to pass arbitrary closures (not just function pointers) as
+      judges, inspectors, and penalizers.
     — Work on the benchmark binary search project (below).
     — Add a way to compare two benchmark reports to each other.
     — Clean out empty and mostly-empty benchmarks.

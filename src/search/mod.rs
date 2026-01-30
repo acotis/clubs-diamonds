@@ -54,11 +54,10 @@ enum ThreadReport<N: Number, const C: usize> {
 fn run<
     N: Number,
     const C: usize,
-    I: Fn(&Expression<N, C>) -> String,
     P: Fn(&Expression<N, C>) -> usize,
     U: UI
 >(
-    config: &Searcher<N, C, I, P>
+    config: &Searcher<N, C, P>
 )
     -> Vec<Expression<N, C>>
 {
