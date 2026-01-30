@@ -6,20 +6,23 @@ use super::super::*;
 #[derive(Debug, Clone)]
 pub struct MulWriter<N: Number, const C: usize> {
     length: usize,
+    constant_cap: u8,
     next_op: u8,
     bytes_for_left: usize,
     children: Children<N, C>,
 }
 
 impl<N: Number, const C: usize> MulWriter<N, C> {
-    pub fn new(length: usize) -> Self {
+    pub fn new(length: usize, constant_cap: u8) -> Self {
         Self {
             length,
+            constant_cap,
             next_op: MUL,
             bytes_for_left: length - 2,
             children: Children::two_context(
                 LEFT_CHILD_OF_MUL,
                 RIGHT_CHILD_OF_MUL,
+                constant_cap,
                 Nop.encode(), // we write our op manually
                 &[length - 2, 1],
             ).non_commutative(),
@@ -54,6 +57,7 @@ impl<N: Number, const C: usize> MulWriter<N, C> {
                 self.children = Children::two_context(
                     LEFT_CHILD_OF_MUL,
                     RIGHT_CHILD_OF_MUL,
+                    self.constant_cap,
                     Nop.encode(), // we write our op manually
                     &[self.bytes_for_left, self.length - self.bytes_for_left - 1],
                 ).non_commutative();

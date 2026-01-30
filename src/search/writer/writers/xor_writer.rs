@@ -6,17 +6,19 @@ use super::super::*;
 
 #[derive(Debug, Clone)]
 pub struct XorWriter<N: Number, const C: usize> {
+    constant_cap: u8,
     partition: Partition,
     children: Children<N, C>,
 }
 
 impl<N: Number, const C: usize> XorWriter<N, C> {
-    pub fn new(length: usize) -> Self {
+    pub fn new(length: usize, constant_cap: u8) -> Self {
         let mut initial_partition = Partition::standard(length);
         initial_partition.next();
 
         Self {
-            children: Children::standard(CHILD_OF_XOR, XOR, &initial_partition.state()),
+            constant_cap,
+            children: Children::standard(CHILD_OF_XOR, constant_cap, XOR, &initial_partition.state()),
             partition: initial_partition,
         }
     }
@@ -30,7 +32,7 @@ impl<N: Number, const C: usize> XorWriter<N, C> {
             // todo: re-instate quick-exit conditions for partitions.
 
             if self.partition.next() {
-                self.children = Children::standard(CHILD_OF_XOR, XOR, &self.partition.state());
+                self.children = Children::standard(CHILD_OF_XOR, self.constant_cap, XOR, &self.partition.state());
                 continue;
             }
 

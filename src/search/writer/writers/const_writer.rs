@@ -10,14 +10,14 @@ pub struct ConstWriter {
 }
 
 impl ConstWriter {
-    pub fn new(length: usize) -> Self {
+    pub fn new(length: usize, constant_cap: u8) -> Self {
         match length {
             1 => {
                 Self {
                     length,
                     next_write: 0, // todo: should this be 0?
                     remove_neg_at: 0,
-                    stop_at: 10,
+                    stop_at: 10.min(constant_cap),
                 }
             },
             2 => {
@@ -25,7 +25,7 @@ impl ConstWriter {
                     length,
                     next_write: 0,
                     remove_neg_at: 10,
-                    stop_at: 100,
+                    stop_at: 100.min(constant_cap),
                 }
             }
             3 => {
@@ -33,7 +33,7 @@ impl ConstWriter {
                     length,
                     next_write: 10,
                     remove_neg_at: 100,
-                    stop_at: 156,
+                    stop_at: 156.min(constant_cap),
                 }
             }
             4 => {
@@ -41,7 +41,7 @@ impl ConstWriter {
                     length,
                     next_write: 100,
                     remove_neg_at: 156,
-                    stop_at: 156,
+                    stop_at: 156.min(constant_cap),
                 }
 
             }
@@ -50,7 +50,7 @@ impl ConstWriter {
     }
 
     pub fn write(&mut self, dest: &mut [u8]) -> bool {
-        if self.next_write == self.stop_at {
+        if self.next_write >= self.stop_at {
             return false;
         }
 
