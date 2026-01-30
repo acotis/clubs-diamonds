@@ -54,205 +54,205 @@ enum ThreadReport<N: Number, const C: usize> {
 fn run<
     N: Number,
     const C: usize,
-    J: Fn(&Expression<N, C>) -> bool + Clone + Send + 'static,
     I: Fn(&Expression<N, C>) -> String,
     P: Fn(&Expression<N, C>) -> usize,
     U: UI
 >(
-    config: &Searcher<N, C, J, I, P>
+    config: &Searcher<N, C, I, P>
 )
     -> Vec<Expression<N, C>>
 {
+    thread::scope(|s| {
+        // Set up the TUI.
 
-    // Set up the TUI.
+        let cycle_duration = std::time::Duration::from_millis(1); // Time to sleep between control cycles.
+        let frame_clock_max = 16; // Only draw a UI frame every N cycles of the control loop.
+        let mut frame_clock = 0;
 
-    let cycle_duration = std::time::Duration::from_millis(1); // Time to sleep between control cycles.
-    let frame_clock_max = 16; // Only draw a UI frame every N cycles of the control loop.
-    let mut frame_clock = 0;
+        let mut ui = U::new();
 
-    let mut ui = U::new();
+        ui.set_debug_banner_enabled(config.debug_banner_enabled);
+        ui.set_inspector_enabled(config.inspector.is_some());
 
-    ui.set_debug_banner_enabled(config.debug_banner_enabled);
-    ui.set_inspector_enabled(config.inspector.is_some());
-
-    if let Some(ref description) = config.description {
-        ui.set_description(description.clone());
-    }
-
-    // Set up the work.
-
-    let mut total_count = 0u128; // total count of expressions
-    let mut target_thread_count = config.threads;
-    let mut paused = false;
-    let mut threads: Vec<Thread> = vec![];
-    let mut solutions = vec![];
-    let mut counts = [(0, 0); 99];
-
-    let writer_types = WriterType::all();
-
-    let mut task_iterator =
-        (config.min_length..=config.max_length)
-            .flat_map(|l| writer_types.clone().into_iter().map(move |or| (l, or)))
-            .peekable();
-
-    let (tx, rx) = mpsc::channel();
-
-    'search: loop {
-
-        // Handle messages from the threads.
-
-        while let Ok(msg) = rx.try_recv() {
-            match msg {
-                FoundSolution {expr} => {
-                    let string = optional_revar(&format!("{expr}"), config.var_names);
-                    let inspection = config.inspector.as_ref().map(|insp| insp(&expr));
-                    let score = string.len() + config.penalizer.as_ref().map(|scorer| scorer(&expr)).unwrap_or(0);
-
-                    solutions.push(expr);
-                    ui.push_solution(string, score, inspection);
-                },
-
-                TriedN {thread_id, count} => {
-                    let thread = threads.iter_mut().find(|thread| thread.id == thread_id).unwrap();
-                    counts[thread.length].0 += count;
-                    total_count += count;
-                }
-
-                UpdateStatus {thread_id, status} => {
-                    let thread = threads.iter_mut().find(|thread| thread.id == thread_id).unwrap();
-                    thread.reported_status = Some(status);
-                }
-
-                Done {thread_id} => {
-                    let thread = threads.iter_mut().find(|thread| thread.id == thread_id).unwrap();
-
-                    thread.reported_status = None;
-                    counts[thread.length].1 += 1;
-
-                    if counts[thread.length].1 == writer_types.len() {
-                        ui.finished_expression_length(thread.length, counts[thread.length].0);
-                    }
-
-                    threads.retain(|thread| thread.id != thread_id);
-                }
-            }
+        if let Some(ref description) = config.description {
+            ui.set_description(description.clone());
         }
 
-        // Compute the effective target thread count (0 if we are paused)
-        // and effective current thread count (doesn't include paused
-        // threads).
+        // Set up the work.
 
-        let effective_target_thread_count = if paused {0} else {target_thread_count};
-        let mut active_thread_count =
-            threads
-                .iter()
-                .filter(|thread| thread.should_be_running)
-                .count();
+        let mut total_count = 0u128; // total count of expressions
+        let mut target_thread_count = config.threads;
+        let mut paused = false;
+        let mut threads: Vec<Thread> = vec![];
+        let mut solutions = vec![];
+        let mut counts = [(0, 0); 99];
 
-        // Unpause threads, and/or spawn new ones, up to the thread limit
-        // (as long as there are tasks to give them).
+        let writer_types = WriterType::all();
 
-        while active_thread_count < effective_target_thread_count {
+        let mut task_iterator =
+            (config.min_length..=config.max_length)
+                .flat_map(|l| writer_types.clone().into_iter().map(move |or| (l, or)))
+                .peekable();
 
-            // If we have paused threads, unpause one.
+        let (tx, rx) = mpsc::channel();
 
-            if active_thread_count < threads.len() {
-                threads[active_thread_count].tx.send(Unpause).unwrap();
-                threads[active_thread_count].should_be_running = true;
+        'search: loop {
+
+            // Handle messages from the threads.
+
+            while let Ok(msg) = rx.try_recv() {
+                match msg {
+                    FoundSolution {expr} => {
+                        let string = optional_revar(&format!("{expr}"), config.var_names);
+                        let inspection = config.inspector.as_ref().map(|insp| insp(&expr));
+                        let score = string.len() + config.penalizer.as_ref().map(|scorer| scorer(&expr)).unwrap_or(0);
+
+                        solutions.push(expr);
+                        ui.push_solution(string, score, inspection);
+                    },
+
+                    TriedN {thread_id, count} => {
+                        let thread = threads.iter_mut().find(|thread| thread.id == thread_id).unwrap();
+                        counts[thread.length].0 += count;
+                        total_count += count;
+                    }
+
+                    UpdateStatus {thread_id, status} => {
+                        let thread = threads.iter_mut().find(|thread| thread.id == thread_id).unwrap();
+                        thread.reported_status = Some(status);
+                    }
+
+                    Done {thread_id} => {
+                        let thread = threads.iter_mut().find(|thread| thread.id == thread_id).unwrap();
+
+                        thread.reported_status = None;
+                        counts[thread.length].1 += 1;
+
+                        if counts[thread.length].1 == writer_types.len() {
+                            ui.finished_expression_length(thread.length, counts[thread.length].0);
+                        }
+
+                        threads.retain(|thread| thread.id != thread_id);
+                    }
+                }
             }
 
-            // Otherwise, spawn a new one (as long as there are more tasks to
-            // allocate).
+            // Compute the effective target thread count (0 if we are paused)
+            // and effective current thread count (doesn't include paused
+            // threads).
 
-            else {
-                let Some((length, writer_type)) = task_iterator.next() else {break};
-                let (thread_tx, thread_rx) = mpsc::channel();
+            let effective_target_thread_count = if paused {0} else {target_thread_count};
+            let mut active_thread_count =
+                threads
+                    .iter()
+                    .filter(|thread| thread.should_be_running)
+                    .count();
 
-                threads.push(Thread {
-                    should_be_running: true,
-                    reported_status: None,
-                    length,
-                    id: (0..).find(|x| threads.iter().all(|thread| thread.id != *x)).unwrap(),
-                    tx: thread_tx,
-                });
+            // Unpause threads, and/or spawn new ones, up to the thread limit
+            // (as long as there are tasks to give them).
 
-                let idx = threads.len() - 1;
-                let tx_clone = tx.clone();
-                let judge_clone = config.judge.clone();
-                let thread_id = threads[idx].id;
-                let report_every = config.report_every;
-                let constant_cap = config.constant_cap;
-                let var_names = config.var_names;
+            while active_thread_count < effective_target_thread_count {
 
-                thread::spawn(move || {
-                    find_with_length_and_op(
-                        thread_id,
-                        report_every,
-                        judge_clone,
-                        constant_cap,
+                // If we have paused threads, unpause one.
+
+                if active_thread_count < threads.len() {
+                    threads[active_thread_count].tx.send(Unpause).unwrap();
+                    threads[active_thread_count].should_be_running = true;
+                }
+
+                // Otherwise, spawn a new one (as long as there are more tasks to
+                // allocate).
+
+                else {
+                    let Some((length, writer_type)) = task_iterator.next() else {break};
+                    let (thread_tx, thread_rx) = mpsc::channel();
+
+                    threads.push(Thread {
+                        should_be_running: true,
+                        reported_status: None,
                         length,
-                        writer_type,
-                        var_names,
-                        tx_clone,
-                        thread_rx,
-                    );
-                });
+                        id: (0..).find(|x| threads.iter().all(|thread| thread.id != *x)).unwrap(),
+                        tx: thread_tx,
+                    });
+
+                    let idx = threads.len() - 1;
+                    let tx_clone = tx.clone();
+                    let judge_clone = &config.judge;
+                    let thread_id = threads[idx].id;
+                    let report_every = config.report_every;
+                    let constant_cap = config.constant_cap;
+                    let var_names = config.var_names;
+
+                    s.spawn(move || {
+                        find_with_length_and_op(
+                            thread_id,
+                            report_every,
+                            judge_clone,
+                            constant_cap,
+                            length,
+                            writer_type,
+                            var_names,
+                            tx_clone,
+                            thread_rx,
+                        );
+                    });
+                }
+
+                active_thread_count += 1;
             }
 
-            active_thread_count += 1;
-        }
+            // Pause threads down to the thread limit if necessary.
 
-        // Pause threads down to the thread limit if necessary.
+            while active_thread_count > effective_target_thread_count {
+                threads[active_thread_count-1].tx.send(Pause).unwrap();
+                threads[active_thread_count-1].should_be_running = false;
+                active_thread_count -= 1;
+            }
 
-        while active_thread_count > effective_target_thread_count {
-            threads[active_thread_count-1].tx.send(Pause).unwrap();
-            threads[active_thread_count-1].should_be_running = false;
-            active_thread_count -= 1;
-        }
+            // If at this point there are no threads and also no tasks left
+            // in the task iterator, and the UI type does not require a manual
+            // quit in order to exit the search, return.
 
-        // If at this point there are no threads and also no tasks left
-        // in the task iterator, and the UI type does not require a manual
-        // quit in order to exit the search, return.
+            if threads.is_empty() && task_iterator.peek() == None && !U::require_manual_exit() {
+                break 'search;
+            }
 
-        if threads.is_empty() && task_iterator.peek() == None && !U::require_manual_exit() {
-            break 'search;
-        }
+            // If this is a UI cycle, handle inputs and draw a frame of the UI.
 
-        // If this is a UI cycle, handle inputs and draw a frame of the UI.
-
-        if frame_clock == 0 {
-            for action in ui.handle_inputs() {
-                match action {
-                    Quit => break 'search,
-                    IncreaseThreadCount => {target_thread_count += 1}
-                    DecreaseThreadCount => {if target_thread_count > 0 {target_thread_count -= 1}}
-                    PauseUnpause => {
-                        paused = !paused;
+            if frame_clock == 0 {
+                for action in ui.handle_inputs() {
+                    match action {
+                        Quit => break 'search,
+                        IncreaseThreadCount => {target_thread_count += 1}
+                        DecreaseThreadCount => {if target_thread_count > 0 {target_thread_count -= 1}}
+                        PauseUnpause => {
+                            paused = !paused;
+                        }
                     }
                 }
+
+                ui.set_total_count(total_count);
+                ui.set_target_thread_count(target_thread_count);
+                ui.set_thread_statuses(threads.iter().map(|thread| thread.reported_status.clone()).collect());
+
+                ui.draw();
+
+                // Reset the clock.
+
+                frame_clock = frame_clock_max;
             }
 
-            ui.set_total_count(total_count);
-            ui.set_target_thread_count(target_thread_count);
-            ui.set_thread_statuses(threads.iter().map(|thread| thread.reported_status.clone()).collect());
+            frame_clock -= 1;
 
-            ui.draw();
+            // Sleep for a bit to stop the control thread from hotlooping.
 
-            // Reset the clock.
-
-            frame_clock = frame_clock_max;
+            std::thread::sleep(cycle_duration);
         }
 
-        frame_clock -= 1;
+        // Todo: tear down the threads.
 
-        // Sleep for a bit to stop the control thread from hotlooping.
-
-        std::thread::sleep(cycle_duration);
-    }
-
-    // Todo: tear down the threads.
-
-    solutions
+        solutions
+    })
 }
 
 fn optional_revar<const C: usize>(string: &str, custom_names: Option<[char; C]>) -> String {
@@ -263,10 +263,10 @@ fn optional_revar<const C: usize>(string: &str, custom_names: Option<[char; C]>)
     }
 }
 
-fn find_with_length_and_op<N: Number, const C: usize, J: Fn(&Expression<N, C>) -> bool>(
+fn find_with_length_and_op<N: Number, const C: usize>(
     thread_id: usize,
     notification_spacing: u128,
-    judge: J,
+    judge: &dyn Fn(&Expression<N, C>) -> bool,
     constant_cap: u8,
     length: usize,
     writer_type: WriterType,
