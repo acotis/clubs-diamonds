@@ -151,8 +151,6 @@ Todo
 ——————————
 
 — Rewrite attempt:
-    — Implement max constants.
-        — Do rough benchmark.
     — Remove search-count from return type.
         — Do rough benchmark.
     — Try dyn judges/inspectors/penalizers.
