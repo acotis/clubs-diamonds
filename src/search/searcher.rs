@@ -8,84 +8,7 @@ use crate::Expression;
 
 /// Used to configure and execute searches for short mathematical expressions.
 
-// Non-doc comment for devs: here is a list of common traits and why Searcher
-// doesn't implement them:
-//     — Copy: potentially owns a String
-//     — PartialEq + Eq: per the Rust compiler: "warning: function pointer
-//       comparisons do not produce meaningful results since their addresses
-//       are not guaranteed to be unique"
-//     — Hash: derived (by me) from reason for PartialEq + Eq
-//     — PartialOrd + Ord: nonsensical
-//     — Display: no strong reason to display it
-//     — Default: no sensible default value because the judge is mandatory
-
-// Note about type parameters: The following bits of Rust syntax are distinct
-// in meaning (note the capitalization):
-//
-//     — Fn(u32) -> bool
-//     — fn(u32) -> bool
-//
-// The first bit of syntax names a trait; it is the trait of closures, i.e.,
-// function-like objects which can be "called" with arguments to produce a
-// return value, whose arguments are a u32 and whose return type is bool.
-// The second bit of syntax names a type; it is the type of function pointers
-// whose arguments are a u32 and whose return type is bool. A function
-// pointer is one example a function-like object that can be called, so the
-// type implements the trait.
-//
-// A notable example of a function-like object which is not just a function
-// pointer is the object created when you use anonymous function syntax in
-// a way that captures variables from the environment. This object is called
-// a closure.
-//
-// It will be useful to users of Clubs if they can pass closures to the
-// Searcher methods, rather than only being able to use function pointers.
-// So, it is better design if the Searcher's fields and method signatures use
-// trait bounds based on the closure trait rather than requiring function
-// pointers specifically.
-//
-// Doing this without causing problems with type inference requires some
-// finesse. The Searcher struct uses the Builder Lite pattern, which means
-// we construct a Searcher in stages, like this:
-//
-//     Searcher::new(|expr| ...)
-//         .inspector(|expr| ...)
-//         .penalizer(|expr| ...)
-//         .run_with_ui();
-//
-// or this:
-//
-//     Searcher::new(|expr| ...)
-//         .run_with_ui();
-//
-// The problem here is that, if we don't call the .inspector() method, we
-// never nail down the type of the "I" type parameter. Rust doesn't like
-// this, and it isn't willing to assume a reasonable default. If we simply
-// give Searcher five type parameters at all times in all ways (those five
-// being Number, Count, Judge, Inspector, and Penalizer) then the user would
-// be required to type:
-//
-//     Searcher::<u32, 1, fn(&Expression<u32, 1>) -> bool>::new(|expr| ...)
-//         .run_with_ui();
-//
-// and that's unacceptable. So, we need a solution where the Searcher struct
-// does have all five type parameters (so that any one of the three functions
-// can be a closure) but doesn't cause type inference issues.
-//
-// The solution, h/t Claude AI, is to allow each Builder Lite method to have
-// a different type signature as approrpiate for its action. For example, the
-// Searcher::new() method can produce a Searcher whose Inspector and Penalizer
-// types are specifically function pointers (so that Rust doesn't complain
-// that it can't figure out what those parameters should be just from the new()
-// call alone) and then the .inspector() method can take an arbitrary Searcher
-// and return *a new Searcher whose I parameter is different than that of the
-// supplied Searcher*, simply matching whatever function-like object was
-// passed.
-
-pub struct Searcher<
-    N: Number,
-    const C: usize,
-> {
+pub struct Searcher<N: Number, const C: usize> {
     pub(super) judge: Box<dyn Fn(&Expression<N, C>) -> bool + Sync + 'static>,
     pub(super) inspector: Option<Box<dyn Fn(&Expression<N, C>) -> String>>,
     pub(super) penalizer: Option<Box<dyn Fn(&Expression<N, C>) -> usize>>,
@@ -100,12 +23,7 @@ pub struct Searcher<
     pub(super) phantom_data: std::marker::PhantomData<N>,
 }
 
-impl<
-    N: Number,
-    const C: usize,
->
-    Searcher<N, C>
-{
+impl<N: Number, const C: usize> Searcher<N, C> {
 
     /// Construct a new `Searcher`. The provided closure is used as a judge to determine which expressions to accept as solutions and which to reject.
 
@@ -127,14 +45,6 @@ impl<
             phantom_data: Default::default(),
         }
     }
-}
-
-impl<
-    N: Number,
-    const C: usize,
->
-    Searcher <N, C>
-{
 
     /// Provide an "inspector" for the UI. The inspector is a closure that accepts an `&Expression` and returns a `String`. If provided, this closure is called on each solution the `Searcher` finds, and the returned String is displayed in the Solution Inspector panel of the UI when the solution is selected. The closure is called only once per solution, when the solution is first discovered.
 
