@@ -152,6 +152,7 @@ Todo
 
 — Rewrite attempt:
     — INTERMISSION: do full AB test vs previous arch.
+    — Rename Searcher::var_names() to Searcher::revar().
     — Update all documentation.
     — Change demo-2 example to not be solveable with one variable.
     — Try iterating through Children sets backwards.
