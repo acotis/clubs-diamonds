@@ -174,7 +174,7 @@ impl<N: Number, const C: usize> Searcher<N, C> {
 
     /// Set the variable names that expressions will be rendered with when they appear in the UI.
     ///
-    /// The `Expression`s returned in the solutions vector will still have default variable names when rendered with `format!()`; see [`Revar`][crate::Revar] to render expressions with other variable names.
+    /// The [`Expression`]s returned in the solutions vector will still have default variable names when rendered with `format!()`; see [`Revar`][crate::Revar] to render expressions with other variable names.
 
     pub fn revar(self, var_names: [char; C]) -> Self {
         Self {

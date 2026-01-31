@@ -13,8 +13,10 @@ pub trait Revar {
     /// assert_eq!("(i+j)/k*j", "(b+a)/c*a".revar(&['j', 'i', 'k']));
     /// ```
     ///
-    /// Useful to apply in sequence after formatting an `Expression`, since
-    /// an `Expression` always renders itself with default variable names.
+    /// Useful to apply in sequence after formatting an
+    /// [`Expression`][crate::Expression], since an
+    /// [`Expression`][crate::Expression] always renders itself with
+    /// default variable names.
 
     fn revar(self, _: &[char]) -> String;
 
@@ -27,9 +29,10 @@ pub trait Revar {
     /// assert_eq!("(b+a)/c*a", "(i+j)/k*j".unvar(&['j', 'i', 'k']));
     /// ```
     ///
-    /// Useful to apply in sequence before parsing an `Expression`, since
-    /// an `Expression` always parses itself from a string assuming
-    /// default variable names.
+    /// Useful to apply in sequence before parsing an
+    /// [`Expression`][crate::Expression], since an
+    /// [`Expression`][crate::Expression] always parses itself from a
+    /// string assuming default variable names.
 
     fn unvar(self, _: &[char]) -> String;
 }

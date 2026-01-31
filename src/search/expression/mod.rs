@@ -14,7 +14,7 @@ use crate::search::pivot::Op::*;
 
 /// Represents a syntactically-valid mathematical Rust expression. Can be applied to a set of input values to yield an output value. Can also be rendered as text using the `format!` macro or `.to_string()` method.
 ///
-/// [`Expression`] implements [`FromStr`][std::str::FromStr], so you can parse an expression from a string in addition to receiving them from the [`Searcher`][crate::Searcher] struct.
+/// [`Expression`] implements [`FromStr`][std::str::FromStr], so you can parse expressions from a strings in addition to receiving them from the [`Searcher`][crate::Searcher] struct.
 
 #[derive(Clone, Debug)]
 pub struct Expression<N: Number, const C: usize> {
