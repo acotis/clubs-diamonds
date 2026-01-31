@@ -13,16 +13,20 @@ name = "demo"
 path = "src/bin/demo.rs"
 
 [[bin]]
-name = "demo-2"
-path = "src/bin/demo_2.rs"
+name = "two"
+path = "src/bin/two.rs"
 
 [[bin]]
-name = "demo-penalizer"
-path = "src/bin/demo_penalizer.rs"
+name = "penalizer"
+path = "src/bin/penalizer.rs"
 
 [[bin]]
-name = "test"
-path = "src/bin/test.rs"
+name = "inspector"
+path = "src/bin/inspector.rs"
+
+[[bin]]
+name = "closure"
+path = "src/bin/closure.rs"
 
 [dependencies]
 chrono = "0.4.42"
