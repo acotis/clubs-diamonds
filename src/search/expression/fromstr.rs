@@ -26,13 +26,14 @@ impl <N: Number, const C: usize> FromStr for Expression<N, C> {
     /// to refer to the first, second, third etc variables of the resulting
     /// Expression. If you want your variables to be named something else
     /// (like you want to parse the string "i*3+j" as an expression with
-    /// variables named "i" and "j") call [`.unvar()`] first.
+    /// variables named "i" and "j") call `.unvar()` first. See the
+    /// [`Revar`][crate::Revar] trait for details.
     ///
-    /// If the arity you specify isn't enough to cover all input varaibles
+    /// If the arity you specify isn't enough to cover all input variables
     /// that actually appear (like if you do `s.parse::<Expression<i32, 2>>()`
     /// on a string that contains a `c`) then the resulting expression will
     /// be unusable. The reverse is fine; calling
-    /// `s.parse::<Expression<i32, 2>>()` on a string that only mentions the
+    /// `.parse::<Expression<i32, 2>>()` on a string that only mentions the
     /// variable "a" just yields an Expression that doesn't use its second
     /// input variable.
     ///

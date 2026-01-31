@@ -215,6 +215,37 @@
 //!
 //! Clubs can be configured to display customized additional information alongside each solution it finds. The way to do this is to use the [`Searcher::inspector`] method. This method accepts a closure whose argument is an &[`Expression`] and whose return value is a [`String`], and Clubs will call this closure once for each solution it finds, and the string will be displayed in the "Solution inspector" panel to the right when the solution is highlighted in the UI (use J/K keys to navigate).
 //!
+//! # Formatting, parsing, and Revar
+//!
+//! [`Expression`]s in Clubs implement [`Display`][std::fmt::Display] and [`FromStr`][std::str::FromStr], meaning they can be rendered to and parsed from strings. When an expression is rendered to a string, it always uses the variable names "a", "b", "c", and so on. Likewise, when an expression is parsed from a string, it always assumes the variable names "a", "b", and "c" are used.
+//!
+//! However, sometimes it is convenient to use different variable names when displaying expressions to the user, or when parsing strings provided by the user. Clubs provides methods for renaming variables that operate purely on strings; the variables are renamed by transforming one string into another string after rendering or before parsing. There is one method for each scenario:
+//!
+//!   - When you have a string obtained by `format!()`ing an expression and you want to rename the variables away from their default names, use the `.revar()` method.
+//!   - When you have a string you provided that already uses non-default variable names and you want to normalize the names so that you can [`str::parse()`] it into an expression, use the `.unvar()` method.
+//!
+//! These two methods are implemented directly on the `&str` type via the [`Revar`] trait (which must be in scope to use the methods).
+//!
+//! ```
+//! use clubs_diamonds::{Expression, Revar};
+//!
+//! let expr = "a+b*3".parse::<Expression<i32, 2>>().unwrap();
+//!
+//! assert_eq!(
+//!     expr.to_string()
+//!         .revar(&['i', 'j']),
+//!     "i+j*3"
+//! );
+//!
+//! assert_eq!(
+//!     "i+j*3".unvar(&['i', 'j'])
+//!            .parse::<Expression<i32, 2>>()
+//!            .unwrap()
+//!            .apply(&[5, 2]),
+//!     Some(11)
+//! );
+//! ```
+//!
 //! # Extra details for type nerds
 //!
 //! For the most part, the requirement of Clubs that an expression only use one numeric type for its inputs and outputs is simply a requirement of Rust, as described above. If `x` is a `u32` and `x*y` is a valid expression, then `y` must be a `u32` as well, and `x*y` will evaluate to one too. This type-matching rule is true of the binary operators `*`, `/`, `%`, `+`, `-`, `&`, `^`, and `|`, and the of unary operators `!` and `-`.
