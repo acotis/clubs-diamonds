@@ -100,17 +100,9 @@
 //!
 //! Clubs is capable of finding both single-variable and multi-variable expressions. The number of variables is a type parameter of the [`Searcher`] struct. If you set it to `1`, it will find single-variable expressions. If you set it to `2`, it will find two-variable expressions, etc. Variables are always named with single-letter names, starting with "a" for the first variable, "b" for the second, and so on.
 //!
-//! For example, a single-variable search will consider expressions like:
-//! - `3+a`
-//! - `a*a*47`
-//! - `a%27<<(a&43-a)`
-//! - ...and so on.
+//! For example, a single-variable search will consider expressions like: `3+a`, `a*a*47`, `a%27<<(a&43-a)`, and so on.
 //!
-//! A two-variable search will consider expressions like:
-//! - `a+b`
-//! - `9*b+73`
-//! - `a>>(47%b+a|89)`
-//! - ...and so on.
+//! A two-variable search will consider expressions like: `a+b`, `9*b+73`, `a>>(47%b+a|89)`, and so on.
 //!
 //! Note that Clubs will consider expressions that do not use all of their input variables, like `9*b+73`, a two-variable expression that doesn't use the variable `a`. In this version of the crate, you cannot control this.
 //!
@@ -144,23 +136,7 @@
 //! }
 //! ```
 //!
-//! This [`Searcher`] will consider all expressions containing two `i16` variables. For example:
-//! - At some point, the [`Searcher`] will consider the expression `a+b`:
-//!     1. To evaluate this expression, it will pass an &[`Expression`] representing it to the provided closure.
-//!     2. The closure will call `expr.apply(&[1, 3])` and get `Some(4)` as the answer.
-//!     3. Since that doesn't match the expected value, the boolean logic will short-circuit, the closure will return `false`, and the [`Searcher`] will reject the expression.
-//! - At some point, the [`Searcher`] will consider the expression `b+1^a`.
-//!     1. To evaluate this expression, it will pass an &[`Expression`] representing it to the provided closure.
-//!     2. The provided closure will call `expr.apply(&[1, 3])` and get `Some(5)` as the output (note that due to the operator precedence of `+` and `^`, the expression is equivalent to `(b+1)^a`).
-//!     3. Since this matches, the closure will continue to the next condition, calling `expr.apply(&[5, -2])`, and getting `Some(-6)` as the answer.
-//!     4. Since this matches too, the closure will continue to the last condition, calling `expr.apply(&[-8, 7])` and getting `Some(-16)` as the answer.
-//!     5. Since this doesn't match, the closure will return `false` and the [`Searcher`] will reject this expression as well.
-//! - At some point, the [`Searcher`] will consider the expression `a/(4/b)^4`.
-//!     1. To evaluate this expression, it will pass an &[`Expression`] representing it to the provided closure.
-//!     2. The provided closure will call `expr.apply(&[1, 3])` and get `Some(5)` as the output.
-//!     3. Since this matches, the closure will continue to the next condition, calling `expr.apply(&[5, -2])`, and getting `Some(-6)` as the answer.
-//!     4. Since this matches too, the closure will continue to the last condition, calling `expr.apply(&[-8, 7])` and getting `None` as the answer because evaluating the expression at the those inputs would cause Rust to divide by zero and crash.
-//!     5. Since this is the expected output as well, the closure will return `true` and the [`Searcher`] will accept this expression, displaying it in the Solutions panel of the UI (if this search included a UI) and returning it in the final `results` Vec.
+//! This [`Searcher`] will consider all expressions containing two `i16` variables, and return only those for which `f(1, 3)` = 5, `f(5, -2)` = -6, and `f(-8, 7)` cannot be evaluated because it would cause Rust to crash.
 //!
 //! **Golfing tip:** There is room for considerable ingenuity and creativity in specifying the criterion that a [`Searcher`] will apply. It can be any predicate. Using your imagination will take you further than only copying the format of the documented examples.
 //!
