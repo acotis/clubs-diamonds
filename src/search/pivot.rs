@@ -8,7 +8,6 @@ pub enum Pivot {
     OpPivot(Op),
     ConstPivot(u8),
     VarPivot(u8),
-    Filler(u8, u8), // testing purposes only. renders as "xxxx". todo: probably remove this.
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -95,7 +94,6 @@ impl Pivot {
             245      => OpPivot(AND),
             244      => OpPivot(XOR),
             243      => OpPivot(ORR),
-            156..226 => Filler((code - 155) / 20 + 1, (code - 155) % 20),
             ..=155   => ConstPivot(code),
             230..243 => VarPivot(242 - code),
             x        => panic!("Unrecognized opcode {x}"),
@@ -117,7 +115,6 @@ impl Pivot {
             OpPivot(AND) => 245,
             OpPivot(XOR) => 244,
             OpPivot(ORR) => 243,
-            Filler(c, l) => 155 + (c - 1) * 20 + l,
             ConstPivot(c) => c,
             VarPivot(v) => 242 - v,
         }

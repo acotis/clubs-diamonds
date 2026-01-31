@@ -24,7 +24,7 @@ use super::{Writer, WriterContext, Location};
 
 #[derive(Debug, Clone)]
 pub struct Children<N: Number, const C: usize> {
-    children: Vec<(usize, Writer<N, C>)>, // just FillerWriter for now
+    children: Vec<(usize, Writer<N, C>)>,
     children_in_group_1: usize,
     op_byte_1: u8,
     op_byte_2: u8,

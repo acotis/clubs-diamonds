@@ -16,7 +16,6 @@ impl<N: Number, const C: usize> Expression<N, C> {
 
         match Pivot::decode(self.field[start]) {
             Nop           => {let (a, b, c) = self.stringify(start-1); (a, b, c+1)},
-            Filler(c, l)  => (["_", "x", "█"][c as usize - 1].repeat(l as usize), !0, l as usize),
             ConstPivot(p) => (format!("{p}"), !0, 1),
             VarPivot(v)   => (format!("{}", (v + b'a') as char), !0, 1),
             OpPivot(op)   => {

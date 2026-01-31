@@ -5,8 +5,6 @@ mod writer;
 mod pivot;
 mod number;
 
-pub use writer::*; // temporary for testing only. todo: make non-pub.
-
 pub use searcher::Searcher;
 pub use expression::{Expression, Revar};
 pub use number::Number;
@@ -23,6 +21,7 @@ use crate::ui::DefaultUI;
 use crate::ui::NullUI;
 use crate::ui::UISignal::*;
 use crate::ui::ThreadStatus::{self, *};
+use writer::*;
 
 use ThreadReport::*;
 use ThreadCommand::*;

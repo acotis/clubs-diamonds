@@ -39,7 +39,7 @@ impl<N: Number, const C: usize> Expression<N, C> {
 
         for code in &self.field {
             match Pivot::decode(*code) {
-                Nop | Filler(_, _)  => {},
+                Nop => {},
                 OpPivot(NEG)  => {stack[pointer-1] = N::from_u8(0).wrapping_sub(&stack[pointer-1])}
                 OpPivot(NOT)  => {stack[pointer-1] = !stack[pointer-1];}
                 OpPivot(MUL)  => {stack[pointer-2] = stack[pointer-2].wrapping_mul(&stack[pointer-1]);          pointer -= 1;}
