@@ -151,10 +151,17 @@ Todo
 ——————————
 
 — Rewrite attempt:
-    — INTERMISSION: do full AB test vs previous arch.
+    — Remove unnecessary public items.
     — Update all documentation.
         — Add documentation for .inspector().
-        — Change demo-2 example to not be solveable with one variable.
+            — Add demo.
+            — Add screenshot.
+        — Add documentation for Revar concept.
+        — Update the basic demo screenshot (it matters because of the
+          redundant expr and the improved times).
+        — Update the penalizer screenshot.
+
+— More ideas from recent rewrite:
     — Try iterating through Children sets backwards.
     — Try splitting out a MulWriter that uses a Children.
     — Prove that "liquifying" operators really are liquifying.
