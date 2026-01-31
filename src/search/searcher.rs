@@ -46,7 +46,7 @@ impl<N: Number, const C: usize> Searcher<N, C> {
         }
     }
 
-    /// Provide an "inspector" for the UI. The inspector is a closure that accepts an `&Expression` and returns a `String`. If provided, this closure is called on each solution the `Searcher` finds, and the returned String is displayed in the Solution Inspector panel of the UI when the solution is selected. The closure is called only once per solution, when the solution is first discovered.
+    /// Provide an "inspector" for the UI. The inspector is a closure that accepts an &[`Expression`] and returns a [`String`]. If provided, this closure is called on each solution the `Searcher` finds, and the returned String is displayed in the Solution Inspector panel of the UI when the solution is selected. The closure is called only once per solution, when the solution is first discovered.
 
     pub fn inspector<I>(self, inspector: I) -> Searcher<N, C>
         where I: Fn(&Expression<N, C>) -> String + 'static,
@@ -69,7 +69,7 @@ impl<N: Number, const C: usize> Searcher<N, C> {
 
     /// Provide a "penalizer" used to score solutions and order them in the UI.
     ///
-    /// By default, the score of a solution is its length in bytes (solutions are sorted with lower scores towards the top). A penalizer is a closure that accepts an `&Expression` and returns a `usize`. If provided, this closure is called on each solution the `Searcher` finds, and the returned value is **added to** the length of the solution to calculate the score. (If you don't want this behavior, simply subtract the length of the solution from the value you return. You can obtain the length of the solution by `format!()`ing it.) The closure is called only once per solution, when the solution is first discovered. 
+    /// By default, the score of a solution is its length in bytes (solutions are sorted with lower scores towards the top). A penalizer is a closure that accepts an &[`Expression`] and returns a `usize`. If provided, this closure is called on each solution the `Searcher` finds, and the returned value is **added to** the length of the solution to calculate the score. (If you don't want this behavior, simply subtract the length of the solution from the value you return. You can obtain the length of the solution by `format!()`ing it.) The closure is called only once per solution, when the solution is first discovered. 
 
     pub fn penalizer<P>(self, penalizer: P) -> Searcher<N, C>
         where P: Fn(&Expression<N, C>) -> usize + 'static,
@@ -117,7 +117,7 @@ impl<N: Number, const C: usize> Searcher<N, C> {
         }
     }
 
-    /// Set the minimum length of expression to consider. For example, if you call `.min_len(6)` then expressions of length 1-5 are skipped at the start of the search process.
+    /// Set the minimum length of expressions to consider. For example, if you call `.min_len(6)` then expressions of length 1-5 are skipped at the start of the search process.
 
     pub fn min_len(self, min_length: usize) -> Self {
         Self {
@@ -126,7 +126,7 @@ impl<N: Number, const C: usize> Searcher<N, C> {
         }
     }
 
-    /// Set the maximum length of expression to consider. For example, if you call `.max_len(10)`, then once the searcher has exhausted all expressions of length 1-10, it will automatically quit the UI (if there was a UI for this search) and return the results.
+    /// Set the maximum length of expression to consider. For example, if you call `.max_len(10)`, then once the searcher has exhausted all expressions of lengths 1-10, it will automatically stop.
     ///
     /// Useful if you want to use the `.run_silently()` method, as setting a maximum expression length is currently the only way to render a search process naturally finite.
 
@@ -197,3 +197,4 @@ impl<N: Number, const C: usize> Searcher<N, C> {
         run::<N, C, NullUI>(&self)
     }
 }
+
