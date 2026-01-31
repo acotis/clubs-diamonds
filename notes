@@ -152,7 +152,6 @@ Todo
 
 — Rewrite attempt:
     — INTERMISSION: do full AB test vs previous arch.
-    — Rename Searcher::var_names() to Searcher::revar().
     — Update all documentation.
         — Add documentation for .inspector().
         — Change demo-2 example to not be solveable with one variable.

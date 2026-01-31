@@ -174,9 +174,9 @@ impl<N: Number, const C: usize> Searcher<N, C> {
 
     /// Set the variable names that expressions will be rendered with when they appear in the UI.
     ///
-    /// The `Expression`s returned in the solutions vector will still have default variable names when rendered with `format!()` or `Expression::render()`, but can be rendered with the same custom variable names (or any custom variable names) via `Expression::render_with_var_names()`.
+    /// The `Expression`s returned in the solutions vector will still have default variable names when rendered with `format!()`; see [`Revar`] to render expressions with other variable names.
 
-    pub fn var_names(self, var_names: [char; C]) -> Self {
+    pub fn revar(self, var_names: [char; C]) -> Self {
         Self {
             var_names: Some(var_names),
             ..self
