@@ -30,7 +30,7 @@ impl <N: Number, const C: usize> FromStr for Expression<N, C> {
     /// [`Revar`][crate::Revar] trait for details.
     ///
     /// If the arity you specify isn't enough to cover all input variables
-    /// that actually appear (like if you do `s.parse::<Expression<i32, 2>>()`
+    /// that actually appear (like if you do `.parse::<Expression<i32, 2>>()`
     /// on a string that contains a `c`) then the resulting expression will
     /// be unusable. The reverse is fine; calling
     /// `.parse::<Expression<i32, 2>>()` on a string that only mentions the
