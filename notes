@@ -151,14 +151,11 @@ Todo
 ——————————
 
 — Rewrite attempt:
-    — Remove unnecessary public items.
+    — Grep "todo" and complete tasks.
     — Update all documentation.
-        — Add documentation for .inspector().
-            — Add demo.
-            — Add screenshot.
-        — Update the basic demo screenshot (it matters because of the
-          redundant expr and the improved times).
+        — Update the basic demo screenshot.
         — Update the penalizer screenshot.
+        — Add a screenshot to the Inspector section.
 
 — More ideas from recent rewrite:
     — Try iterating through Children sets backwards.

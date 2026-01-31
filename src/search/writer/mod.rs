@@ -3,7 +3,6 @@ mod partition;
 mod children;
 mod writers;
 
-pub use partition::Partition; // temporary. todo: make not public
 pub use children::Children;
 pub use writers::*;
 

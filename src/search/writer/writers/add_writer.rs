@@ -1,5 +1,5 @@
 
-use crate::search::writer::Partition;
+use crate::search::writer::partition::Partition;
 use crate::search::writer::Children;
 use crate::Number;
 

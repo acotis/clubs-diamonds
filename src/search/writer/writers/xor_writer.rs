@@ -1,5 +1,5 @@
 
-use crate::search::writer::Partition;
+use crate::search::writer::partition::Partition;
 use crate::search::writer::Children;
 use crate::Number;
 use super::super::*;
@@ -28,8 +28,6 @@ impl<N: Number, const C: usize> XorWriter<N, C> {
             if self.children.write(dest) {
                 return true;
             }
-
-            // todo: re-instate quick-exit conditions for partitions.
 
             if self.partition.next() {
                 self.children = Children::standard(CHILD_OF_XOR, self.constant_cap, XOR, &self.partition.state());
