@@ -197,6 +197,12 @@
 //! }
 //! ```
 //!
+//! And here is what it looks like in the UI:
+//!
+//! ![Another screenshot of Clubs. The fourth solution in the solutions list is highlighted, and the Solution Inspector panel shows us that its output for an input of 6 is Some(11)][inspector]
+//!
+#![doc = embed_doc_image::embed_image!("inspector", "assets/inspector_medium.png")]
+//!
 //! # Penalizers
 //!
 //! By default, Clubs will sort the expressions it discovers in order of length, shortest first, because that's what's usually appropriate for code golf. However, sometimes the length of the expression itself isn't the only thing you care about. The overall program that you're using the expression in may have parts that grow or shrink based on the expression's properties. In that case, the shortest working expression may not be the best one.
@@ -230,9 +236,9 @@
 //!
 //! After running this program for a few minutes, the solutions list will look like this:
 //!
-//! ![Another screenshot of Clubs. This time, there are many solutions listed, and they are no longer ordered by length. Instead, the top solutions in the list are slightly longer than the ones below, but have lower scores because they use the input variable only once.][demo_penalizer]
+//! ![Another screenshot of Clubs. This time, there are many solutions listed, and they are no longer ordered by length. Instead, the top solutions in the list are slightly longer than the ones below, but have lower scores because they use the input variable only once.][penalizer]
 //!
-#![doc = embed_doc_image::embed_image!("demo_penalizer", "assets/demo_penalizer_medium.png")]
+#![doc = embed_doc_image::embed_image!("penalizer", "assets/penalizer_medium.png")]
 //!
 //! The expressions listed in the Solutions panel are no longer ordered only by length; instead, slightly longer expressions have been surfaced to the top because they use the input variable only once and so go unpenalized by the penalizer, while slightly shorter expressions which use the input variable multiple times receive the penalty and have scores that are 7 more than their lengths. Note that in the Threads panel, which displays expressions which are currently being considered, the number to the left of each expression *is* simply its length, because Clubs does not call the penalizer on an expression unless it is accepted by the judge and so does not yet know what these expressions' scores would be.
 //!
