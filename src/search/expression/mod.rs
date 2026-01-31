@@ -12,22 +12,11 @@ use crate::search::number::Number;
 use crate::search::pivot::Pivot::*;
 use crate::search::pivot::Op::*;
 
-/// Represents a syntactically-valid mathematical Rust expression. Can be applied to a set of input values to yield a result value. Can also be rendered as text using the `format!` macro or `.to_string()` method.
+/// Represents a syntactically-valid mathematical Rust expression. Can be applied to a set of input values to yield an output value. Can also be rendered as text using the `format!` macro or `.to_string()` method.
 ///
-/// Currently, the only way to get your hands on an `Expression` is to be given it by a `Searcher`.
+/// [`Expression`] implements [`FromStr`][std::str::FromStr], so you can parse an expression from a string in addition to receiving them from the [`Searcher`][crate::Searcher] struct.
 
-// Non-doc comment for devs: here is a list of common traits and why Expression
-// doesn't implement them:
-//     — Copy: uses a Vec internally
-//     — PartialEq + Eq: I'd want this to be semantic and the default impl
-//       would by symbolic against the vec's contents
-//     — PartialOrd + Ord: meaningless
-//     — Hash: same basic reason as PartialEq + Eq
-//     — Default: no sensible default
-//     — Serialize + Deserialize: would expose implementation details that I'm
-//       not ready to stabilize
-
-#[derive(Clone, Debug)] // impls Display below
+#[derive(Clone, Debug)]
 pub struct Expression<N: Number, const C: usize> {
     pub /*(super)*/ field: Vec<u8>,
     pub /*(super)*/ nothing: PhantomData<N>,
@@ -35,9 +24,9 @@ pub struct Expression<N: Number, const C: usize> {
 }
 
 impl<N: Number, const C: usize> Expression<N, C> {
-    /// Apply this expression to an array of input values. Returns a result wrapped in an `Option`. The value `None` is returned if applying the expression to the given values would result in a runtime exception (for example, if it would end up dividing by zero).
+    /// Apply this expression to an array of input values. Returns a result wrapped in an [`Option`]. The value `None` is returned if applying the expression to the given values would result in a runtime exception (for example, if it would end up dividing by zero).
     ///
-    /// The length and entry type of the array must match the type parameters of the Expression. If the expression came from a `Searcher::<u32, 3>`, then it is an `Expression::<u32, 3>` and the argument to this function is a `[u32; 3]`.
+    /// The length and entry type of the array must match the type parameters of the expression. If the expression came from a `Searcher::<u32, 3>`, then it is an `Expression::<u32, 3>` and the argument to this function is a `&[u32; 3]`.
     ///
     /// When applying the expression, the first value in the array is assigned to the variable `a`, the second to `b`, the third to `c`, and so on.
     ///
