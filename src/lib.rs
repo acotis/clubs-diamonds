@@ -72,7 +72,7 @@
 //! 1. Decide the type and number of variables which will appear in the expression.
 //!     - Specify these choices as type parameters of the [`Searcher`].
 //! 2. Construct the searcher using the method [`Searcher::new()`].
-//!     - When you call this method, you supply a closure that accepts an [`Expression`] by reference and returns a [`bool`]. This is the "judge" that is used to determine which expressions are displayed in the Solutions panel in the UI (and eventually returned in the solutions Vec).
+//!     - When you call this method, you supply a closure that accepts an &[`Expression`] and returns a [`bool`]. This is the "judge" that is used to determine which expressions are displayed in the Solutions panel in the UI (and eventually returned in the solutions Vec).
 //! 3. Optionally, specify additional parameters for the search by using some of [`Searcher`]'s Builder-Lite methods.
 //! 4. Execute the search using either the [`Searcher::run_with_ui()`] method or the [`Searcher::run_silently()`] method.
 //!
@@ -170,6 +170,33 @@
 //!
 //! **Note:** If you opt to use the [`Searcher::run_silently()`] method, then there will be no way to quit the search before Clubs decides it's done. So, if you plan to use that method, you probably want to specify a combination of search parameters that make the search task finite.
 //!
+//! # Inspectors
+//!
+//! Sometimes, it's useful to know more information about an expression than just that it met the search criterion. For example, you might want to search for expressions that have certain outputs for the input values 1, 2, 3, 4, and 5, but then to actually put an expression to use, you might need to know what its output is for an input of 6.
+//!
+//! Clubs can be configured to display custom additional information alongside each solution it finds. The way to do this is to use the [`Searcher::inspector`] method. This method accepts a closure whose argument is an &[`Expression`] and whose return value is a [`String`], and Clubs will call this closure once for each solution it finds, and the string will be displayed in the "Solution inspector" panel to the right when the solution is highlighted in the UI (use J/K keys to navigate).
+//!
+//! Here is an example of an inspector being used:
+//!
+//! ```
+//! use clubs_diamonds::{Searcher, Expression};
+//! 
+//! fn main() {
+//!     Searcher::<i32, 1>::new(|expr: &Expression::<i32, 1>| {
+//!         expr.apply(&[1]) == Some(2) &&
+//!         expr.apply(&[2]) == Some(3) &&
+//!         expr.apply(&[3]) == Some(5) &&
+//!         expr.apply(&[4]) == Some(7) &&
+//!         expr.apply(&[5]) == Some(11)
+//!     })
+//!     .inspector(|expr: &Expression::<i32, 1>| {
+//!         format!("expr(6) = {:?}", expr.apply(&[6]))
+//!     })
+//!     .threads(3)
+//!     .run_with_ui();
+//! }
+//! ```
+//!
 //! # Penalizers
 //!
 //! By default, Clubs will sort the expressions it discovers in order of length, shortest first, because that's what's usually appropriate for code golf. However, sometimes the length of the expression itself isn't the only thing you care about. The overall program that you're using the expression in may have parts that grow or shrink based on the expression's properties. In that case, the shortest working expression may not be the best one.
@@ -208,12 +235,6 @@
 #![doc = embed_doc_image::embed_image!("demo_penalizer", "assets/demo_penalizer_medium.png")]
 //!
 //! The expressions listed in the Solutions panel are no longer ordered only by length; instead, slightly longer expressions have been surfaced to the top because they use the input variable only once and so go unpenalized by the penalizer, while slightly shorter expressions which use the input variable multiple times receive the penalty and have scores that are 7 more than their lengths. Note that in the Threads panel, which displays expressions which are currently being considered, the number to the left of each expression *is* simply its length, because Clubs does not call the penalizer on an expression unless it is accepted by the judge and so does not yet know what these expressions' scores would be.
-//!
-//! # Inspectors
-//!
-//! Sometimes, it's useful to know more information about an expression than just that it met the search criterion. For example, you might want to search for expressions that have certain outputs for the input values 1, 2, 3, 4, and 5, but then to actually put an expression to use, you might need to know what its output is for an input of 6.
-//!
-//! Clubs can be configured to display custom additional information alongside each solution it finds. The way to do this is to use the [`Searcher::inspector`] method. This method accepts a closure whose argument is an &[`Expression`] and whose return value is a [`String`], and Clubs will call this closure once for each solution it finds, and the string will be displayed in the "Solution inspector" panel to the right when the solution is highlighted in the UI (use J/K keys to navigate).
 //!
 //! # Formatting, parsing, and Revar
 //!
