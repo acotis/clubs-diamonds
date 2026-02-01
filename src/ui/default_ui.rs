@@ -24,7 +24,7 @@ lazy_static! {
     static ref STYLE_VALUE:                   Style = Style::default().fg(Color::Gray);
     static ref STYLE_ALT_VALUE:               Style = Style::default().add_modifier(Modifier::DIM);
     static ref STYLE_MISSING_VALUE:           Style = Style::default().fg(Color::Indexed(241)).add_modifier(Modifier::ITALIC);
-    static ref STYLE_DESCRIPTION:             Style = Style::default().fg(Color::Gray);
+    static ref STYLE_DESCRIPTION:             Style = Style::default().fg(Color::Indexed(246));
     static ref STYLE_SOLUTION:                Style = Style::default().fg(Color::Blue);
     static ref STYLE_SOLUTION_HIGHLIGHT:      Style = Style::default().bg(Color::Blue);
     static ref STYLE_SOLUTION_META:           Style = Style::default().fg(Color::Indexed(245)); // gray
