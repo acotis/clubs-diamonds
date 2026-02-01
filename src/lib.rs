@@ -150,7 +150,7 @@
 //!
 //! Sometimes, it's useful to know more information about an expression than just that it met the search criterion. For example, you might want to search for expressions that have certain outputs for the input values 1, 2, 3, 4, and 5, but then to actually put an expression to use, you might need to know what its output is for an input of 6.
 //!
-//! Clubs can be configured to display custom additional information alongside each solution it finds. The way to do this is to use the [`Searcher::inspector`] method. This method accepts a closure whose argument is an &[`Expression`] and whose return value is a [`String`], and Clubs will call this closure once for each solution it finds, and the string will be displayed in the "Solution inspector" panel to the right when the solution is highlighted in the UI (use J/K keys to navigate).
+//! Clubs can be configured to display custom additional information alongside each solution it finds. The way to do this is to use the [`Searcher::inspector`] method. This method accepts a closure whose argument is an &[`Expression`] and whose return value is a [`String`]. Clubs will call this closure once for each solution it finds, and the returned string will be displayed in the "Solution inspector" panel to the right when the solution is highlighted in the UI (use J/K keys to navigate).
 //!
 //! Here is an example of an inspector being used:
 //!
