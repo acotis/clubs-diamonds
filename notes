@@ -150,17 +150,13 @@ and innermost operator.
 Todo
 ——————————
 
-— Rewrite attempt:
-    — Update all documentation.
-        — Update the basic demo screenshot.
-        — Update the penalizer screenshot.
-        — Add a screenshot to the Inspector section.
-
 — More ideas from recent rewrite:
     — Try iterating through Children sets backwards.
     — Try splitting out a MulWriter that uses a Children.
     — Prove that "liquifying" operators really are liquifying.
     — Write basic IO tests for parsed expressions.
+    — In Expression::from_str(), make it a parse error for an expression
+      to use variables beyond its arity.
 
 — Testing:
     — Guiding thought: you do want a separate test program; it allows you to
