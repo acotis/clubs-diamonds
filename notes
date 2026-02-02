@@ -151,6 +151,7 @@ Todo
 ——————————
 
 — More ideas from recent rewrite:
+    — Make .revar() accept a string instead of an array of chars.
     — Try iterating through Children sets backwards.
     — Try splitting out a MulWriter that uses a Children.
     — Prove that "liquifying" operators really are liquifying.
@@ -187,12 +188,15 @@ Todo
     — Implement Expression::parse(String).
     — Implement max_to_find().
     — Implement max_to_search().
+    — Implement max_score().
     — Implement timeout() maybe?
     — Implement scorer() as distinct from penalizer().
     — Implement an Expression::len() that doesn't go through format!()?
 
 — Bugfixes:
     — Fix the problem where quitting the UI can cause threads to panic.
+    — Fix the problem where (I think this is how it works) if the inspector
+      or penalizer panics, worker threads panic too.
     — Fix "the problem where the UI takes over your terminal".
         — Not sure what I meant by this but I think I'm talking about how it
           can stay in screwed-up ratatui mode after Clubs is closed (maybe after
