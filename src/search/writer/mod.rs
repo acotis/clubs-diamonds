@@ -51,12 +51,21 @@ pub struct WriterContext {
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum WriterType {
-    Or, Xor, And, Shift, Add, Mul, Neg, ConstVar
+    ConstVar, Neg, Mul, Add, Shift, And, Xor, Or 
 }
 
 impl WriterType {
     pub fn all() -> Vec<WriterType> {
-        [WriterType::Or, WriterType::Xor, WriterType::And, WriterType::Shift, WriterType::Add, WriterType::Mul, WriterType::Neg, WriterType::ConstVar].into()
+        [
+            WriterType::ConstVar,
+            WriterType::Neg, 
+            WriterType::Mul, 
+            WriterType::Add, 
+            WriterType::Shift, 
+            WriterType::And, 
+            WriterType::Xor, 
+            WriterType::Or, 
+        ].into()
     }
 }
 
