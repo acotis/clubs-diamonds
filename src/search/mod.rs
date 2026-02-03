@@ -4,10 +4,13 @@ mod expression;
 mod writer;
 mod pivot;
 mod number;
+mod verdict;
 
 pub use searcher::Searcher;
 pub use expression::{Expression, Revar};
 pub use number::Number;
+pub use verdict::Verdict;
+pub use verdict::Solution;
 
 use std::thread;
 use std::sync::mpsc;
@@ -43,8 +46,8 @@ enum ThreadCommand {
 
 // Reports from the worker thread back to the manager thread.
 
-enum ThreadReport<N: Number, const C: usize> {
-    FoundSolution   {expr: Expression<N, C>},
+enum ThreadReport<N: Number, const C: usize, V: Verdict<N, C>> {
+    FoundSolution   {expr: Expression<N, C>, verdict: V},
     TriedN          {thread_id: usize, count: u128},
     Done            {thread_id: usize},
     UpdateStatus    {thread_id: usize, status: ThreadStatus},
@@ -53,11 +56,12 @@ enum ThreadReport<N: Number, const C: usize> {
 fn run<
     N: Number,
     const C: usize,
+    V: Verdict<N, C>,
     U: UI
 >(
-    config: &Searcher<N, C>
+    config: &Searcher<N, C, V>
 )
-    -> Vec<Expression<N, C>>
+    -> Vec<V::Wrapper>
 {
     thread::scope(|s| {
         // Set up the TUI.
@@ -91,7 +95,7 @@ fn run<
                 .flat_map(|l| writer_types.clone().into_iter().map(move |or| (l, or)))
                 .peekable();
 
-        let (tx, rx) = mpsc::channel();
+        let (tx, rx) = mpsc::channel::<ThreadReport<N, C, V>>();
 
         'search: loop {
 
@@ -99,12 +103,14 @@ fn run<
 
             while let Ok(msg) = rx.try_recv() {
                 match msg {
-                    FoundSolution {expr} => {
+                    FoundSolution {expr, verdict} => {
                         let string = optional_revar(&format!("{expr}"), config.var_names);
-                        let inspection = config.inspector.as_ref().map(|insp| insp(&expr));
-                        let score = string.len() + config.penalizer.as_ref().map(|scorer| scorer(&expr)).unwrap_or(0);
+                        let wrapper = verdict.wrap(expr);
 
-                        solutions.push(expr);
+                        let inspection = config.inspector.as_ref().map(|insp| insp(&wrapper));
+                        let score = string.len() + config.penalizer.as_ref().map(|scorer| scorer(&wrapper)).unwrap_or(0);
+
+                        solutions.push(wrapper);
                         ui.push_solution(string, score, inspection);
                     },
 
@@ -260,15 +266,15 @@ fn optional_revar<const C: usize>(string: &str, custom_names: Option<[char; C]>)
     }
 }
 
-fn find_with_length_and_op<N: Number, const C: usize>(
+fn find_with_length_and_op<N: Number, const C: usize, V: Verdict<N, C>>(
     thread_id: usize,
     notification_spacing: u128,
-    judge: &dyn Fn(&Expression<N, C>) -> bool,
+    judge: &dyn Fn(&Expression<N, C>) -> V,
     constant_cap: u8,
     length: usize,
     writer_type: WriterType,
     var_names: Option<[char; C]>,
-    tx: mpsc::Sender<ThreadReport<N, C>>,
+    tx: mpsc::Sender<ThreadReport<N, C, V>>,
     rx: mpsc::Receiver<ThreadCommand>,
 ) {
     let mut count = 0u128;
@@ -307,8 +313,10 @@ fn find_with_length_and_op<N: Number, const C: usize>(
                 if writer.write(&mut expr.field) {
                     count += 1;
 
-                    if judge(&expr) {
-                        tx.send(FoundSolution {expr: expr.clone()}).unwrap();
+                    let verdict = judge(&expr);
+
+                    if verdict.is_accept() {
+                        tx.send(FoundSolution {verdict, expr: expr.clone()}).unwrap();
                     }
 
                     if count == notification_spacing {

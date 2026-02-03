@@ -28,6 +28,14 @@ path = "src/bin/inspector.rs"
 name = "closure"
 path = "src/bin/closure.rs"
 
+[[bin]]
+name = "option-verdict"
+path = "src/bin/option_verdict.rs"
+
+[[bin]]
+name = "vec-verdict"
+path = "src/bin/vec_verdict.rs"
+
 [dependencies]
 chrono = "0.4.42"
 crossterm = "0.29.0"
