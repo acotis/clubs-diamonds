@@ -26,6 +26,8 @@ little bit slower (like 2x) even when you use `cargo test --release`.
 Todo
 ——————————
 
+— Document the Solution struct.
+
 — More ideas from recent rewrite:
     — Make .revar() accept a string instead of an array of chars.
     — Try iterating through Children sets backwards.
