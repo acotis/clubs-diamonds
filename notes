@@ -18,6 +18,10 @@ conditions, and a forward array is what makes sense to me. I should be spending
 my time having big good ideas that affect runtime by 2x, not fucking around
 with decisions I can barely observe the effects of.
 
+You do want a separate test program; it allows you to do things like generate
+color-coded reports showing performance changes. Also, #[test] code is a
+little bit slower (like 2x) even when you use `cargo test --release`.
+
 ——————————
 Todo
 ——————————
@@ -32,18 +36,12 @@ Todo
       to use variables beyond its arity.
 
 — Testing:
-    — Guiding thought: you do want a separate test program; it allows you to
-      do things like generate color-coded reports showing performance changes.
-      Also, #[test] code is a little bit slower (like 2x) even when you use
-      `cargo test --release`.
     — Write correctness tests for the max-constant feature specifically.
     — Write correctness tests for finnicky usability features, like the
       ability to pass arbitrary closures (not just function pointers) as
       judges, inspectors, and penalizers.
-    — Work on the benchmark binary search project (below).
-    — Add a way to compare two benchmark reports to each other.
     — Clean out empty and mostly-empty benchmarks.
-    — Generalize benchmarking infrastructure to accept arbitrary tasks.
+        — Create a system for tracking important benchmark files.
     — Write benchmarks that specifically target expression application.
     — Write benchmarks that invoke the .max_constant() feature, specifically
       with low maximums (as this seems to slow Clubs down significantly).
@@ -52,17 +50,15 @@ Todo
     — Read, and try to comply with, Rust library guidelines.
 
 — Features:
-    — Make unary arithmetic negation optionally included.
     — Implement required_variables().
         — Benchmark the changes.
         — Add correctness tests and benchmark tests for this.
     — In UI, make the solutions list scrollable.
-    — Implement Expression::parse(String).
+        — Make it only render the solutions which will fit on the screen.
     — Implement max_to_find().
     — Implement max_to_search().
     — Implement max_score().
     — Implement timeout() maybe?
-    — Implement scorer() as distinct from penalizer().
     — Implement an Expression::len() that doesn't go through format!()?
 
 — Bugfixes:
@@ -73,13 +69,8 @@ Todo
         — Not sure what I meant by this but I think I'm talking about how it
           can stay in screwed-up ratatui mode after Clubs is closed (maybe after
           it's force-quit?).
-    — Fix the bug where zero-variable expressions don't work.
     — Clean up the threads when you return (just join on them I guess).
         — Is this not already happening?
-    — In UI, make it only render the solutions which will fit on the screen.
-    — Fix the issue where you can't capture variables in closures you pass to 
-      Searcher (maybe the type it takes should be "closure" (if that's possible) 
-      instead of "fn"?).
 
 — Performance:
     — Make the engine try not to render expressions unless it needs to.
@@ -117,7 +108,4 @@ Ideas
       for the manager thread to autoscale their report timings! They only time
       anyone waits for the manager thread is when a worker thread finishes its
       task.
-
-— Implement some kind of mechanism for blocking sub-expressions that are
-  purely constants? But mind you that some of these are good, like 1<<20.
 
