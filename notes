@@ -152,6 +152,9 @@ Todo
 
 — Iterate through pivots the other way around! Higher-precedence should be
   first, duh.
+— Make sure using a vec is about as good as using a bool and recomputing
+  the data.
+    — (try this with the Arrows searcher)
 
 — More ideas from recent rewrite:
     — Make .revar() accept a string instead of an array of chars.
