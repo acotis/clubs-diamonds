@@ -11,8 +11,8 @@ use crate::Verdict;
 
 pub struct Searcher<N: Number, const C: usize, V: Verdict<N, C> = bool> {
     pub(super) judge: Box<dyn Fn(&Expression<N, C>) -> V + Sync + 'static>,
-    pub(super) inspector: Option<Box<dyn Fn(&Expression<N, C>) -> String>>,
-    pub(super) penalizer: Option<Box<dyn Fn(&Expression<N, C>) -> usize>>,
+    pub(super) inspector: Option<Box<dyn Fn(&V::Wrapper) -> String>>,
+    pub(super) penalizer: Option<Box<dyn Fn(&V::Wrapper) -> usize>>,
     pub(super) description: Option<String>,
     pub(super) threads: usize,
     pub(super) report_every: u128,
@@ -53,7 +53,7 @@ impl<N: Number, const C: usize, V: Verdict<N, C>> Searcher<N, C, V> {
     /// Provide an "inspector" for the UI. The inspector is a closure that accepts an &[`Expression`] and returns a [`String`]. If provided, this closure is called on each solution the `Searcher` finds, and the returned String is displayed in the Solution Inspector panel of the UI when the solution is selected. The closure is called only once per solution, when the solution is first discovered.
 
     pub fn inspector<I>(self, inspector: I) -> Self
-        where I: Fn(&Expression<N, C>) -> String + 'static,
+        where I: Fn(&V::Wrapper) -> String + 'static,
     {
         Searcher {
             judge: self.judge,
@@ -76,7 +76,7 @@ impl<N: Number, const C: usize, V: Verdict<N, C>> Searcher<N, C, V> {
     /// By default, the score of a solution is its length in bytes (solutions are sorted with lower scores towards the top). A penalizer is a closure that accepts an &[`Expression`] and returns a `usize`. If provided, this closure is called on each solution the `Searcher` finds, and the returned value is **added to** the length of the solution to calculate the score. (If you don't want this behavior, simply subtract the length of the solution from the value you return. You can obtain the length of the solution by `format!()`ing it.) The closure is called only once per solution, when the solution is first discovered. 
 
     pub fn penalizer<P>(self, penalizer: P) -> Self
-        where P: Fn(&Expression<N, C>) -> usize + 'static,
+        where P: Fn(&V::Wrapper) -> usize + 'static,
     {
         Searcher {
             judge: self.judge,

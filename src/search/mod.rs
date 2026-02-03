@@ -104,10 +104,10 @@ fn run<
                 match msg {
                     FoundSolution {expr, verdict} => {
                         let string = optional_revar(&format!("{expr}"), config.var_names);
-                        let inspection = config.inspector.as_ref().map(|insp| insp(&expr));
-                        let score = string.len() + config.penalizer.as_ref().map(|scorer| scorer(&expr)).unwrap_or(0);
-
                         let wrapper = verdict.wrap(expr);
+
+                        let inspection = config.inspector.as_ref().map(|insp| insp(&wrapper));
+                        let score = string.len() + config.penalizer.as_ref().map(|scorer| scorer(&wrapper)).unwrap_or(0);
 
                         solutions.push(wrapper);
                         ui.push_solution(string, score, inspection);
