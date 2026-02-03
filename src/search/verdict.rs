@@ -42,3 +42,10 @@ impl<N: Number, const C: usize, T: Send> Verdict<N, C> for Option<T> {
     fn wrap(self, expr: Expression<N, C>) -> Self::Wrapper {Solution {expr, data: self.unwrap()}}
 }
 
+impl<N: Number, const C: usize, T: Send> Verdict<N, C> for Vec<T> {
+    type Wrapper = Solution<N, C, Vec<T>>;
+
+    fn is_accept(&self) -> bool {!self.is_empty()}
+    fn wrap(self, expr: Expression<N, C>) -> Self::Wrapper {Solution {expr, data: self}}
+}
+
