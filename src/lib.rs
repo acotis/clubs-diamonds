@@ -249,6 +249,49 @@
 //! );
 //! ```
 //!
+//! # Verdicts: passing information out of the judge
+//!
+//! Sometimes, while judging an expression, you generate data that would be useful to have access to after the judge has returned. For example, you might want to search for an expression that has an output of 1,000,000 for some input within a given range, and you might want to use an inspector to display the input that worked.
+//!
+//! Without Verdicts, the only way to perform a search like this is to loop through all allowable inputs once in the judge (returning true if a working one is found) and then again in the inspector (returning a string representing the first working one when it's found again). If you need this information inside the penalizer, you must run the loop a third time, and if you need it after the search is over you must run it yet a fourth. This is a violation of DRY and a waste of computation power.
+//!
+//! With Verdicts, relevant information can be computed in the judge and then shared with the inspector and penalizer, and can be made to appear in the solutions `Vec` as well.
+//!
+//! [`Verdict`] is the trait for things that can be returned from a judge. All of the examples above return a plain `bool` from the judge, and this works because   `bool` implements [`Verdict`]. When you return a `bool`, the inspector and penalizer receive a reference to just a bare [`Expression`], and these bare expressions are collected into the solutions `Vec` that is eventually returned.
+//!
+//! If you want to pass data out of the judge, you can return an `Option<T>` instead. Return `None` to reject an expression, and return `Some(t)` to accept it; the value `t` is passed along with the accepted expression to the inspector and penalizer, and will be included with it in the solutions `Vec`. Specifically, the expression itself and the `T` yielded by the judge will be packagd into a [`Solution`] struct, which has two `pub` fields to hold these two pieces of data.
+//!
+//! Here is an example:
+//!
+//! ```
+//! use clubs_diamonds::*;
+//! 
+//! fn main() {
+//!     let solutions =
+//!         Searcher::<i32, 1>::new(move |expr: &Expression::<i32, 1>| {
+//!             (0..=1000).find(|&i| expr.apply(&[i]) == Some(1_000_000))
+//!         })
+//!         .inspector(|solution: &Solution<i32, 1, i32>| {
+//!             format!("expr({}) works", solution.data)
+//!         })
+//!         .penalizer(|solution: &Solution<i32, 1, i32>| {
+//!             format!("{}", solution.data).len() * 3
+//!         })
+//!         .threads(4)
+//!         .report_every(1<<12)
+//!         .run_with_ui();
+//! 
+//!     println!("The first three solutions we found were:");
+//!     println!("    — {} ({})", solutions[0].expr, solutions[0].data);
+//!     println!("    — {} ({})", solutions[1].expr, solutions[1].data);
+//!     println!("    — {} ({})", solutions[2].expr, solutions[2].data);
+//! 
+//!     // solutions is a Vec<Solution::<i32, 1, i32>>
+//! }
+//! ```
+//!
+//! Note that using `Option` as the Verdict for the search also changes the return type of the run method. It now returns a `Vec<Solution<i32, 1, i32>>`. The first two type parameters of the [`Solution`] struct indicate the variable-type and variable-count of the contained [`Expression`], and the third indicates the type of the extra data which was returned by the judge.
+//!
 //! # Extra details for type nerds
 //!
 //! For the most part, the requirement of Clubs that an expression only use one numeric type for its inputs and outputs is simply a requirement of Rust, as described above. If `x` is a `u32` and `x*y` is a valid expression, then `y` must be a `u32` as well, and `x*y` will evaluate to one too. This type-matching rule is true of the binary operators `*`, `/`, `%`, `+`, `-`, `&`, `^`, and `|`, and the of unary operators `!` and `-`.
@@ -267,4 +310,5 @@ pub use search::Searcher;
 pub use search::Number;
 pub use search::Revar;
 pub use search::Verdict;
+pub use search::Solution;
 

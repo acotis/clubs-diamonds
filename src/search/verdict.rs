@@ -1,5 +1,5 @@
 
-use crate::{Expression, Number};
+use crate::*;
 
 /// Trait for things that can be returned by a judge. Implemented for `bool` (the most common return type) and `Option<T>` (useful when you want to pass a simple payload of `T` to the inspector and penalizer).
 ///

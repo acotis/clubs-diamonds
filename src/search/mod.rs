@@ -10,6 +10,7 @@ pub use searcher::Searcher;
 pub use expression::{Expression, Revar};
 pub use number::Number;
 pub use verdict::Verdict;
+pub use verdict::Solution;
 
 use std::thread;
 use std::sync::mpsc;
