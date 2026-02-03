@@ -1,4 +1,134 @@
 
+——————————
+Ideation about new architecture (previously in notes file)
+——————————
+
+Fundamentally, every expression can be decomposed into 1 or more components
+which are being bitwise-or'd together. For example, 1+a|b|c*3 has three
+components and 9-a has one (and so no syntactic bitwise-or operator). The
+bitwise-or operator is the lowest-precedence operator that Clubs considers,
+and it is commutative and associative. Therefore, the order of these compoents
+does not affect the meaning of the expression. Therefore, when generating
+expressions, we can stipulate that each component is "greater" (meaning,
+further along in the search order) the the previous.
+
+Furthermore, the bitwise-or operator does not care about multiple constants.
+That is to say, if any two components of this group are both constants, then
+the expression is a redundant copy of another shorter-or-equal expression in
+which these two constants are unified into one (todo: prove this). Therefore,
+we can also stipulate that only one component may be a constant.
+
+Each component in this group can be further decomposed. The next decomposition
+is into 1 or more components which are being bitwise-xor'd together. For
+example, a*4^3<<b has two components, and 9+(5|a) has only one. Bitwise-xor
+is also commutative and associative, and it also does not care about multiple
+constants (todo: prove this), so the same optimizations may be made here.
+
+The next decomposition is by bitwise-and; the same things are true here
+(todo: prove this) so the same optimizations may be made.
+
+The next level of precedence is the << and >> operators. These are highly
+non-commutative and highly non-associative. They even do care about multiple
+constants: the expression "a<<5>>5" is not equivalent to the expression "a"
+because the top 5 bits can get chopped off. And, the expression "1<<20" is
+itself a constant, but not one that can be expressed in any shorter expression.
+So "1<<20" is not redundant either. On this level, I see no optimizations that
+can be made.
+
+The next level of precedence is the + and - operators. These are not quite
+completely commutative (+ is but - isn't) or associative (+ is but - isn't)
+but they have a simplifying property: any number of values added or subtracted
+together according to any expression structure at all, is equivalent to a
+single flattened expression structure in which first zero or more terms are
+added to one another and then zero or more terms are subtracted from their sum.
+For example, consider the expression (a+b)-(c-(d-e)): this is equivalent to
+a+b+d-c-e. Furthermore, this level of precedence does not care about mutliple
+constants: if, in this flattened structure, there are multiple constant terms,
+they may be collected together into one without lengthening the expression
+(todo: prove this). Finally, the order of the added terms is irrelevant, and
+the order of the subtracted terms is irrelevant.
+
+These properties of the level mean that we can perform similar optimizations
+as we can for the other levels: we need only consider expressions which
+comprise an "ascending" series of components to be added together followed by
+an "ascending" series of components to be subtracted from them, with at most
+one term among both sets being constant. The only caveat is that, if the
+ascending series of added terms is *empty* (it has no terms) then the
+expression needs a leading "0", because -a*b-3 groups as (-a)*b-3, not as
+-(a*b)-3. (todo: check if this ever actually matters). When the expression
+has a leading "0", this constitutes the one constant term which the process
+is allotted, since any other constant could be merged into this one (todo:
+prove or disprove this). So in fact, by this syntactic constraint, what is
+really true is that there is always at least one added term (which may be
+the allotted constant, or not) and zero or more subtracted terms. (todo:
+double-check the reasoning/framing here)
+
+The next precedence level is * / %. This level is the worst of all, because
+one of its operations is commutative and associative and has rules about
+constants (*), another has rules about constants (/ because a/10/4 = a/40,
+todo: prove this), and the last has nothing (%). This is an inconvenient
+juxtaposition of facts because it means that any optimizations we come up
+with must be carefully designed to apply only to the operators which can
+tolerate them, not to the level as a whole as we've done above.
+
+Let's first say some properties that this level does not have. For one
+thing, * and / do not share constants the way we might want them to. The
+expression a*3/4 is not redundant with anything because the value 3/4
+(three-fourths) is not available as a consant; in fact, the expression
+a*6/3 isn't even redundant with anything due to the possibility of
+overflow (and this applies even to signed types). Furthermore, even in
+a sequence of just * and / and constants, order matters: a*3/4 is not
+redundant with a/4*3 (try plugging in a=2).
+
+Here are some things that are true. One, * itself is commutative and
+associative and consant-merging (todo: prove this). Two, % is constant-
+merging. Three, I'm pretty sure / has its own kind of constant-merging
+where a/C1/C2 is redundant with a/C3 where C3=C1*C2, but I'm really not
+sure about that (todo: investigate this).
+
+Now begins the wild ideation segment of this writeup. Well, the structure
+of this level is always ((((A op B) op C) op D) op E), or so (I'm saying
+that all these operations are left-associative). So what exactly might
+an optimization look like?
+
+We know that % is constant-merging. What does that rule out? It rules out
+only that the left and right sides of a % operator should both be constant.
+Okay, so if the innermost parenthetical is (A % B) with A and B both being
+constants, then that's ruled out. The same is ruled out for the * and /
+operators. But only when it's A and B! Because look: let's say we're
+talking about ((A op B) op C) and trying to apply the optimization that
+that second "op" there is constant-merging. Well, the only way the
+left-hand side could be a constant is if A and B are both constants, and we
+just said that shouldn't be the case. So I guess maybe we get a principle
+popping out of this that's like: "On the * / % level, the first two terms
+cannot both be constant".
+
+Here's a toughie: the expression a/(a%3) cannot be simplified.
+
+Also: a*3*5 can be simplified.
+
+Actually, it's a big deal that a/(a%3) can't be simplified. That means
+that the structure of "this level" (by which I guess I mean...
+
+Well, actually, what it really means is that non-redundant expressions have
+a different structure at this level than they do at other levels, and the
+very concept of a "level" must be ammended to reflect this. Further
+research is needed.
+
+Random observation: if we can only reach expressions of length ~15 or so
+anyway, then we don't need to worry too much about expressions that have
+tons and tons of stuff in them.
+
+The last level of structure is the unary level: ! and -. These two
+operators both have the property that applying them twice is a no-op:
+!!a = --a = a. Therefore, we need only consider sequences of alternating
+! and - operators. Such a sequence is defined unambiguously by its length
+and innermost operator.
+
+——————————
+Original "cas_notes" file
+——————————
+
 The children of the | level must be headed by something besides |.
 The children of the ^ level must be headed by something besides ^.
 The children of the & level must be headed by something besides &.
