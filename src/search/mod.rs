@@ -4,10 +4,12 @@ mod expression;
 mod writer;
 mod pivot;
 mod number;
+mod verdict;
 
 pub use searcher::Searcher;
 pub use expression::{Expression, Revar};
 pub use number::Number;
+pub use verdict::Verdict;
 
 use std::thread;
 use std::sync::mpsc;

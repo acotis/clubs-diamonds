@@ -266,4 +266,5 @@ pub use search::Expression;
 pub use search::Searcher;
 pub use search::Number;
 pub use search::Revar;
+pub use search::Verdict;
 

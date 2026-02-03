@@ -5,11 +5,12 @@ use super::DefaultUI;
 
 use crate::Number;
 use crate::Expression;
+use crate::Verdict;
 
 /// Used to configure and execute searches for short mathematical expressions.
 
-pub struct Searcher<N: Number, const C: usize> {
-    pub(super) judge: Box<dyn Fn(&Expression<N, C>) -> bool + Sync + 'static>,
+pub struct Searcher<N: Number, const C: usize, V: Verdict<N, C> = bool> {
+    pub(super) judge: Box<dyn Fn(&Expression<N, C>) -> V + Sync + 'static>,
     pub(super) inspector: Option<Box<dyn Fn(&Expression<N, C>) -> String>>,
     pub(super) penalizer: Option<Box<dyn Fn(&Expression<N, C>) -> usize>>,
     pub(super) description: Option<String>,
@@ -27,10 +28,10 @@ impl<N: Number, const C: usize> Searcher<N, C> {
 
     /// Construct a new `Searcher`. The provided closure is used as a judge to determine which expressions to accept as solutions and which to reject.
 
-    pub fn new<J>(judge: J) -> Searcher::<N, C>
-        where J: Fn(&Expression<N, C>) -> bool + Sync + 'static,
+    pub fn new<J, V: Verdict<N, C>>(judge: J) -> Searcher::<N, C, V>
+        where J: Fn(&Expression<N, C>) -> V + Sync + 'static,
     {
-        Searcher::<N, C> {
+        Searcher::<N, C, V> {
             judge: Box::new(judge),
             inspector: None,
             penalizer: None,
@@ -45,10 +46,13 @@ impl<N: Number, const C: usize> Searcher<N, C> {
             phantom_data: Default::default(),
         }
     }
+}
+
+impl<N: Number, const C: usize, V: Verdict<N, C>> Searcher<N, C, V> {
 
     /// Provide an "inspector" for the UI. The inspector is a closure that accepts an &[`Expression`] and returns a [`String`]. If provided, this closure is called on each solution the `Searcher` finds, and the returned String is displayed in the Solution Inspector panel of the UI when the solution is selected. The closure is called only once per solution, when the solution is first discovered.
 
-    pub fn inspector<I>(self, inspector: I) -> Searcher<N, C>
+    pub fn inspector<I>(self, inspector: I) -> Self
         where I: Fn(&Expression<N, C>) -> String + 'static,
     {
         Searcher {
@@ -71,7 +75,7 @@ impl<N: Number, const C: usize> Searcher<N, C> {
     ///
     /// By default, the score of a solution is its length in bytes (solutions are sorted with lower scores towards the top). A penalizer is a closure that accepts an &[`Expression`] and returns a `usize`. If provided, this closure is called on each solution the `Searcher` finds, and the returned value is **added to** the length of the solution to calculate the score. (If you don't want this behavior, simply subtract the length of the solution from the value you return. You can obtain the length of the solution by `format!()`ing it.) The closure is called only once per solution, when the solution is first discovered. 
 
-    pub fn penalizer<P>(self, penalizer: P) -> Searcher<N, C>
+    pub fn penalizer<P>(self, penalizer: P) -> Self
         where P: Fn(&Expression<N, C>) -> usize + 'static,
     {
         Searcher {
@@ -182,6 +186,10 @@ impl<N: Number, const C: usize> Searcher<N, C> {
             ..self
         }
     }
+}
+
+
+impl<N: Number, const C: usize> Searcher<N, C> {
 
     /// Execute the configured search process in a text-based UI.
 
