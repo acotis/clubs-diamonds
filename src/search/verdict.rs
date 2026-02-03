@@ -15,16 +15,17 @@ use crate::{Expression, Number};
 ///
 /// The payload is passed to the inspector and penalizer by reference, and then returned to the user by value in the final [`Vec`] that the [`Searcher`] returns.
 
-pub trait Verdict<N: Number, const C: usize> {
+pub trait Verdict<N: Number, const C: usize> : Send {
     type Wrapper;
 
     fn is_accept(&self) -> bool;
     fn wrap(self, expr: Expression<N, C>) -> Self::Wrapper;
 }
 
+#[non_exhaustive]
 pub struct Solution<N: Number, const C: usize, T> {
-    expr: Expression<N, C>,
-    data: T,
+    pub expr: Expression<N, C>,
+    pub data: T,
 }
 
 impl<N: Number, const C: usize> Verdict<N, C> for bool {
@@ -34,7 +35,7 @@ impl<N: Number, const C: usize> Verdict<N, C> for bool {
     fn wrap(self, expr: Expression<N, C>) -> Self::Wrapper {expr}
 }
 
-impl<N: Number, const C: usize, T> Verdict<N, C> for Option<T> {
+impl<N: Number, const C: usize, T: Send> Verdict<N, C> for Option<T> {
     type Wrapper = Solution<N, C, T>;
 
     fn is_accept(&self) -> bool {self.is_some()}

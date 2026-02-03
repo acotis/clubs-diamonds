@@ -186,23 +186,19 @@ impl<N: Number, const C: usize, V: Verdict<N, C>> Searcher<N, C, V> {
             ..self
         }
     }
-}
-
-
-impl<N: Number, const C: usize> Searcher<N, C> {
 
     /// Execute the configured search process in a text-based UI.
 
-    pub fn run_with_ui(&self) -> Vec<Expression<N, C>> {
-        run::<N, C, DefaultUI>(&self)
+    pub fn run_with_ui(&self) -> Vec<V::Wrapper> {
+        run::<N, C, V, DefaultUI>(&self)
     }
 
     /// Execute the configured search process silently.
     ///
     /// **Note:** When you use this method, there is no way to quit the search process before Clubs decides it's done. So, if you plan to use it, you probably want to specify a combination of search parameters that make the search task finite.
 
-    pub fn run_silently(&self) -> Vec<Expression<N, C>> {
-        run::<N, C, NullUI>(&self)
+    pub fn run_silently(&self) -> Vec<V::Wrapper> {
+        run::<N, C, V, NullUI>(&self)
     }
 }
 
