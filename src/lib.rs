@@ -292,6 +292,8 @@
 //!
 //! Note that using `Option` as the Verdict for the search also changes the return type of the run method. It now returns a `Vec<Solution<i32, 1, i32>>`. The first two type parameters of the [`Solution`] struct indicate the variable-type and variable-count of the contained [`Expression`], and the third indicates the type of the extra data which was returned by the judge.
 //!
+//! `Vec` also implements [`Verdict`]. An empty `Vec` rejects the expression and a non-empty `Vec` accepts it. Just like with `Option`, the extra data is passed along with the accepted expression to any inspector or penalizer, and is included in the final results list, and just like with `Option`, this happens via the `Solution` struct. In the case of `Vec`, the entire non-empty `Vec` itself is what's put in the `data` field of that struct.
+//!
 //! # Extra details for type nerds
 //!
 //! For the most part, the requirement of Clubs that an expression only use one numeric type for its inputs and outputs is simply a requirement of Rust, as described above. If `x` is a `u32` and `x*y` is a valid expression, then `y` must be a `u32` as well, and `x*y` will evaluate to one too. This type-matching rule is true of the binary operators `*`, `/`, `%`, `+`, `-`, `&`, `^`, and `|`, and the of unary operators `!` and `-`.
