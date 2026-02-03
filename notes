@@ -150,6 +150,9 @@ and innermost operator.
 Todo
 ——————————
 
+— Iterate through pivots the other way around! Higher-precedence should be
+  first, duh.
+
 — More ideas from recent rewrite:
     — Make .revar() accept a string instead of an array of chars.
     — Try iterating through Children sets backwards.
