@@ -22,6 +22,8 @@ pub trait Verdict<N: Number, const C: usize> : Send {
     fn wrap(self, expr: Expression<N, C>) -> Self::Wrapper;
 }
 
+/// A struct used to pair together an Expression and an extra bit of data that was passed out of the judge. When you return an [`Option`] or a [`Vec`] from the judge, the inspector and penalizer are given a &`Solution` instead of an &`Expression`, and the return type of the run method you call will be `Vec<Solution>` instead of `Vec<Expression>`.
+
 #[non_exhaustive]
 pub struct Solution<N: Number, const C: usize, T> {
     pub expr: Expression<N, C>,
