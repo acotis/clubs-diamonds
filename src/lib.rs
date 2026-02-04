@@ -255,7 +255,7 @@
 //!
 //! Without Verdicts, the only way to perform a search like this is to loop through all allowable inputs once in the judge (returning true if a working one is found) and then again in the inspector (returning a string representing the first working one when it's found again). If you also need this information inside the penalizer, you must run the loop a third time, and if you need it after the search is over you must run it yet a fourth. This is a violation of DRY and a waste of computation power.
 //!
-//! With Verdicts, relevant information can be computed in the judge and then shared with the inspector and penalizer, and can be made to appear in the solutions `Vec` as well.
+//! With Verdicts, relevant information can be computed in the judge and then shared with the inspector and penalizer, and made to appear in the solutions `Vec` as well.
 //!
 //! [`Verdict`] is the trait for things that can be returned from a judge. All of the examples above return a plain `bool` from the judge, and this works because   `bool` implements [`Verdict`]. When you return a `bool`, the inspector and penalizer receive a reference to just a bare [`Expression`], and these bare expressions are collected into the solutions `Vec` that is eventually returned.
 //!
