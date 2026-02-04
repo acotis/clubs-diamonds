@@ -251,9 +251,9 @@
 //!
 //! # Verdicts: passing information out of the judge
 //!
-//! Sometimes, while judging an expression, you generate data that would be useful to have access to after the judge has returned. For example, you might want to search for an expression that has an output of 1,000,000 for some input within a given range, and you might want to use an inspector to display the input that worked.
+//! Sometimes, while judging an expression, you generate data that would be useful to have access to after the judge has returned. For example, you might want to search for an expression that outputs the value 1,000,000 for some input within a given range, and you might want to use an inspector to display the input that worked.
 //!
-//! Without Verdicts, the only way to perform a search like this is to loop through all allowable inputs once in the judge (returning true if a working one is found) and then again in the inspector (returning a string representing the first working one when it's found again). If you need this information inside the penalizer, you must run the loop a third time, and if you need it after the search is over you must run it yet a fourth. This is a violation of DRY and a waste of computation power.
+//! Without Verdicts, the only way to perform a search like this is to loop through all allowable inputs once in the judge (returning true if a working one is found) and then again in the inspector (returning a string representing the first working one when it's found again). If you also need this information inside the penalizer, you must run the loop a third time, and if you need it after the search is over you must run it yet a fourth. This is a violation of DRY and a waste of computation power.
 //!
 //! With Verdicts, relevant information can be computed in the judge and then shared with the inspector and penalizer, and can be made to appear in the solutions `Vec` as well.
 //!
