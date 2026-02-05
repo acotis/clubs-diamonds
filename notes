@@ -27,7 +27,6 @@ Todo
 ——————————
 
 — More ideas from recent rewrite:
-    — Try iterating through Children sets backwards.
     — Try splitting out a MulWriter that uses a Children.
     — Prove that "liquifying" operators really are liquifying.
     — Write basic IO tests for parsed expressions.
@@ -87,6 +86,9 @@ Todo
     — Try letting Expression::apply() use uninitialized memory as its stack.
     — Try varying the delay length between control thread cycles and the max
       value of the frame clock.
+    — Try reversing the order of permutations so that they increase instead
+      of decreasing (merely reversing the order in which children are traversed
+      actually made Clubs slower, but I don't get why).
 
 ——————————
 Ideas
