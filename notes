@@ -27,7 +27,6 @@ Todo
 ——————————
 
 — More ideas from recent rewrite:
-    — Make .revar() accept a string instead of an array of chars.
     — Try iterating through Children sets backwards.
     — Try splitting out a MulWriter that uses a Children.
     — Prove that "liquifying" operators really are liquifying.
