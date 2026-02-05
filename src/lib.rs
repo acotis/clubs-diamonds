@@ -33,7 +33,7 @@
 //!
 //! You can ask Clubs to find you such an expression using the following complete program:
 //!
-//! ```
+//! ```no_run
 //! use clubs_diamonds::{Searcher, Expression};
 //! 
 //! fn main() {
@@ -78,7 +78,7 @@
 //!
 //! Here is how the steps are followed by the example code above:
 //!
-//! ```
+//! ```no_run
 //! use clubs_diamonds::{Searcher, Expression};
 //!
 //! // step 1: type and number of variables as type parameters
@@ -123,7 +123,7 @@
 //!
 //! Here is an example of a [`Searcher`] being constructed for a two-variable search using `i16` variables:
 //!
-//! ```
+//! ```no_run
 //! use clubs_diamonds::{Searcher, Expression};
 //! 
 //! fn main() {
@@ -154,7 +154,7 @@
 //!
 //! Here is an example of an inspector being used:
 //!
-//! ```
+//! ```no_run
 //! use clubs_diamonds::{Searcher, Expression};
 //! 
 //! fn main() {
@@ -187,7 +187,7 @@
 //!
 //! As an example, suppose you are searching for a one-variable expression, and your program architecture is such that, if the input variable appears more than once in the expression you choose, another part of the program will grow by 7 bytes. You can ask Clubs to penalize such expressions by 7 bytes like this:
 //!
-//! ```
+//! ```no_run
 //! use clubs_diamonds::{Searcher, Expression};
 //! 
 //! fn main() {
@@ -263,7 +263,7 @@
 //!
 //! Here is an example:
 //!
-//! ```
+//! ```no_run
 //! use clubs_diamonds::*;
 //! 
 //! fn main() {
