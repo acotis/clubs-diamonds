@@ -104,7 +104,7 @@ fn run<
             while let Ok(msg) = rx.try_recv() {
                 match msg {
                     FoundSolution {expr, verdict} => {
-                        let string = optional_revar(&format!("{expr}"), config.var_names);
+                        let string = optional_revar(&format!("{expr}"), config.var_names.as_deref());
                         let wrapper = verdict.wrap(expr);
 
                         let inspection = config.inspector.as_ref().map(|insp| insp(&wrapper));
@@ -184,7 +184,7 @@ fn run<
                     let thread_id = threads[idx].id;
                     let report_every = config.report_every;
                     let constant_cap = config.constant_cap;
-                    let var_names = config.var_names;
+                    let var_names = config.var_names.as_deref();
 
                     s.spawn(move || {
                         find_with_length_and_op(
@@ -258,9 +258,9 @@ fn run<
     })
 }
 
-fn optional_revar<const C: usize>(string: &str, custom_names: Option<[char; C]>) -> String {
+fn optional_revar(string: &str, custom_names: Option<&str>) -> String {
     if let Some(names) = custom_names {
-        string.revar(&names)
+        string.revar(names)
     } else {
         string.to_owned()
     }
@@ -273,7 +273,7 @@ fn find_with_length_and_op<N: Number, const C: usize, V: Verdict<N, C>>(
     constant_cap: u8,
     length: usize,
     writer_type: WriterType,
-    var_names: Option<[char; C]>,
+    var_names: Option<&str>,
     tx: mpsc::Sender<ThreadReport<N, C, V>>,
     rx: mpsc::Receiver<ThreadCommand>,
 ) {

@@ -20,7 +20,7 @@ pub struct Searcher<N: Number, const C: usize, V: Verdict<N, C> = bool> {
     pub(super) max_length: usize,
     pub(super) constant_cap: u8,
     pub(super) debug_banner_enabled: bool,
-    pub(super) var_names: Option<[char; C]>, // if none, default to names 'a', 'b', 'c'...
+    pub(super) var_names: Option<String>, // if none, default to names 'a', 'b', 'c'...
     pub(super) phantom_data: std::marker::PhantomData<N>,
 }
 
@@ -180,9 +180,9 @@ impl<N: Number, const C: usize, V: Verdict<N, C>> Searcher<N, C, V> {
     ///
     /// The [`Expression`]s returned in the solutions vector will still have default variable names when rendered with `format!()`; see [`Revar`][crate::Revar] to render expressions with other variable names.
 
-    pub fn revar(self, var_names: [char; C]) -> Self {
+    pub fn revar(self, var_names: &str) -> Self {
         Self {
-            var_names: Some(var_names),
+            var_names: Some(var_names.to_owned()),
             ..self
         }
     }

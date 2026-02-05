@@ -236,12 +236,12 @@
 //!
 //! assert_eq!(
 //!     expr.to_string()
-//!         .revar(&['i', 'j']),
+//!         .revar("ij"),
 //!     "i+j*3"
 //! );
 //!
 //! assert_eq!(
-//!     "i+j*3".unvar(&['i', 'j'])
+//!     "i+j*3".unvar("ij")
 //!            .parse::<Expression<i32, 2>>()
 //!            .unwrap()
 //!            .apply(&[5, 2]),

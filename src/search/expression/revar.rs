@@ -10,7 +10,7 @@ pub trait Revar {
     /// ```
     /// use clubs_diamonds::Revar;
     ///
-    /// assert_eq!("(i+j)/k*j", "(b+a)/c*a".revar(&['j', 'i', 'k']));
+    /// assert_eq!("(i+j)/k*j", "(b+a)/c*a".revar("jik"));
     /// ```
     ///
     /// Useful to apply in sequence after formatting an
@@ -18,7 +18,7 @@ pub trait Revar {
     /// [`Expression`][crate::Expression] always renders itself with
     /// default variable names.
 
-    fn revar(self, _: &[char]) -> String;
+    fn revar(self, _: &str) -> String;
 
     /// Un-name the variables in a string from a provided custom set of names
     /// back to their default names ('a', 'b', 'c', etc).
@@ -26,7 +26,7 @@ pub trait Revar {
     /// ```
     /// use clubs_diamonds::Revar;
     ///
-    /// assert_eq!("(b+a)/c*a", "(i+j)/k*j".unvar(&['j', 'i', 'k']));
+    /// assert_eq!("(b+a)/c*a", "(i+j)/k*j".unvar("jik"));
     /// ```
     ///
     /// Useful to apply in sequence before parsing an
@@ -34,26 +34,28 @@ pub trait Revar {
     /// [`Expression`][crate::Expression] always parses itself from a
     /// string assuming default variable names.
 
-    fn unvar(self, _: &[char]) -> String;
+    fn unvar(self, _: &str) -> String;
 }
 
 impl Revar for &str {
-    fn revar(self, new_names: &[char]) -> String {
-        self.chars()
-            .map(|c| match "abcdefghijklmnopqrstuvwxyz".find(c) {
-                Some(index) => new_names[index],
-                None => c,
-            })
-            .collect()
+    fn revar(self, new_names: &str) -> String {
+        replace_chars(self, ALPHABET, new_names)
     }
 
-    fn unvar(self, old_names: &[char]) -> String {
-        self.chars()
-            .map(|c| match old_names.iter().position(|x| *x == c) {
-                Some(index) => "abcdefghijklmnopqrstuvwxyz".chars().nth(index).unwrap(),
-                None => c,
-            })
-            .collect()
+    fn unvar(self, old_names: &str) -> String {
+        replace_chars(self, old_names, ALPHABET)
     }
+}
+
+const ALPHABET: &str = "abcdefghijklmnopqrstuvwxyz";
+
+fn replace_chars(original: &str, from: &str, to: &str) -> String {
+    original
+        .chars()
+        .map(|c| match from.find(c) {
+            Some(index) => to.chars().nth(index).unwrap(),
+            None => c,
+        })
+        .collect()
 }
 
