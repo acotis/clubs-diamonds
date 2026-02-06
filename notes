@@ -48,6 +48,8 @@ Todo
     — Read, and try to comply with, Rust library guidelines.
 
 — Features:
+    — Implement canaries (expressions given to the Searcher to try first,
+      so that you can check that your predicate is correct).
     — Implement constants over 155 using continuation digits.
         — Benchmark the changes.
     — Implement required_variables().
