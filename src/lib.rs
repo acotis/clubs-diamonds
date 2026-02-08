@@ -218,11 +218,11 @@
 //!
 //! The expressions listed in the Solutions panel are no longer ordered only by length; instead, slightly longer expressions have been surfaced to the top because they use the input variable only once and so go unpenalized by the penalizer, while slightly shorter expressions which use the input variable multiple times receive the penalty and have scores that are 7 more than their lengths. Note that in the Threads panel, which displays expressions which are currently being considered, the number to the left of each expression *is* simply its length, because Clubs does not call the penalizer on an expression unless it is accepted by the judge and so does not yet know what these expressions' scores would be.
 //!
-//! # Formatting, parsing, and Revar
+//! # Formatting, parsing, and renaming variables
 //!
 //! [`Expression`]s in Clubs implement [`Display`][std::fmt::Display] and [`FromStr`][std::str::FromStr], meaning they can be rendered to and parsed from strings. When an expression is rendered to a string, it always uses the variable names "a", "b", "c", and so on. Likewise, when an expression is parsed from a string, it always assumes the variable names "a", "b", and "c" are used.
 //!
-//! However, sometimes it is convenient to use different variable names when displaying expressions to the user, or when parsing strings provided by the user. Clubs provides methods for renaming variables that operate purely on strings; the variables are renamed by transforming one string into another string after rendering or before parsing. There is one method for each scenario.
+//! However, sometimes it is convenient to use different variable names when displaying expressions to the user, or when parsing strings provided by the user. Clubs provides methods for renaming variables that operate purely on strings; variables are renamed by transforming one string into another string after rendering an expression or before parsing it. There is one method for each scenario.
 //!
 //!   - When you have a string obtained by `format!()`ing an expression and you want to rename the variables away from their default names, use the `.revar()` method.
 //!   - When you have a string you provided that already uses non-default variable names and you want to normalize the names so that you can [`str::parse()`] it into an expression, use the `.unvar()` method.
