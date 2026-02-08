@@ -146,7 +146,7 @@
 //!
 //! **Note:** If you opt to use the [`Searcher::run_silently()`] method, then there will be no way to quit the search before Clubs decides it's done. So, if you plan to use that method, you probably want to specify a combination of search parameters that make the search task finite.
 //!
-//! # Inspectors
+//! # Inspectors: displaying more detail in the UI
 //!
 //! Sometimes, it's useful to know more information about an expression than just that it met the search criterion. For example, you might want to search for expressions that have certain outputs for the input values 1, 2, 3, 4, and 5, but then to actually put an expression to use, you might need to know what its output is for an input of 6.
 //!
@@ -179,7 +179,7 @@
 //!
 #![doc = embed_doc_image::embed_image!("inspector", "assets/inspector_medium.png")]
 //!
-//! # Penalizers
+//! # Penalizers: sorting expressions by custom metrics
 //!
 //! By default, Clubs will sort the expressions it discovers in order of length, shortest first, because that's what's usually appropriate for code golf. However, sometimes the length of the expression itself isn't the only thing you care about. The overall program that you're using the expression in may have parts that grow or shrink based on the expression's properties. In that case, the shortest working expression may not be the best one.
 //!
