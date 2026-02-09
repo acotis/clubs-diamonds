@@ -48,6 +48,7 @@ Todo
     — Read, and try to comply with, Rust library guidelines.
 
 — Features:
+    — Add var type and var count to the header of the Description panel.
     — Implement canaries (expressions given to the Searcher to try first,
       so that you can check that your predicate is correct).
     — Implement constants over 155 using continuation digits.
