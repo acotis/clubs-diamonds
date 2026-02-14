@@ -119,7 +119,7 @@
 //!
 //! A Searcher is constructed using the [`Searcher::new()`] method, which accepts a closure as its only argument. The closure must accept an &[`Expression`] and return a [`bool`]. This is where you specify your customizeable criterion for expressions to be tested against.
 //!
-//! Generally speaking, you will judge an expression by calling the [`Expression::apply()`] method and checking things about its return values. This method accepts an array of input variable values and returns the output value the expression evaluates to for those inputs. The return value is wrapped in an [`Option`], and the value `None` is returned when the given inputs would cause the expression to crash with a runtime error (for example, if it ends up dividing by zero).
+//! Generally speaking, you will judge an expression by calling the [`Expression::apply()`] method and checking things about its return values. This method accepts an array of input variable values and returns the output value the expression evaluates to for those inputs. The return value is wrapped in an [`Option`], and the value `None` is returned when the given inputs would cause the expression to crash with a runtime error (for example, if it would end up dividing by zero).
 //!
 //! Here is an example of a [`Searcher`] being constructed for a two-variable search using `i16` variables:
 //!
@@ -136,9 +136,9 @@
 //! }
 //! ```
 //!
-//! This [`Searcher`] will consider all expressions containing two `i16` variables, and return only those for which `f(1, 3)` = 5, `f(5, -2)` = -6, and `f(-8, 7)` cannot be evaluated because it would cause Rust to crash.
+//! This [`Searcher`] will consider all expressions containing two `i16` variables, and return only those for which `f(1, 3) = 5`, `f(5, -2) = -6`, and `f(-8, 7)` cannot be evaluated because it would cause Rust to crash.
 //!
-//! **Golfing tip:** There is room for considerable ingenuity and creativity in specifying the criterion that a [`Searcher`] will apply. It can be any predicate. Using your imagination will take you further than only copying the format of the documented examples.
+//! **Golfing tip:** There is room for considerable ingenuity and creativity in specifying the criterion that a [`Searcher`] will apply. It can be any predicate! Using your imagination will take you further than only copying the format of the documented examples.
 //!
 //! ## Steps 3 and 4: Additional search parameters and execution
 //!
