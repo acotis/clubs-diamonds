@@ -50,6 +50,8 @@ Todo
     — Read, and try to comply with, Rust library guidelines.
 
 — Features:
+    — Add a feature to copy-to-clipboard whatever's in the inspector.
+        — Or copy the expression itself.
     — Add var type and var count to the header of the Description panel.
     — Implement canaries (expressions given to the Searcher to try first,
       so that you can check that your predicate is correct).
