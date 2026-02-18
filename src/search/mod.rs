@@ -61,7 +61,7 @@ fn run<
 >(
     config: &Searcher<N, C, V>
 )
-    -> Vec<V::Wrapper>
+    -> (u128, Vec<V::Wrapper>)
 {
     thread::scope(|s| {
         // Set up the TUI.
@@ -254,7 +254,7 @@ fn run<
 
         // Todo: tear down the threads.
 
-        solutions
+        (total_count, solutions)
     })
 }
 

@@ -1,5 +1,6 @@
 
 use super::run;
+use super::UI;
 use super::NullUI;
 use super::DefaultUI;
 
@@ -22,6 +23,7 @@ pub struct Searcher<N: Number, const C: usize, V: Verdict<N, C> = bool> {
     pub(super) debug_banner_enabled: bool,
     pub(super) var_names: Option<String>, // if none, default to names 'a', 'b', 'c'...
     pub(super) phantom_data: std::marker::PhantomData<N>,
+    pub(super) last_total_count: Option<u128>,
 }
 
 impl<N: Number, const C: usize> Searcher<N, C> {
@@ -44,6 +46,7 @@ impl<N: Number, const C: usize> Searcher<N, C> {
             debug_banner_enabled: true,
             var_names: None,
             phantom_data: Default::default(),
+            last_total_count: None,
         }
     }
 }
@@ -68,6 +71,7 @@ impl<N: Number, const C: usize, V: Verdict<N, C>> Searcher<N, C, V> {
             debug_banner_enabled: self.debug_banner_enabled,
             var_names: self.var_names,
             phantom_data: self.phantom_data,
+            last_total_count: self.last_total_count,
         }
     }
 
@@ -91,6 +95,7 @@ impl<N: Number, const C: usize, V: Verdict<N, C>> Searcher<N, C, V> {
             debug_banner_enabled: self.debug_banner_enabled,
             var_names: self.var_names,
             phantom_data: self.phantom_data,
+            last_total_count: self.last_total_count,
         }
     }
 
@@ -189,16 +194,30 @@ impl<N: Number, const C: usize, V: Verdict<N, C>> Searcher<N, C, V> {
 
     /// Execute the configured search process in a text-based UI.
 
-    pub fn run_with_ui(&self) -> Vec<V::Wrapper> {
-        run::<N, C, V, DefaultUI>(&self)
+    pub fn run_with_ui(&mut self) -> Vec<V::Wrapper> {
+        self.run::<DefaultUI>()
     }
 
     /// Execute the configured search process silently.
     ///
     /// **Note:** When you use this method, there is no way to quit the search process before Clubs decides it's done. So, if you plan to use it, you probably want to specify a combination of search parameters that make the search task finite.
 
-    pub fn run_silently(&self) -> Vec<V::Wrapper> {
-        run::<N, C, V, NullUI>(&self)
+    pub fn run_silently(&mut self) -> Vec<V::Wrapper> {
+        self.run::<NullUI>()
+    }
+
+    /// Get the total number of expressions which were considered in the search after it has been executed (will return `None` if the search has not been executed yet). Mainly used for internal testing purposes.
+
+    pub fn last_total_count(&self) -> Option<u128> {
+        self.last_total_count
+    }
+}
+
+impl<N: Number, const C: usize, V: Verdict<N, C>> Searcher<N, C, V> {
+    fn run<U: UI>(&mut self) -> Vec<V::Wrapper> {
+        let (count, sols) = run::<N, C, V, U>(&self);
+        self.last_total_count = Some(count);
+        sols
     }
 }
 
