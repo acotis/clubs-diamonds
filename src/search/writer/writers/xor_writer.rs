@@ -6,13 +6,13 @@ use super::super::*;
 
 #[derive(Debug, Clone)]
 pub struct XorWriter<N: Number, const C: usize> {
-    constant_cap: u8,
+    constant_cap: u128,
     partition: Partition,
     children: Children<N, C>,
 }
 
 impl<N: Number, const C: usize> XorWriter<N, C> {
-    pub fn new(length: usize, constant_cap: u8) -> Self {
+    pub fn new(length: usize, constant_cap: u128) -> Self {
         let mut initial_partition = Partition::standard(length);
         initial_partition.next();
 

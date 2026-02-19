@@ -8,7 +8,7 @@ use super::super::*;
 #[derive(Debug, Clone)]
 pub struct AddWriter<N: Number, const C: usize> {
     length: usize,
-    constant_cap: u8,
+    constant_cap: u128,
     bytes_add: usize, // virtual bytes (includes the unwritten + sign at the start of the expression)
     add_partition: Partition,
     sub_partition: Partition,
@@ -16,7 +16,7 @@ pub struct AddWriter<N: Number, const C: usize> {
 }
 
 impl<N: Number, const C: usize> AddWriter<N, C> {
-    pub fn new(length: usize, constant_cap: u8) -> Self {
+    pub fn new(length: usize, constant_cap: u128) -> Self {
         let mut add_partition = Partition::standard(length);
         let sub_partition = Partition::extender(0);
         add_partition.next();

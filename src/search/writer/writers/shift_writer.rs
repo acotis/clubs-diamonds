@@ -6,14 +6,14 @@ use super::super::*;
 #[derive(Debug, Clone)]
 pub struct ShiftWriter<N: Number, const C: usize> {
     length: usize,
-    constant_cap: u8,
+    constant_cap: u128,
     next_op: u8,
     bytes_for_left: usize,
     children: Children<N, C>,
 }
 
 impl<N: Number, const C: usize> ShiftWriter<N, C> {
-    pub fn new(length: usize, constant_cap: u8) -> Self {
+    pub fn new(length: usize, constant_cap: u128) -> Self {
         Self {
             length,
             constant_cap,

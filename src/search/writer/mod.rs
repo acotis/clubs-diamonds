@@ -90,12 +90,12 @@ pub struct Writer<N: Number, const C: usize> {
     state: WriterState<N, C>,
     pub context: WriterContext,
     writer_type: Option<WriterType>,
-    constant_cap: u8,
+    constant_cap: u128,
     nothing: PhantomData<N>,
 }
 
 impl<N: Number, const C: usize> Writer<N, C> {
-    pub fn new(length: usize, context: WriterContext, writer_type: Option<WriterType>, constant_cap: u8) -> Self {
+    pub fn new(length: usize, context: WriterContext, writer_type: Option<WriterType>, constant_cap: u128) -> Self {
         Self {
             length,
             state: Init,

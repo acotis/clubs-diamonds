@@ -19,7 +19,7 @@ pub struct Searcher<N: Number, const C: usize, V: Verdict<N, C> = bool> {
     pub(super) report_every: u128,
     pub(super) min_length: usize,
     pub(super) max_length: usize,
-    pub(super) constant_cap: u8,
+    pub(super) constant_cap: u128,
     pub(super) debug_banner_enabled: bool,
     pub(super) var_names: Option<String>, // if none, default to names 'a', 'b', 'c'...
     pub(super) phantom_data: std::marker::PhantomData<N>,
@@ -150,9 +150,9 @@ impl<N: Number, const C: usize, V: Verdict<N, C>> Searcher<N, C, V> {
     ///
     /// The default value is 155, and due to implementation details, it cannot be set any higher than this. Note that this is just high enough that, when performing a search over `u8` variables, every constant value is accessible in three bytes of text (because 156 is equal to `!99`, 157 is equal to `!98`, and so on).
 
-    pub fn max_constant(self, max_constant: u8) -> Self {
-        if max_constant > 155 {
-            panic!("Cannot call Searcher::max_constant() with a value above 155 (received {max_constant})");
+    pub fn max_constant(self, max_constant: u128) -> Self {
+        if max_constant == u128::MAX {
+            panic!("set it one lower");
         }
 
         Self {
