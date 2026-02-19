@@ -15,10 +15,26 @@ impl<N: Number, const C: usize> Expression<N, C> {
         }
 
         match Pivot::decode(self.field[start]) {
-            Nop           => {let (a, b, c) = self.stringify(start-1); (a, b, c+1)},
-            ConstPivot(p) => (format!("{p}"), !0, 1),
-            VarPivot(v)   => (format!("{}", (v + b'a') as char), !0, 1),
-            OpPivot(op)   => {
+            Nop => {
+                let (a, b, c) = self.stringify(start-1); (a, b, c+1)
+            },
+            FirstDigit(_) | ContinuationDigit(_) => {
+                let const_start = (0..=start).rev()
+                    .find(|&i| matches!(Pivot::decode(self.field[i]), FirstDigit(_)))
+                    .unwrap();
+
+                let const_value = (const_start..=start)
+                    .fold(0u128, |val, place| {
+                        let (FirstDigit(digit) | ContinuationDigit(digit)) = Pivot::decode(self.field[place]) else {unreachable!()};
+                        val << 6 | digit as u128
+                    });
+
+                (format!("{const_value}"), !0, start - const_start + 1)
+            }
+            VarPivot(v) => {
+                (format!("{}", (v + b'a') as char), !0, 1)
+            }
+            OpPivot(op) => {
                 if op.arity() == 1 {
                     let (right, right_prec, right_len) = self.stringify(start - 1);
                     let right_render = if right_prec >= op.prec() {right} else {format!("({right})")};

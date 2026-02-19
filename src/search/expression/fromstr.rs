@@ -76,18 +76,28 @@ impl <N: Number, const C: usize> FromStr for Expression<N, C> {
                 .count();
             
             if number_len > 0 {
-                let number_value = remaining_to_tokenize
+                let mut number_value = remaining_to_tokenize
                     .chars()
                     .take_while(char::is_ascii_digit)
                     .map(|d| d.to_digit(10).unwrap() as u128)
-                    .fold(0, |n, d| n*10 + d);
+                    .fold(0_u128, |n, d| n*10 + d);
                 
-                if number_value > 155 {
-                    return Err(format!("constants above 155 are not supported in Expressions"));
+                let mut digits = vec![];
+
+                while number_value > 0 {
+                    if number_value > 63 {
+                        digits.push(ContinuationDigit((number_value & 63) as u8).encode());
+                    } else {
+                        digits.push(FirstDigit(number_value as u8).encode());
+                    }
+
+                    number_value >>= 6;
                 }
 
+                digits.reverse();
+
                 remaining_to_tokenize = &remaining_to_tokenize[number_len..];
-                tokens.push(PartialExpression(vec![ConstPivot(number_value as u8).encode()]));
+                tokens.push(PartialExpression(digits));
                 continue 'tokenize;
             }
 

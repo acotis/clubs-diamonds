@@ -6,7 +6,8 @@ use self::Pivot::*;
 pub enum Pivot {
     Nop,
     OpPivot(Op),
-    ConstPivot(u8),
+    FirstDigit(u8),
+    ContinuationDigit(u8),
     VarPivot(u8),
 }
 
@@ -94,7 +95,8 @@ impl Pivot {
             245      => OpPivot(AND),
             244      => OpPivot(XOR),
             243      => OpPivot(ORR),
-            ..=155   => ConstPivot(code),
+            ..64     => FirstDigit(code),
+            64..128  => ContinuationDigit(code - 64),
             230..243 => VarPivot(242 - code),
             x        => panic!("Unrecognized opcode {x}"),
         }
@@ -115,7 +117,8 @@ impl Pivot {
             OpPivot(AND) => 245,
             OpPivot(XOR) => 244,
             OpPivot(ORR) => 243,
-            ConstPivot(c) => c,
+            FirstDigit(c) => c,
+            ContinuationDigit(c) => c + 64,
             VarPivot(v) => 242 - v,
         }
     }

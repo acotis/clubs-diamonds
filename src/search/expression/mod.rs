@@ -52,8 +52,9 @@ impl<N: Number, const C: usize> Expression<N, C> {
                 OpPivot(AND)  => {stack[pointer-2] = stack[pointer-2]             & stack[pointer-1];           pointer -= 1;}
                 OpPivot(XOR)  => {stack[pointer-2] = stack[pointer-2]             ^ stack[pointer-1];           pointer -= 1;}
                 OpPivot(ORR)  => {stack[pointer-2] = stack[pointer-2]             | stack[pointer-1];           pointer -= 1;}
-                ConstPivot(p) => {stack[pointer  ] = N::from_u8(p);                                             pointer += 1;}
                 VarPivot(v)   => {stack[pointer  ] = inputs[v as usize];                                        pointer += 1;}
+                FirstDigit(d) => {stack[pointer  ] = N::from_u8(d);                                             pointer += 1;}
+                ContinuationDigit(d) => {stack[pointer-1] = stack[pointer-1].wrapping_shl(6) | N::from_u8(d);}
             }
         }
 
