@@ -19,7 +19,7 @@ pub struct Searcher<N: Number, const C: usize, V: Verdict<N, C> = bool> {
     pub(super) report_every: u128,
     pub(super) min_length: usize,
     pub(super) max_length: usize,
-    pub(super) constant_cap: u128,
+    pub(super) max_constant: u128,
     pub(super) debug_banner_enabled: bool,
     pub(super) var_names: Option<String>, // if none, default to names 'a', 'b', 'c'...
     pub(super) phantom_data: std::marker::PhantomData<N>,
@@ -42,7 +42,7 @@ impl<N: Number, const C: usize> Searcher<N, C> {
             report_every: 1<<20,
             min_length: 1,
             max_length: usize::MAX,
-            constant_cap: 156,
+            max_constant: 156,
             debug_banner_enabled: true,
             var_names: None,
             phantom_data: Default::default(),
@@ -67,7 +67,7 @@ impl<N: Number, const C: usize, V: Verdict<N, C>> Searcher<N, C, V> {
             report_every: self.report_every,
             min_length: self.min_length,
             max_length: self.max_length,
-            constant_cap: self.constant_cap,
+            max_constant: self.max_constant,
             debug_banner_enabled: self.debug_banner_enabled,
             var_names: self.var_names,
             phantom_data: self.phantom_data,
@@ -91,7 +91,7 @@ impl<N: Number, const C: usize, V: Verdict<N, C>> Searcher<N, C, V> {
             report_every: self.report_every,
             min_length: self.min_length,
             max_length: self.max_length,
-            constant_cap: self.constant_cap,
+            max_constant: self.max_constant,
             debug_banner_enabled: self.debug_banner_enabled,
             var_names: self.var_names,
             phantom_data: self.phantom_data,
@@ -156,7 +156,7 @@ impl<N: Number, const C: usize, V: Verdict<N, C>> Searcher<N, C, V> {
         }
 
         Self {
-            constant_cap: max_constant + 1,
+            max_constant: max_constant + 1,
             ..self
         }
     }
@@ -167,7 +167,7 @@ impl<N: Number, const C: usize, V: Verdict<N, C>> Searcher<N, C, V> {
 
     pub fn no_constants(self) -> Self {
         Self {
-            constant_cap: 0,
+            max_constant: 0,
             ..self
         }
     }

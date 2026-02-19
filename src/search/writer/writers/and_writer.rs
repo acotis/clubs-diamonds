@@ -6,19 +6,19 @@ use super::super::*;
 
 #[derive(Debug, Clone)]
 pub struct AndWriter<N: Number, const C: usize> {
-    constant_cap: u128,
+    max_constant: u128,
     partition: Partition,
     children: Children<N, C>,
 }
 
 impl<N: Number, const C: usize> AndWriter<N, C> {
-    pub fn new(length: usize, constant_cap: u128) -> Self {
+    pub fn new(length: usize, max_constant: u128) -> Self {
         let mut initial_partition = Partition::standard(length);
         initial_partition.next();
 
         Self {
-            constant_cap,
-            children: Children::standard(CHILD_OF_AND, constant_cap, AND, &initial_partition.state()),
+            max_constant,
+            children: Children::standard(CHILD_OF_AND, max_constant, AND, &initial_partition.state()),
             partition: initial_partition,
         }
     }
@@ -30,7 +30,7 @@ impl<N: Number, const C: usize> AndWriter<N, C> {
             }
 
             if self.partition.next() {
-                self.children = Children::standard(CHILD_OF_AND, self.constant_cap, AND, &self.partition.state());
+                self.children = Children::standard(CHILD_OF_AND, self.max_constant, AND, &self.partition.state());
                 continue;
             }
 

@@ -90,18 +90,18 @@ pub struct Writer<N: Number, const C: usize> {
     state: WriterState<N, C>,
     pub context: WriterContext,
     writer_type: Option<WriterType>,
-    constant_cap: u128,
+    max_constant: u128,
     nothing: PhantomData<N>,
 }
 
 impl<N: Number, const C: usize> Writer<N, C> {
-    pub fn new(length: usize, context: WriterContext, writer_type: Option<WriterType>, constant_cap: u128) -> Self {
+    pub fn new(length: usize, context: WriterContext, writer_type: Option<WriterType>, max_constant: u128) -> Self {
         Self {
             length,
             state: Init,
             context,
             writer_type,
-            constant_cap,
+            max_constant,
             nothing: PhantomData,
         }
     }
@@ -220,7 +220,7 @@ impl<N: Number, const C: usize> Writer<N, C> {
         dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();
 
-        self.state = WriterState::Or(OrWriter::new(self.length - wasted_space, self.constant_cap));
+        self.state = WriterState::Or(OrWriter::new(self.length - wasted_space, self.max_constant));
     }
 
     fn init_xor_state(&mut self, dest: &mut [u8]) {
@@ -231,7 +231,7 @@ impl<N: Number, const C: usize> Writer<N, C> {
         dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();
 
-        self.state = WriterState::Xor(XorWriter::new(self.length - wasted_space, self.constant_cap));
+        self.state = WriterState::Xor(XorWriter::new(self.length - wasted_space, self.max_constant));
     }
 
     fn init_and_state(&mut self, dest: &mut [u8]) {
@@ -242,7 +242,7 @@ impl<N: Number, const C: usize> Writer<N, C> {
         dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();
 
-        self.state = WriterState::And(AndWriter::new(self.length - wasted_space, self.constant_cap));
+        self.state = WriterState::And(AndWriter::new(self.length - wasted_space, self.max_constant));
     }
 
     fn init_shift_state(&mut self, dest: &mut [u8]) {
@@ -252,7 +252,7 @@ impl<N: Number, const C: usize> Writer<N, C> {
         dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();
 
-        self.state = WriterState::Shift(ShiftWriter::new(self.length - wasted_space + 1, self.constant_cap));
+        self.state = WriterState::Shift(ShiftWriter::new(self.length - wasted_space + 1, self.max_constant));
     }
 
     fn init_add_state(&mut self, dest: &mut [u8]) {
@@ -263,7 +263,7 @@ impl<N: Number, const C: usize> Writer<N, C> {
         dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();
 
-        self.state = WriterState::Add(AddWriter::new(self.length - wasted_space, self.constant_cap));
+        self.state = WriterState::Add(AddWriter::new(self.length - wasted_space, self.max_constant));
     }
 
     fn init_mul_state(&mut self, dest: &mut [u8]) {
@@ -273,23 +273,23 @@ impl<N: Number, const C: usize> Writer<N, C> {
         dest[self.length-1] = Nop.encode(); // in case there are parens
         dest[self.length-2] = Nop.encode();
 
-        self.state = WriterState::Mul(MulWriter::new(self.length - wasted_space, self.constant_cap));
+        self.state = WriterState::Mul(MulWriter::new(self.length - wasted_space, self.max_constant));
     }
 
     fn init_neg_state(&mut self, dest: &mut [u8]) {
         if self.length < 2 {self.init_const_state(dest); return;}
 
-        self.state = WriterState::Neg(NegWriter::new(self.length, self.constant_cap));
+        self.state = WriterState::Neg(NegWriter::new(self.length, self.max_constant));
     }
 
     fn init_const_state(&mut self, dest: &mut [u8]) {
         if !self.context.const_allowed {self.init_var_state(dest); return;}
-        self.state = WriterState::Const(ConstWriter::new(self.length, self.constant_cap));
+        self.state = WriterState::Const(ConstWriter::new(self.length, self.max_constant));
     }
 
     fn init_var_state(&mut self, dest: &mut [u8]) {
         if self.length > 1 {self.init_done_state(dest); return;}
-        self.state = WriterState::Var(VarWriter::new(self.length, self.constant_cap));
+        self.state = WriterState::Var(VarWriter::new(self.length, self.max_constant));
     }
 
     fn init_done_state(&mut self, _dest: &mut [u8]) {

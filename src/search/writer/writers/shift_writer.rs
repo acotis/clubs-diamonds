@@ -6,23 +6,23 @@ use super::super::*;
 #[derive(Debug, Clone)]
 pub struct ShiftWriter<N: Number, const C: usize> {
     length: usize,
-    constant_cap: u128,
+    max_constant: u128,
     next_op: u8,
     bytes_for_left: usize,
     children: Children<N, C>,
 }
 
 impl<N: Number, const C: usize> ShiftWriter<N, C> {
-    pub fn new(length: usize, constant_cap: u128) -> Self {
+    pub fn new(length: usize, max_constant: u128) -> Self {
         Self {
             length,
-            constant_cap,
+            max_constant,
             next_op: LSL,
             bytes_for_left: length - 3,
             children: Children::two_context(
                 LEFT_CHILD_OF_SHIFT,
                 RIGHT_CHILD_OF_SHIFT,
-                constant_cap,
+                max_constant,
                 Nop.encode(), // we write our op manually
                 &[length - 3, 1],
             ).allow_multi_constants().non_commutative(),
@@ -49,7 +49,7 @@ impl<N: Number, const C: usize> ShiftWriter<N, C> {
                 self.children = Children::two_context(
                     LEFT_CHILD_OF_SHIFT,
                     RIGHT_CHILD_OF_SHIFT,
-                    self.constant_cap,
+                    self.max_constant,
                     Nop.encode(), // we write our op manually
                     &[self.bytes_for_left, self.length - self.bytes_for_left - 2],
                 ).allow_multi_constants().non_commutative();

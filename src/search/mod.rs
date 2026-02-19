@@ -183,7 +183,7 @@ fn run<
                     let judge_clone = &config.judge;
                     let thread_id = threads[idx].id;
                     let report_every = config.report_every;
-                    let constant_cap = config.constant_cap;
+                    let max_constant = config.max_constant;
                     let var_names = config.var_names.as_deref();
 
                     s.spawn(move || {
@@ -191,7 +191,7 @@ fn run<
                             thread_id,
                             report_every,
                             judge_clone,
-                            constant_cap,
+                            max_constant,
                             length,
                             writer_type,
                             var_names,
@@ -270,7 +270,7 @@ fn find_with_length_and_op<N: Number, const C: usize, V: Verdict<N, C>>(
     thread_id: usize,
     notification_spacing: u128,
     judge: &dyn Fn(&Expression<N, C>) -> V,
-    constant_cap: u128,
+    max_constant: u128,
     length: usize,
     writer_type: WriterType,
     var_names: Option<&str>,
@@ -278,8 +278,8 @@ fn find_with_length_and_op<N: Number, const C: usize, V: Verdict<N, C>>(
     rx: mpsc::Receiver<ThreadCommand>,
 ) {
     let mut count = 0u128;
-    //let mut writer = TempWriter::<N>::new(C, length, constant_cap, writer_type);
-    let mut writer = Writer::<N, C>::new(length, WriterContext {location: Location::TOP, const_allowed: true}, Some(writer_type), constant_cap);
+    //let mut writer = TempWriter::<N>::new(C, length, max_constant, writer_type);
+    let mut writer = Writer::<N, C>::new(length, WriterContext {location: Location::TOP, const_allowed: true}, Some(writer_type), max_constant);
     let mut expr = Expression {
         field: vec![255; length],
         nothing: PhantomData::default(),

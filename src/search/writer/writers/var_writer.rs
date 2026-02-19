@@ -7,7 +7,7 @@ pub struct VarWriter<const C: usize> {
 }
 
 impl<const C: usize> VarWriter<C> {
-    pub fn new(_length: usize, _constant_cap: u128) -> Self {
+    pub fn new(_length: usize, _max_constant: u128) -> Self {
         Self {
             next_write: 0,
         }

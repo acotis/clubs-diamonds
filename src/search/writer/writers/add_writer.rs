@@ -8,7 +8,7 @@ use super::super::*;
 #[derive(Debug, Clone)]
 pub struct AddWriter<N: Number, const C: usize> {
     length: usize,
-    constant_cap: u128,
+    max_constant: u128,
     bytes_add: usize, // virtual bytes (includes the unwritten + sign at the start of the expression)
     add_partition: Partition,
     sub_partition: Partition,
@@ -16,18 +16,18 @@ pub struct AddWriter<N: Number, const C: usize> {
 }
 
 impl<N: Number, const C: usize> AddWriter<N, C> {
-    pub fn new(length: usize, constant_cap: u128) -> Self {
+    pub fn new(length: usize, max_constant: u128) -> Self {
         let mut add_partition = Partition::standard(length);
         let sub_partition = Partition::extender(0);
         add_partition.next();
 
         Self {
             length,
-            constant_cap,
+            max_constant,
             bytes_add: length,
             children: Children::dual(
                 CHILD_OF_ADD,
-                constant_cap,
+                max_constant,
                 ADD, &add_partition.state(),
                 SUB, &sub_partition.state(),
             ),
@@ -48,7 +48,7 @@ impl<N: Number, const C: usize> AddWriter<N, C> {
             if self.sub_partition.next() {
                 self.children = Children::dual(
                     CHILD_OF_ADD,
-                    self.constant_cap,
+                    self.max_constant,
                     ADD, &self.add_partition.state(),
                     SUB, &self.sub_partition.state(),
                 );
@@ -60,7 +60,7 @@ impl<N: Number, const C: usize> AddWriter<N, C> {
                 self.sub_partition = Partition::extender(self.length - self.bytes_add);
                 self.children = Children::dual(
                     CHILD_OF_ADD,
-                    self.constant_cap,
+                    self.max_constant,
                     ADD, &self.add_partition.state(),
                     SUB, &self.sub_partition.state(),
                 );
@@ -74,7 +74,7 @@ impl<N: Number, const C: usize> AddWriter<N, C> {
                 self.sub_partition = Partition::extender(self.length - self.bytes_add);
                 self.children = Children::dual(
                     CHILD_OF_ADD,
-                    self.constant_cap,
+                    self.max_constant,
                     ADD, &self.add_partition.state(),
                     SUB, &self.sub_partition.state(),
                 );

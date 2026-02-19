@@ -34,16 +34,16 @@ pub struct Children<N: Number, const C: usize> {
 }
 
 impl<N: Number, const C: usize> Children<N, C> {
-    pub fn standard(location: Location, constant_cap: u128, op_byte: u8, sizes: &[usize]) -> Self {
-        Self::new(location, location, constant_cap, op_byte, 0, sizes, &[])
+    pub fn standard(location: Location, max_constant: u128, op_byte: u8, sizes: &[usize]) -> Self {
+        Self::new(location, location, max_constant, op_byte, 0, sizes, &[])
     }
 
-    pub fn two_context(location_head: Location, location_tail: Location, constant_cap: u128, op_byte: u8, sizes: &[usize]) -> Self {
-        Self::new(location_head, location_tail, constant_cap, op_byte, 0, sizes, &[])
+    pub fn two_context(location_head: Location, location_tail: Location, max_constant: u128, op_byte: u8, sizes: &[usize]) -> Self {
+        Self::new(location_head, location_tail, max_constant, op_byte, 0, sizes, &[])
     }
 
-    pub fn dual(location: Location, constant_cap: u128, op_byte_1: u8, sizes_1: &[usize], op_byte_2: u8, sizes_2: &[usize]) -> Self {
-        Self::new(location, location, constant_cap, op_byte_1, op_byte_2, sizes_1, sizes_2)
+    pub fn dual(location: Location, max_constant: u128, op_byte_1: u8, sizes_1: &[usize], op_byte_2: u8, sizes_2: &[usize]) -> Self {
+        Self::new(location, location, max_constant, op_byte_1, op_byte_2, sizes_1, sizes_2)
     }
 
     pub fn allow_multi_constants(self) -> Self {
@@ -66,7 +66,7 @@ impl<N: Number, const C: usize> Children<N, C> {
     fn new(
         location_head: Location,    // Location for first child.
         location_tail: Location,    // Location for all other children.
-        constant_cap: u128,         // Constant cap to pass on to children.
+        max_constant: u128,         // Constant cap to pass on to children.
         op_byte_1: u8,              // Op head to write for first segment of children.
         op_byte_2: u8,              // Op head to write for second segment of children.
         sizes_1: &[usize],          // Sizes of children in first segment.
@@ -86,7 +86,7 @@ impl<N: Number, const C: usize> Children<N, C> {
         let mut offset = 0;
 
         for &size in sizes_1.iter().chain(sizes_2.iter()) {
-            ret.children.push((offset, Writer::new(size, WriterContext {location: if offset == 0 {location_head} else {location_tail}, const_allowed: true}, None, constant_cap)));
+            ret.children.push((offset, Writer::new(size, WriterContext {location: if offset == 0 {location_head} else {location_tail}, const_allowed: true}, None, max_constant)));
             offset += if offset == 0 {size} else {size + 1};
         }
 
