@@ -284,7 +284,6 @@ impl<N: Number, const C: usize> Writer<N, C> {
 
     fn init_const_state(&mut self, dest: &mut [u8]) {
         if !self.context.const_allowed {self.init_var_state(dest); return;}
-        if self.length > 4 {self.init_var_state(dest); return;}
         self.state = WriterState::Const(ConstWriter::new(self.length, self.constant_cap));
     }
 
