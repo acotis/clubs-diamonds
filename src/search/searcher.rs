@@ -42,7 +42,7 @@ impl<N: Number, const C: usize> Searcher<N, C> {
             report_every: 1<<20,
             min_length: 1,
             max_length: usize::MAX,
-            max_constant: Some(156),
+            max_constant: Some(155),
             debug_banner_enabled: true,
             var_names: None,
             phantom_data: Default::default(),
