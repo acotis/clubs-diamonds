@@ -26,6 +26,11 @@ little bit slower (like 2x) even when you use `cargo test --release`.
 Todo
 ——————————
 
+— Arbitrary-constant stuff:
+    — Make it cap out at the constant's actual max value.
+    — Allow u128::MAX as an argument by representing the constant cap
+      as a max constant internally.
+
 — Near-term:
     — Make "Life avg. exprs/sec" stat not count down when paused.
     — Make inspections wrap.
