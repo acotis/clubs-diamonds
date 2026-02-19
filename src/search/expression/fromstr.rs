@@ -84,7 +84,7 @@ impl <N: Number, const C: usize> FromStr for Expression<N, C> {
                 
                 let mut digits = vec![];
 
-                while number_value > 0 {
+                loop {
                     if number_value > 63 {
                         digits.push(ContinuationDigit((number_value & 63) as u8).encode());
                     } else {
@@ -92,6 +92,10 @@ impl <N: Number, const C: usize> FromStr for Expression<N, C> {
                     }
 
                     number_value >>= 6;
+
+                    if number_value == 0 {
+                        break; // break here so that we do write a FirstDigit(0) if the constant is 0.
+                    }
                 }
 
                 digits.reverse();
