@@ -6,13 +6,13 @@ use super::super::*;
 
 #[derive(Debug, Clone)]
 pub struct OrWriter<N: Number, const C: usize> {
-    max_constant: u128,
+    max_constant: Option<u128>,
     partition: Partition,
     children: Children<N, C>,
 }
 
 impl<N: Number, const C: usize> OrWriter<N, C> {
-    pub fn new(length: usize, max_constant: u128) -> Self {
+    pub fn new(length: usize, max_constant: Option<u128>) -> Self {
         let mut initial_partition = Partition::standard(length);
         initial_partition.next();
 

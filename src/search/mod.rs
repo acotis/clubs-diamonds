@@ -270,7 +270,7 @@ fn find_with_length_and_op<N: Number, const C: usize, V: Verdict<N, C>>(
     thread_id: usize,
     notification_spacing: u128,
     judge: &dyn Fn(&Expression<N, C>) -> V,
-    max_constant: u128,
+    max_constant: Option<u128>,
     length: usize,
     writer_type: WriterType,
     var_names: Option<&str>,

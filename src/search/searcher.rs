@@ -19,9 +19,9 @@ pub struct Searcher<N: Number, const C: usize, V: Verdict<N, C> = bool> {
     pub(super) report_every: u128,
     pub(super) min_length: usize,
     pub(super) max_length: usize,
-    pub(super) max_constant: u128,
+    pub(super) max_constant: Option<u128>, // if None, constants are disabled
     pub(super) debug_banner_enabled: bool,
-    pub(super) var_names: Option<String>, // if none, default to names 'a', 'b', 'c'...
+    pub(super) var_names: Option<String>, // if None, default to names 'a', 'b', 'c'...
     pub(super) phantom_data: std::marker::PhantomData<N>,
     pub(super) last_total_count: Option<u128>,
 }
@@ -42,7 +42,7 @@ impl<N: Number, const C: usize> Searcher<N, C> {
             report_every: 1<<20,
             min_length: 1,
             max_length: usize::MAX,
-            max_constant: 156,
+            max_constant: Some(156),
             debug_banner_enabled: true,
             var_names: None,
             phantom_data: Default::default(),
@@ -146,28 +146,26 @@ impl<N: Number, const C: usize, V: Verdict<N, C>> Searcher<N, C, V> {
         }
     }
 
-    /// Set the maximum constant value to use in expressions, e.g. if you set this to 20, then Clubs will not consider expressions which contain constants above 20. Clubs always considers all constant values up to the maximum (you can't pick and choose exactly which constants you want it to consider, you can only set a maximum).
+    /// Set the maximum constant value to use in expressions, e.g. if you set this to 20, then Clubs will not consider expressions which contain constants above 20. Clubs always considers all constant values up to the maximum: you can't pick and choose exactly which constants you want it to consider, you can only set a maximum.
     ///
-    /// The default value is 155, and due to implementation details, it cannot be set any higher than this. Note that this is just high enough that, when performing a search over `u8` variables, every constant value is accessible in three bytes of text (because 156 is equal to `!99`, 157 is equal to `!98`, and so on).
+    /// Negative values are automatically included, and Clubs will use the binary negation operator `!` to write them. That is, if Clubs is configured to consider constants from 0 to 20, then it will also consider constants from `!20` to `!0`, i.e., -21 to -1. Note that this means Clubs *can* consider the minimum valid value of signed types, i.e. if you're doing a search over `i8` variables and you set the max constant to `127`, then Clubs will include `!127` which is equal to -128.
+    ///
+    /// The default value is 99 (i.e., all one-digit and two-digit constants).
 
     pub fn max_constant(self, max_constant: u128) -> Self {
-        if max_constant == u128::MAX {
-            panic!("set it one lower");
-        }
-
         Self {
-            max_constant: max_constant + 1,
+            max_constant: Some(max_constant),
             ..self
         }
     }
 
     /// Do not consider expressions with constant values in them at all.
     ///
-    /// Equivalent to calling `.max_constant()` with an argument of -1 (which is otherwise impossible to do because that method takes a `u8`).
+    /// Equivalent to calling `.max_constant()` with an argument of -1, if that were possible.
 
     pub fn no_constants(self) -> Self {
         Self {
-            max_constant: 0,
+            max_constant: None,
             ..self
         }
     }

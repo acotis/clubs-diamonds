@@ -34,15 +34,15 @@ pub struct Children<N: Number, const C: usize> {
 }
 
 impl<N: Number, const C: usize> Children<N, C> {
-    pub fn standard(location: Location, max_constant: u128, op_byte: u8, sizes: &[usize]) -> Self {
+    pub fn standard(location: Location, max_constant: Option<u128>, op_byte: u8, sizes: &[usize]) -> Self {
         Self::new(location, location, max_constant, op_byte, 0, sizes, &[])
     }
 
-    pub fn two_context(location_head: Location, location_tail: Location, max_constant: u128, op_byte: u8, sizes: &[usize]) -> Self {
+    pub fn two_context(location_head: Location, location_tail: Location, max_constant: Option<u128>, op_byte: u8, sizes: &[usize]) -> Self {
         Self::new(location_head, location_tail, max_constant, op_byte, 0, sizes, &[])
     }
 
-    pub fn dual(location: Location, max_constant: u128, op_byte_1: u8, sizes_1: &[usize], op_byte_2: u8, sizes_2: &[usize]) -> Self {
+    pub fn dual(location: Location, max_constant: Option<u128>, op_byte_1: u8, sizes_1: &[usize], op_byte_2: u8, sizes_2: &[usize]) -> Self {
         Self::new(location, location, max_constant, op_byte_1, op_byte_2, sizes_1, sizes_2)
     }
 
@@ -66,7 +66,7 @@ impl<N: Number, const C: usize> Children<N, C> {
     fn new(
         location_head: Location,    // Location for first child.
         location_tail: Location,    // Location for all other children.
-        max_constant: u128,         // Constant cap to pass on to children.
+        max_constant: Option<u128>, // Constant cap to pass on to children.
         op_byte_1: u8,              // Op head to write for first segment of children.
         op_byte_2: u8,              // Op head to write for second segment of children.
         sizes_1: &[usize],          // Sizes of children in first segment.

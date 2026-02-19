@@ -10,7 +10,7 @@ pub struct NegWriter<N: Number, const C: usize> {
 }
 
 impl<N: Number, const C: usize> NegWriter<N, C> {
-    pub fn new(length: usize, max_constant: u128) -> Self {
+    pub fn new(length: usize, max_constant: Option<u128>) -> Self {
         Self {
             length,
             child: Box::new(Writer::new(length - 1, WriterContext {location: CHILD_OF_NEG, const_allowed: false}, None, max_constant)),

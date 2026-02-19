@@ -6,14 +6,14 @@ use super::super::*;
 #[derive(Debug, Clone)]
 pub struct MulWriter<N: Number, const C: usize> {
     length: usize,
-    max_constant: u128,
+    max_constant: Option<u128>,
     next_op: u8,
     bytes_for_left: usize,
     children: Children<N, C>,
 }
 
 impl<N: Number, const C: usize> MulWriter<N, C> {
-    pub fn new(length: usize, max_constant: u128) -> Self {
+    pub fn new(length: usize, max_constant: Option<u128>) -> Self {
         Self {
             length,
             max_constant,

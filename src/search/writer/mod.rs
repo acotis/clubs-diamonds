@@ -90,12 +90,12 @@ pub struct Writer<N: Number, const C: usize> {
     state: WriterState<N, C>,
     pub context: WriterContext,
     writer_type: Option<WriterType>,
-    max_constant: u128,
+    max_constant: Option<u128>,
     nothing: PhantomData<N>,
 }
 
 impl<N: Number, const C: usize> Writer<N, C> {
-    pub fn new(length: usize, context: WriterContext, writer_type: Option<WriterType>, max_constant: u128) -> Self {
+    pub fn new(length: usize, context: WriterContext, writer_type: Option<WriterType>, max_constant: Option<u128>) -> Self {
         Self {
             length,
             state: Init,
@@ -284,7 +284,8 @@ impl<N: Number, const C: usize> Writer<N, C> {
 
     fn init_const_state(&mut self, dest: &mut [u8]) {
         if !self.context.const_allowed {self.init_var_state(dest); return;}
-        self.state = WriterState::Const(ConstWriter::new(self.length, self.max_constant));
+        if self.max_constant == None {self.init_var_state(dest); return;}
+        self.state = WriterState::Const(ConstWriter::new(self.length, self.max_constant.unwrap()));
     }
 
     fn init_var_state(&mut self, dest: &mut [u8]) {
