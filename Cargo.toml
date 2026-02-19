@@ -7,6 +7,7 @@ description = "A brute-forcer for finding short mathematical expressions in Rust
 repository = "https://github.com/acotis/clubs-diamonds"
 readme = "README.md"
 keywords = ["code-golf", "brute-forcer"]
+default-run = "demo"
 
 [[bin]]
 name = "demo"
