@@ -29,22 +29,26 @@ pub trait Number:
 
     fn is_signed() -> bool;
 
+    /// Return the maximum allowable value for this type as a `u128`. Used by [`Searcher`] to limit the constant values it considers in expressions.
+
+    fn max() -> u128;
+
     /// Convert a `Self` into a `u32`. Used by [`Expression`][crate::Expression] when calling the `.wrapping_shl(self, rhs: u32)` function, which is the tool used to invoke the release-mode behavior of the `<<` even from debug mode, but which for some reason accepts a `u32` as the right-hand side instead of any numeric type.
 
     fn as_u32(self) -> u32;
 }
 
-impl Number for u8    {fn from_u8(from: u8) -> Self {from}         fn is_signed() -> bool {false} fn as_u32(self) -> u32 {self as u32}}
-impl Number for u16   {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {false} fn as_u32(self) -> u32 {self as u32}}
-impl Number for u32   {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {false} fn as_u32(self) -> u32 {self as u32}}
-impl Number for u64   {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {false} fn as_u32(self) -> u32 {self as u32}}
-impl Number for u128  {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {false} fn as_u32(self) -> u32 {self as u32}}
-impl Number for usize {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {false} fn as_u32(self) -> u32 {self as u32}}
+impl Number for u8    {fn from_u8(from: u8) -> Self {from}         fn is_signed() -> bool {false} fn as_u32(self) -> u32 {self as u32} fn max() -> u128 {Self::MAX as u128}}
+impl Number for u16   {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {false} fn as_u32(self) -> u32 {self as u32} fn max() -> u128 {Self::MAX as u128}}
+impl Number for u32   {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {false} fn as_u32(self) -> u32 {self as u32} fn max() -> u128 {Self::MAX as u128}}
+impl Number for u64   {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {false} fn as_u32(self) -> u32 {self as u32} fn max() -> u128 {Self::MAX as u128}}
+impl Number for u128  {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {false} fn as_u32(self) -> u32 {self as u32} fn max() -> u128 {Self::MAX as u128}}
+impl Number for usize {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {false} fn as_u32(self) -> u32 {self as u32} fn max() -> u128 {Self::MAX as u128}}
 
-impl Number for i8    {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {true}  fn as_u32(self) -> u32 {self as u32}}
-impl Number for i16   {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {true}  fn as_u32(self) -> u32 {self as u32}}
-impl Number for i32   {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {true}  fn as_u32(self) -> u32 {self as u32}}
-impl Number for i64   {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {true}  fn as_u32(self) -> u32 {self as u32}}
-impl Number for i128  {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {true}  fn as_u32(self) -> u32 {self as u32}}
-impl Number for isize {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {true}  fn as_u32(self) -> u32 {self as u32}}
+impl Number for i8    {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {true}  fn as_u32(self) -> u32 {self as u32} fn max() -> u128 {Self::MAX as u128}}
+impl Number for i16   {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {true}  fn as_u32(self) -> u32 {self as u32} fn max() -> u128 {Self::MAX as u128}}
+impl Number for i32   {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {true}  fn as_u32(self) -> u32 {self as u32} fn max() -> u128 {Self::MAX as u128}}
+impl Number for i64   {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {true}  fn as_u32(self) -> u32 {self as u32} fn max() -> u128 {Self::MAX as u128}}
+impl Number for i128  {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {true}  fn as_u32(self) -> u32 {self as u32} fn max() -> u128 {Self::MAX as u128}}
+impl Number for isize {fn from_u8(from: u8) -> Self {from as Self} fn is_signed() -> bool {true}  fn as_u32(self) -> u32 {self as u32} fn max() -> u128 {Self::MAX as u128}}
 

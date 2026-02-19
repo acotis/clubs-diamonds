@@ -146,15 +146,17 @@ impl<N: Number, const C: usize, V: Verdict<N, C>> Searcher<N, C, V> {
         }
     }
 
-    /// Set the maximum constant value to use in expressions, e.g. if you set this to 20, then Clubs will not consider expressions which contain constants above 20. Clubs always considers all constant values up to the maximum: you can't pick and choose exactly which constants you want it to consider, you can only set a maximum.
+    /// Set the maximum constant value to use in expressions, e.g. if you set this to 20, then Clubs will not consider expressions which contain constants above 20. Clubs always considers all constant values up to the maximum; you can't pick and choose exactly which constants you want it to consider, only set the maximum.
     ///
-    /// Negative values are automatically included, and Clubs will use the binary negation operator `!` to write them. That is, if Clubs is configured to consider constants from 0 to 20, then it will also consider constants from `!20` to `!0`, i.e., -21 to -1. Note that this means Clubs *can* consider the minimum valid value of signed types, i.e. if you're doing a search over `i8` variables and you set the max constant to `127`, then Clubs will include `!127` which is equal to -128.
+    /// Negative values are automatically included, and Clubs will write them using the binary negation operator `!`. That is, if Clubs is configured to consider constants from 0 to 20, then it will also consider constants from `!20` to `!0`, i.e., -21 to -1.
     ///
-    /// The default value is 99 (i.e., all one-digit and two-digit constants).
+    /// Clubs will automatically cut off constants which are outside the range of the type parameter. For example, if you are performing a search over `i16` variables and you try to set the max constant to 40,000, Clubs will instead set it to 32,767. Note that the way Clubs writes negative constants — with `!` — means that in this case it *will* consider the minimum possible `i16` value rather than missing it by one: it will consider expressions containing the constant `!32767` which is equal to -32,768. The same would apply if you set the max constant to 32,767 manually.
+    ///
+    /// The default max constant is 99 (i.e., all one-digit and two-digit constants).
 
     pub fn max_constant(self, max_constant: u128) -> Self {
         Self {
-            max_constant: Some(max_constant),
+            max_constant: Some(max_constant.min(N::max())),
             ..self
         }
     }
