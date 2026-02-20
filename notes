@@ -26,8 +26,6 @@ little bit slower (like 2x) even when you use `cargo test --release`.
 Todo
 ——————————
 
-— Arbitrary-constant stuff:
-
 — Near-term:
     — Make "Life avg. exprs/sec" stat not count down when paused.
     — Make inspections wrap.
