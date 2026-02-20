@@ -34,7 +34,7 @@ impl<N: Number, const C: usize> Expression<N, C> {
     /// Example #2: when the expression `4/a` is applied to the array `[0]`, it will yield `None`.
 
     pub fn apply(&self, inputs: &[N; C]) -> Option<N> {
-        let mut stack = [N::from_u8(0); 99];
+        let mut stack = [N::from_u8(0); 16];
         let mut pointer = 0;
 
         for code in &self.field {
