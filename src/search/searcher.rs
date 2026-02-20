@@ -156,7 +156,7 @@ impl<N: Number, const C: usize, V: Verdict<N, C>> Searcher<N, C, V> {
 
     pub fn max_constant(self, max_constant: u128) -> Self {
         Self {
-            max_constant: Some(max_constant.min(N::max())),
+            max_constant: Some(max_constant.min(N::max_as_u128())),
             ..self
         }
     }
