@@ -31,7 +31,6 @@ Todo
     — Make inspections wrap.
     — Make solutions UI scroll.
     — Implement UI freezing (and maybe also hotkey-copying).
-    — Implement arbitrary constants.
 
 — More ideas from recent rewrite:
     — Try splitting out a MulWriter that uses a Children.
