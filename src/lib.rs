@@ -222,31 +222,20 @@
 //!
 //! [`Expression`]s in Clubs implement [`Display`][std::fmt::Display] and [`FromStr`][std::str::FromStr], meaning they can be rendered to and parsed from strings. When an expression is rendered to a string, it always uses the variable names "a", "b", "c", and so on. Likewise, when an expression is parsed from a string, it always assumes the variable names "a", "b", and "c" are used.
 //!
-//! However, sometimes it is convenient to use different variable names when displaying expressions to the user, or when parsing strings provided by the user. Clubs provides methods for renaming variables that operate purely on strings; variables are renamed by transforming one string into another string after rendering an expression or before parsing it. There is one method for each scenario.
+//! However, sometimes it is convenient to use different variable names when displaying expressions to the user, or when parsing strings provided by the user. Clubs provides methods for renaming variables that operate purely on strings; variables are renamed by transforming one string into another string. There are two such transform methods:
 //!
-//!   - When you have a string obtained by `format!()`ing an expression and you want to rename the variables away from their default names, use the `.revar()` method.
-//!   - When you have a string you provided that already uses non-default variable names and you want to normalize the names so that you can [`str::parse()`] it into an expression, use the `.unvar()` method.
+//! - When you have a string that currently uses the variable names "a", "b", "c", and so on (such as the output calling `expr.to_string()`) and you want to re-texture it to use custom variable names, call `.revar()`.
+//! - When you have a string that currently uses custom variable names and you want to normalize it to use "a", "b", "c", and so on (for example, so that you can parse it with [`str::parse()`]), call `.unvar()`.
 //!
-//! These two methods are implemented directly on the `&str` type via the [`Revar`] trait (which must be in scope to use the methods):
+//! Both methods accept a `&str` as an argument. The characters of the `&str` are the custom names of the variables; `.revar()` renames default names to custom names, and `.unvar()` renames custom names to default names.
+//!
+//! Both of these methods are implemented directly on the `&str` type via the [`Revar`] trait (which must be in scope to use the methods):
 //!
 //! ```
-//! use clubs_diamonds::{Expression, Revar};
+//! use clubs_diamonds::Revar;
 //!
-//! let expr = "a+b*3".parse::<Expression<i32, 2>>().unwrap();
-//!
-//! assert_eq!(
-//!     expr.to_string()
-//!         .revar("ij"),
-//!     "i+j*3"
-//! );
-//!
-//! assert_eq!(
-//!     "i+j*3".unvar("ij")
-//!            .parse::<Expression<i32, 2>>()
-//!            .unwrap()
-//!            .apply(&[5, 2]),
-//!     Some(11)
-//! );
+//! assert_eq!("a+b*3".revar("ij"), "i+j*3");
+//! assert_eq!("i+j*3".unvar("ij"), "a+b*3");
 //! ```
 //!
 //! # Verdicts: passing information out of the judge
