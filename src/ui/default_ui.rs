@@ -166,7 +166,7 @@ impl UI for DefaultUI {
     }
 
     fn set_total_count(&mut self, total_count: u128) {
-        self.face.stat_moments.push(
+        self.face.push_stat_moment(
             self.face.last_stat_moment().step_to_now(
                 total_count,
                 self.face.unpaused_thread_count(),
@@ -176,7 +176,7 @@ impl UI for DefaultUI {
     }
 
     fn set_thread_statuses(&mut self, thread_statuses: Vec<Option<ThreadStatus>>) {
-        self.face.stat_moments.push(
+        self.face.push_stat_moment(
             self.face.last_stat_moment().step_to_now(
                 self.face.total_count(),
                 self.face.unpaused_thread_count(),
@@ -542,11 +542,23 @@ impl DefaultUIFace {
     }
 
     fn five_second_mark(&self) -> usize {
-        let last_timestamp = self.last_stat_moment().timestamp;
+        let last_unpaused_seconds = self.last_stat_moment().unpaused_seconds;
 
         self.stat_moments.partition_point(|moment| {
-            (last_timestamp - moment.timestamp).as_seconds_f64() > 5.0
+            (last_unpaused_seconds - moment.unpaused_seconds) > 5.0
         }).min(self.stat_moments.len() - 1)
+    }
+
+    fn push_stat_moment(&mut self, moment: StatMoment) {
+        let last = self.last_stat_moment();
+
+        if moment.expr_count == last.expr_count
+        && moment.unpaused_seconds == last.unpaused_seconds
+        && moment.thread_seconds == last.thread_seconds {
+            *self.stat_moments.last_mut().unwrap() = moment;
+        } else {
+            self.stat_moments.push(moment);
+        }
     }
 
     fn stats_ui(&self) -> Vec<ListItem<'_>> {
@@ -592,6 +604,7 @@ impl DefaultUIFace {
             ListItem::from(Self::numeric_stat_line("Expr/s/thread", count_recent * 10 / deci_thread_seconds_recent)),
             ListItem::from(Self::numeric_stat_line("Life avg. expr/s", count * 10 / deci_seconds)),
             ListItem::from(Self::numeric_stat_line("Life avg. expr/s/thread", count * 10 / deci_thread_seconds)),
+            ListItem::from(Self::numeric_stat_line("Moment count", self.stat_moments.len() as _)),
         ]
     }
 
