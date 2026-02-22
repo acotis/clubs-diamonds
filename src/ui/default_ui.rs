@@ -86,7 +86,7 @@ struct DefaultUIFace {
     paused: bool,
     target_thread_count: usize,
     thread_statuses: Vec<Option<ThreadStatus>>,
-    news_feed: Vec<(DateTime<Local>, String)>,
+    news_feed: Vec<(DateTime<Local>, f64, String)>,
 
     debug_banner_shown: bool,
     description_shown: bool,
@@ -145,6 +145,7 @@ impl UI for DefaultUI {
     fn finished_expression_length(&mut self, length: usize, count: u128) {
         self.face.news_feed.push((
             Local::now(),
+            self.face.last_stat_moment().unpaused_seconds,
             format!(
                 "Tried {} expr{} of length {}.",
                 utils::with_commas(count),
@@ -678,21 +679,21 @@ impl DefaultUIFace {
                 //ret.push(ListItem::from(Line::from("")));
             }
 
-            let time_in = news_item.0 - self.start_time();
-            let time_ago = Local::now() - news_item.0;
+            let time_in = news_item.1;
+            let time_ago = self.last_stat_moment().unpaused_seconds - news_item.1;
 
             ret.push(ListItem::from(Line::from(vec![
                 Span::raw(utils::format_timestamp(&news_item.0)).style(*STYLE_NEWS_HEADER),
                 Span::raw(" ").style(*STYLE_BLANK),
                 Span::raw(format!(
                     "({} in | {} ago)",
-                    utils::format_duration(&time_in, false),
-                    utils::format_duration(&time_ago, true),
+                    utils::format_duration(&TimeDelta::seconds(time_in as _), false),
+                    utils::format_duration(&TimeDelta::seconds(time_ago as _), true),
                 )).style(*STYLE_CONTROLS),
             ])));
 
             ret.push(ListItem::from(Line::from(vec![
-                Span::raw(format!("{}", news_item.1)).style(*STYLE_VALUE)
+                Span::raw(format!("{}", news_item.2)).style(*STYLE_VALUE)
             ])));
         }
 
