@@ -604,7 +604,7 @@ impl DefaultUIFace {
             ListItem::from(Self::numeric_stat_line("Expr/s/thread", count_recent * 10 / deci_thread_seconds_recent)),
             ListItem::from(Self::numeric_stat_line("Life avg. expr/s", count * 10 / deci_seconds)),
             ListItem::from(Self::numeric_stat_line("Life avg. expr/s/thread", count * 10 / deci_thread_seconds)),
-            ListItem::from(Self::numeric_stat_line("Moment count", self.stat_moments.len() as _)),
+            //ListItem::from(Self::numeric_stat_line("Moment count", self.stat_moments.len() as _)),
         ]
     }
 
