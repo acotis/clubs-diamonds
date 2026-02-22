@@ -87,6 +87,7 @@ struct DefaultUIFace {
     target_thread_count: usize,
     thread_statuses: Vec<Option<ThreadStatus>>,
     news_feed: Vec<(DateTime<Local>, f64, String)>,
+    draw_anyway: bool, // draw on next frame even if paused
 
     debug_banner_shown: bool,
     description_shown: bool,
@@ -118,6 +119,7 @@ impl UI for DefaultUI {
                 target_thread_count: 0,
                 thread_statuses: vec![],
                 news_feed: vec![],
+                draw_anyway: false,
 
                 #[cfg(debug_assertions)] debug_banner_shown: true,
                 #[cfg(not(debug_assertions))] debug_banner_shown: false,
@@ -203,13 +205,18 @@ impl UI for DefaultUI {
 
         // Draw self.
 
-        self.terminal.draw(|frame| frame.render_widget(&self.face, frame.area())).unwrap();
+        if !self.face.paused || self.face.draw_anyway {
+            self.terminal.draw(|frame| frame.render_widget(&self.face, frame.area())).unwrap();
+            self.face.draw_anyway = false;
+        }
     }
 
     fn handle_inputs(&mut self) -> Vec<UISignal> {
         let mut ret = vec![];
 
         while event::poll(Duration::from_millis(0)).unwrap() {
+            self.face.draw_anyway = true;
+
             match event::read().unwrap() {
                 Key(KeyEvent {kind: KeyEventKind::Press, code, modifiers: _, state: _}) => {
                     if self.face.in_quit_dialog {
@@ -558,6 +565,7 @@ impl DefaultUIFace {
             *self.stat_moments.last_mut().unwrap() = moment;
         } else {
             self.stat_moments.push(moment);
+            self.draw_anyway = true;
         }
     }
 
@@ -604,6 +612,8 @@ impl DefaultUIFace {
             ListItem::from(Self::numeric_stat_line("Expr/s/thread", count_recent * 10 / deci_thread_seconds_recent)),
             ListItem::from(Self::numeric_stat_line("Life avg. expr/s", count * 10 / deci_seconds)),
             ListItem::from(Self::numeric_stat_line("Life avg. expr/s/thread", count * 10 / deci_thread_seconds)),
+
+            // No longer should work as debug diagnostic because the UI freezes when paused.
             //ListItem::from(Self::numeric_stat_line("Moment count", self.stat_moments.len() as _)),
         ]
     }
