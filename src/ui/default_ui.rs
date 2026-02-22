@@ -1,6 +1,6 @@
 
 use std::time::Duration;
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Local, TimeDelta};
 use ratatui::Terminal;
 use ratatui::prelude::CrosstermBackend;
 use ratatui::layout::Flex;
@@ -40,6 +40,8 @@ lazy_static! {
 struct StatMoment {
     timestamp: DateTime<Local>,
     expr_count: u128,
+    raw_seconds: f64,
+    unpaused_seconds: f64,
     thread_seconds: f64,
 }
 
@@ -48,20 +50,22 @@ impl StatMoment {
         Self {
             timestamp: Local::now(),
             expr_count: 0,
+            raw_seconds: 0.0,
+            unpaused_seconds: 0.0,
             thread_seconds: 0.0,
         }
     }
 
-    fn step_to_now(&self, expr_count: u128, thread_count: usize) -> Self {
+    fn step_to_now(&self, expr_count: u128, thread_count: usize, paused: bool) -> Self {
         let timestamp = Local::now();
+        let interval = (timestamp - self.timestamp).as_seconds_f64();
 
         Self {
+            timestamp,
             expr_count,
-            thread_seconds:
-                self.thread_seconds + 
-                    thread_count as f64 *
-                    (timestamp - self.timestamp).as_seconds_f64(),
-            timestamp
+            raw_seconds: self.raw_seconds + interval,
+            thread_seconds: self.thread_seconds + thread_count as f64 * interval,
+            unpaused_seconds: self.unpaused_seconds + (if paused {0.0} else {1.0}) * interval,
         }
     }
 }
@@ -165,6 +169,7 @@ impl UI for DefaultUI {
             self.face.last_stat_moment().step_to_now(
                 total_count,
                 self.face.unpaused_thread_count(),
+                self.face.paused,
             )
         );
     }
@@ -174,6 +179,7 @@ impl UI for DefaultUI {
             self.face.last_stat_moment().step_to_now(
                 self.face.total_count(),
                 self.face.unpaused_thread_count(),
+                self.face.paused,
             )
         );
 
@@ -560,14 +566,13 @@ impl DefaultUIFace {
         
         // Intermediate calculations.
 
-        let last_timestamp = self.last_stat_moment().timestamp;
         let five_second_mark = self.five_second_mark();
         let count = self.total_count();
-        let deci_seconds = 1.max((last_timestamp - self.start_time()).num_milliseconds() / 100) as u128;
+        let deci_seconds = 1.max((self.last_stat_moment().unpaused_seconds * 10.0) as u128);
         let deci_thread_seconds = 1.max((self.last_stat_moment().thread_seconds * 10.0) as u128);
 
         let count_recent = self.total_count() - self.stat_moments[five_second_mark].expr_count;
-        let deci_seconds_recent = 1.max((last_timestamp - self.stat_moments[five_second_mark].timestamp).num_milliseconds() / 100) as u128;
+        let deci_seconds_recent = 1.max(((self.last_stat_moment().unpaused_seconds - self.stat_moments[five_second_mark].unpaused_seconds) * 10.0) as u128);
         let deci_thread_seconds_recent = 1.max(((self.last_stat_moment().thread_seconds - self.stat_moments[five_second_mark].thread_seconds) * 10.0) as u128);
 
         // Return.
@@ -579,7 +584,7 @@ impl DefaultUIFace {
             ListItem::from(Self::stat_line(
                 "Uptime",
                 &format!("{} — ", utils::format_timestamp(&self.start_time())),
-                &format!("{}", utils::format_duration(&(Local::now() - self.start_time()), false)),
+                &format!("{}", utils::format_duration(&TimeDelta::seconds((deci_seconds / 10) as _), false)),
             )),
             ListItem::from(Self::numeric_stat_line("Count", count)),
             ListItem::from(Self::numeric_stat_line("Expr/s", count_recent * 10 / deci_seconds_recent)),

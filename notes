@@ -27,7 +27,6 @@ Todo
 ——————————
 
 — Near-term:
-    — Make "Life avg. exprs/sec" stat not count down when paused.
     — Make inspections wrap.
     — Make solutions UI scroll.
     — Implement UI freezing (and maybe also hotkey-copying).
