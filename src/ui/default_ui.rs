@@ -279,16 +279,21 @@ impl UI for DefaultUI {
 
         // Scrolling.
 
-        let highlight = self.face.solution_selected.unwrap_or(0);
-        let term_height = self.terminal.size().unwrap().height as usize - 5;
+        let focus = self.face.solution_selected.unwrap_or(0) as i64;
+        let last = self.face.solutions_found.len() as i64 - 1;
+        let height = self.terminal.size().unwrap().height as i64 - 5;
 
-        if highlight < self.face.scroll_offset + 3 {
-            self.face.scroll_offset = highlight.max(3) - 3;
-        }
+        let mut offset = 0;
 
-        if highlight > self.face.scroll_offset + term_height - 4 {
-            self.face.scroll_offset = (highlight - term_height + 4).min(self.face.solutions_found.len() - term_height);
-        }
+        let min_pos = 3;
+        let max_pos = height - 4;
+
+        if (focus - offset) < min_pos {offset = focus - min_pos;}
+        if (focus - offset) > max_pos {offset = focus - max_pos;}
+        if (last  - offset) < height  {offset = last - height;}
+        if offset < 0 {offset = 0;}
+
+        self.face.scroll_offset = offset as usize;
 
         ret
     }
