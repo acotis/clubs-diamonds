@@ -78,6 +78,7 @@ pub struct DefaultUI {
 struct DefaultUIFace {
     solutions_found: Vec<(String, usize, Option<String>)>,
     solution_selected: Option<usize>,
+    scroll_offset: usize,
     description: Option<String>,
     inspector_enabled: bool,
     debug_banner_enabled: bool,
@@ -110,6 +111,7 @@ impl UI for DefaultUI {
             face: DefaultUIFace {
                 solutions_found: vec![],
                 solution_selected: None,
+                scroll_offset: 0,
                 description: None,
                 inspector_enabled: false,
                 debug_banner_enabled: true,
@@ -245,6 +247,14 @@ impl UI for DefaultUI {
                                      .map(|number| if number > 0 {number - 1} else {0})
                                      .or(if self.face.solutions_found.is_empty() {None} else {Some(0)});
                         }
+                        Char('g') => {
+                            self.face.solution_selected =
+                                if self.face.solutions_found.is_empty() {None} else {Some(0)};
+                        }
+                        Char('G') => {
+                            self.face.solution_selected =
+                                if self.face.solutions_found.is_empty() {None} else {Some(self.face.solutions_found.len()-1)};
+                        }
 
                         Char('+') => {ret.push(IncreaseThreadCount);}
                         Char('-') => {ret.push(DecreaseThreadCount);}
@@ -265,6 +275,19 @@ impl UI for DefaultUI {
                 },
                 _ => ()
             }
+        }
+
+        // Scrolling.
+
+        let highlight = self.face.solution_selected.unwrap_or(0);
+        let term_height = self.terminal.size().unwrap().height as usize - 5;
+
+        if highlight < self.face.scroll_offset + 3 {
+            self.face.scroll_offset = highlight.max(3) - 3;
+        }
+
+        if highlight > self.face.scroll_offset + term_height - 4 {
+            self.face.scroll_offset = (highlight - term_height + 4).min(self.face.solutions_found.len() - term_height);
         }
 
         ret
@@ -291,7 +314,7 @@ impl Widget for &DefaultUIFace {
 
         // Create the solution list.
 
-        let sl = self.solution_list_ui(area.height as _);
+        let sl = self.solution_list_ui();
 
         // Create the dashboard.
 
@@ -355,7 +378,7 @@ impl DefaultUIFace {
         self.stat_moments[0].timestamp
     }
 
-    fn solution_list_ui(&self, term_height: usize) -> Vec<ListItem<'_>> {
+    fn solution_list_ui(&self) -> Vec<ListItem<'_>> {
         let mut ret = vec![];
 
         // Title.
@@ -386,21 +409,13 @@ impl DefaultUIFace {
 
         // Solutions.
 
-        let height = term_height - 5;
-
-        let skip = 
-            self.solution_selected
-                .filter(|x| *x > height - 5)
-                .map_or(0, |x| x-(height-5))
-                .min(self.solutions_found.len().max(height) - height);
-
-        if skip > 0 {
+        if self.scroll_offset > 0 {
             ret.push(ListItem::new(Line::from(vec![
                 Span::raw(format!("...")).style(*STYLE_SOLUTION_META),
             ])));
         }
 
-        for (idx, (solution, score, _insepction)) in self.solutions_found.iter().enumerate().skip(skip).take(50) {
+        for (idx, (solution, score, _insepction)) in self.solutions_found.iter().enumerate().skip(self.scroll_offset + if self.scroll_offset > 0 {1} else {0}).take(50) {
             ret.push(ListItem::new(Line::from(Self::format_solution(solution, *score, self.solution_selected == Some(idx)))));
         }
 
