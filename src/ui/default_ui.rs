@@ -425,7 +425,7 @@ impl DefaultUIFace {
             ])));
         }
 
-        for (idx, (solution, score, _insepction)) in self.solutions_found.iter().enumerate().skip(self.scroll_offset + if self.scroll_offset > 0 {1} else {0}).take(50) {
+        for (idx, (solution, score, _insepction)) in self.solutions_found.iter().enumerate().skip(self.scroll_offset + if self.scroll_offset > 0 {1} else {0}).take(60) {
             ret.push(ListItem::new(Line::from(Self::format_solution(solution, *score, self.solution_selected == Some(idx)))));
         }
 
