@@ -37,15 +37,13 @@ Todo
       to use variables beyond its arity.
 
 — Testing:
-    — Write correctness tests for the max-constant feature specifically.
     — Write correctness tests for finnicky usability features, like the
       ability to pass arbitrary closures (not just function pointers) as
       judges, inspectors, and penalizers.
     — Clean out empty and mostly-empty benchmarks.
         — Create a system for tracking important benchmark files.
-    — Write benchmarks that specifically target expression application.
-    — Write benchmarks that invoke the .max_constant() feature, specifically
-      with low maximums (as this seems to slow Clubs down significantly).
+    — Write benchmarks that invoke the .max_constant() feature with low
+      maximums (as this seems to slow Clubs down significantly).
 
 — Publically maintaining:
     — Read, and try to comply with, Rust library guidelines.
@@ -85,8 +83,7 @@ Todo
       faster (it might be, since we increment one every time we try a candidate
       expression, and u128's are not native on most machines).
     — Try the u128 implementation (again).
-    — Try varying the stack size of Expression::apply().
-    — Try varying the field size of find_with_length_and_op().
+    — Try using thread_local!() to not re-allocate the expr eval stack buffer.
     — Try letting Expression::apply() use uninitialized memory as its stack.
     — Try varying the delay length between control thread cycles and the max
       value of the frame clock.
