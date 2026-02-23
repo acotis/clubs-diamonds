@@ -291,7 +291,7 @@ impl Widget for &DefaultUIFace {
 
         // Create the solution list.
 
-        let sl = self.solution_list_ui();
+        let sl = self.solution_list_ui(area.height as _);
 
         // Create the dashboard.
 
@@ -355,7 +355,7 @@ impl DefaultUIFace {
         self.stat_moments[0].timestamp
     }
 
-    fn solution_list_ui(&self) -> Vec<ListItem<'_>> {
+    fn solution_list_ui(&self, term_height: usize) -> Vec<ListItem<'_>> {
         let mut ret = vec![];
 
         // Title.
@@ -386,7 +386,21 @@ impl DefaultUIFace {
 
         // Solutions.
 
-        for (idx, (solution, score, _insepction)) in self.solutions_found.iter().enumerate() {
+        let height = term_height - 5;
+
+        let skip = 
+            self.solution_selected
+                .filter(|x| *x > height - 5)
+                .map_or(0, |x| x-(height-5))
+                .min(self.solutions_found.len().max(height) - height);
+
+        if skip > 0 {
+            ret.push(ListItem::new(Line::from(vec![
+                Span::raw(format!("...")).style(*STYLE_SOLUTION_META),
+            ])));
+        }
+
+        for (idx, (solution, score, _insepction)) in self.solutions_found.iter().enumerate().skip(skip).take(50) {
             ret.push(ListItem::new(Line::from(Self::format_solution(solution, *score, self.solution_selected == Some(idx)))));
         }
 
