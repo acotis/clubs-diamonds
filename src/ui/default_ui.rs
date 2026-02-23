@@ -90,6 +90,8 @@ struct DefaultUIFace {
     news_feed: Vec<(DateTime<Local>, f64, String)>,
     draw_anyway: bool, // draw on next frame even if paused
 
+    scroll_comment: String,
+
     debug_banner_shown: bool,
     description_shown: bool,
     inspector_shown: bool,
@@ -122,6 +124,8 @@ impl UI for DefaultUI {
                 thread_statuses: vec![],
                 news_feed: vec![],
                 draw_anyway: false,
+
+                scroll_comment: format!(""),
 
                 #[cfg(debug_assertions)] debug_banner_shown: true,
                 #[cfg(not(debug_assertions))] debug_banner_shown: false,
@@ -283,15 +287,16 @@ impl UI for DefaultUI {
         let last = self.face.solutions_found.len() as i64 - 1;
         let height = self.terminal.size().unwrap().height as i64 - 5;
 
-        let mut offset = 0;
+        let mut offset = self.face.scroll_offset as i64;
 
         let min_pos = 3;
         let max_pos = height - 4;
 
-        if (focus - offset) < min_pos {offset = focus - min_pos;}
-        if (focus - offset) > max_pos {offset = focus - max_pos;}
-        if (last  - offset) < height  {offset = last - height;}
-        if offset < 0 {offset = 0;}
+        self.face.scroll_comment = format!("—");
+        if (focus - offset) < min_pos {offset = focus - min_pos; self.face.scroll_comment += "1"}
+        if (focus - offset) > max_pos {offset = focus - max_pos; self.face.scroll_comment += "2"}
+        if (last  - offset) < height  {offset = last - height; self.face.scroll_comment += "3"}
+        if offset < 0 {offset = 0; self.face.scroll_comment += "4"}
 
         self.face.scroll_offset = offset as usize;
 
@@ -646,6 +651,8 @@ impl DefaultUIFace {
             ListItem::from(Self::numeric_stat_line("Expr/s/thread", count_recent * 10 / deci_thread_seconds_recent)),
             ListItem::from(Self::numeric_stat_line("Life avg. expr/s", count * 10 / deci_seconds)),
             ListItem::from(Self::numeric_stat_line("Life avg. expr/s/thread", count * 10 / deci_thread_seconds)),
+
+            ListItem::from(Self::stat_line("Scroll comment", "", &self.scroll_comment)),
 
             // No longer should work as debug diagnostic because the UI freezes when paused.
             //ListItem::from(Self::numeric_stat_line("Moment count", self.stat_moments.len() as _)),
