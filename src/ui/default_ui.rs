@@ -652,7 +652,8 @@ impl DefaultUIFace {
             ListItem::from(Self::numeric_stat_line("Life avg. expr/s", count * 10 / deci_seconds)),
             ListItem::from(Self::numeric_stat_line("Life avg. expr/s/thread", count * 10 / deci_thread_seconds)),
 
-            ListItem::from(Self::stat_line("Scroll comment", "", &self.scroll_comment)),
+            // Debug only.
+            //ListItem::from(Self::stat_line("Scroll comment", "", &self.scroll_comment)),
 
             // No longer should work as debug diagnostic because the UI freezes when paused.
             //ListItem::from(Self::numeric_stat_line("Moment count", self.stat_moments.len() as _)),
