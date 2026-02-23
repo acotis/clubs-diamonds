@@ -332,7 +332,7 @@ impl Widget for &DefaultUIFace {
 
         if self.debug_banner_enabled && self.debug_banner_shown {db_items.push(self.debug_banner_ui());}
         if self.description_shown  {db_items.push(self.description_ui());}
-        if self.inspector_shown    {db_items.push(self.solution_inspector_ui());}
+        if self.inspector_shown    {db_items.push(self.solution_inspector_ui(dashboard_area.width as usize));}
         if self.stats_shown        {db_items.push(self.stats_ui());}
         if self.threads_shown      {db_items.push(self.thread_viewer_ui());}
         if self.news_feed_shown    {db_items.push(self.news_feed_ui());}
@@ -492,7 +492,7 @@ impl DefaultUIFace {
         ret
     }
 
-    fn solution_inspector_ui(&self) -> Vec<ListItem<'_>> {
+    fn solution_inspector_ui(&self, max_width: usize) -> Vec<ListItem<'_>> {
         let mut ret = vec![];
 
         // Title.
@@ -548,7 +548,20 @@ impl DefaultUIFace {
                 if let Some(idx) = self.solution_selected {
                     if let Some(ref inspection) = self.solutions_found[idx].2 {
                         for line in inspection.lines() {
-                            ret.push(ListItem::from(Span::raw(format!("{line:50}")).style(*STYLE_INSPECTION)));
+                            let mut next_push = format!("");
+
+                            for c in line.chars() {
+                                let with_c = format!("{next_push}{c}");
+
+                                if console::measure_text_width(&with_c) > max_width {
+                                    ret.push(ListItem::from(Span::raw(format!("{next_push}")).style(*STYLE_INSPECTION)));
+                                    next_push = format!("");
+                                }
+
+                                next_push.push(c);
+                            }
+
+                            ret.push(ListItem::from(Span::raw(format!("{next_push}")).style(*STYLE_INSPECTION)));
                         }
                     } else {
                         ret.push(ListItem::new(Line::from("error: missing inspection (???)").style(*STYLE_MISSING_VALUE)));
