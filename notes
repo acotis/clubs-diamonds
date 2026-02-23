@@ -56,13 +56,9 @@ Todo
     — Add var type and var count to the header of the Description panel.
     — Implement canaries (expressions given to the Searcher to try first,
       so that you can check that your predicate is correct).
-    — Implement constants over 155 using continuation digits.
-        — Benchmark the changes.
     — Implement required_variables().
         — Benchmark the changes.
         — Add correctness tests and benchmark tests for this.
-    — In UI, make the solutions list scrollable.
-        — Make it only render the solutions which will fit on the screen.
     — Implement max_to_find().
     — Implement max_to_search().
     — Implement max_score().
