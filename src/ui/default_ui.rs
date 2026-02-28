@@ -262,7 +262,7 @@ impl UI for DefaultUI {
 
                         Char('+') => {ret.push(IncreaseThreadCount);}
                         Char('-') => {ret.push(DecreaseThreadCount);}
-                        Char('p') => {ret.push(PauseUnpause); self.face.paused = !self.face.paused;}
+                        Char('p') | Char(' ') => {ret.push(PauseUnpause); self.face.paused = !self.face.paused;}
 
                         Char('d') => {self.face.description_shown = !self.face.description_shown;}
                         Char('i') => {self.face.inspector_shown = !self.face.inspector_shown;}
